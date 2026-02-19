@@ -1,0 +1,375 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String?  @unique
+  password  String
+  name      String
+  role      Role     @default(CASHIER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sales     Sale[]
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  CASHIER
+  ACCOUNTANT
+  WINGER
+  SHOP_ASSISTANT
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  profitMargin Float   @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+}
+
+model Supplier {
+  id          String   @id @default(cuid())
+  name        String
+  email       String?
+  phone       String?
+  address     String?
+  contactPerson String?
+  notes       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  products    Product[]
+  purchaseOrders PurchaseOrder[]
+}
+
+model Product {
+  id              String   @id @default(cuid())
+  name            String
+  sku             String   @unique
+  barcode         String?
+  description     String?
+  categoryId      String
+  category        Category @relation(fields: [categoryId], references: [id])
+  supplierId      String?
+  supplier        Supplier? @relation(fields: [supplierId], references: [id])
+  purchaseCost    Float
+  sellingPrice    Float
+  wholesalePrice  Float?
+  stockQuantity   Int      @default(0)
+  lowStockThreshold Int     @default(10)
+  reorderPoint    Int      @default(20)
+  isFaulty        Boolean  @default(false)
+  hasExpiry       Boolean  @default(false)
+  expiryDate      DateTime?
+  hasSerialNumber Boolean  @default(false)
+  weight          Float?
+  taxRate         Float    @default(0)
+  location        String?
+  imageUrl        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  saleItems       SaleItem[]
+  stockMovements  StockMovement[]
+  returns         ReturnItem[]
+  purchaseOrderItems PurchaseOrderItem[]
+  priceTags       PriceTag[]
+  stockCounts    StockCountItem[]
+  serialNumbers   SerialNumber[]
+}
+
+model SerialNumber {
+  id          String   @id @default(cuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  serialNumber String
+  isSold      Boolean  @default(false)
+  saleId      String?
+  createdAt   DateTime @default(now())
+}
+
+model StockMovement {
+  id         String   @id @default(cuid())
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  type       StockMovementType
+  quantity   Int
+  reference  String?
+  reason     String?
+  createdAt  DateTime @default(now())
+  createdBy  String?
+}
+
+enum StockMovementType {
+  STOCK_IN
+  STOCK_OUT
+  ADJUSTMENT
+  RETURN_RESELLABLE
+  RETURN_FAULTY
+  DAMAGE
+  THEFT
+  EXPIRED
+  AUDIT
+}
+
+model Sale {
+  id            String   @id @default(cuid())
+  receiptNumber String   @unique
+  subtotal      Float
+  taxAmount     Float    @default(0)
+  discount      Float    @default(0)
+  total         Float
+  paymentMethod PaymentMethod
+  saleType      SaleType      @default(RETAIL)
+  amountPaid    Float
+  changeGiven   Float    @default(0)
+  customerId    String?
+  customer      Customer? @relation(fields: [customerId], references: [id])
+  customerName  String?
+  customerPhone String?
+  isInstallment Boolean  @default(false)
+  installmentTotal Float?
+  installmentPaid Float   @default(0)
+  installmentDue Float?
+  nextPaymentDate DateTime?
+  createdAt     DateTime @default(now())
+  cashierId     String
+  cashier       User     @relation(fields: [cashierId], references: [id])
+
+  items         SaleItem[]
+  payments      InstallmentPayment[]
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  MOBILE
+  CREDIT
+}
+
+enum SaleType {
+  RETAIL
+  WHOLESALE
+}
+
+model InstallmentPayment {
+  id            String   @id @default(cuid())
+  saleId        String
+  sale          Sale     @relation(fields: [saleId], references: [id])
+  amount        Float
+  amountPaid    Float
+  balance       Float
+  dueDate       DateTime?
+  paidAt        DateTime?
+  notes         String?
+  createdAt     DateTime @default(now())
+}
+
+model SaleItem {
+  id          String  @id @default(cuid())
+  saleId      String
+  sale        Sale    @relation(fields: [saleId], references: [id])
+  productId   String
+  product     Product @relation(fields: [productId], references: [id])
+  quantity    Int
+  unitPrice   Float
+  taxAmount   Float   @default(0)
+  discount    Float   @default(0)
+  total       Float
+}
+
+model Customer {
+  id          String   @id @default(cuid())
+  name        String
+  email       String?
+  phone       String?
+  address     String?
+  creditBalance Float  @default(0)
+  loyaltyPoints Int    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  sales       Sale[]
+}
+
+model Return {
+  id            String   @id @default(cuid())
+  returnNumber  String   @unique
+  reason        String
+  refundMethod  String?
+  totalRefund   Float    @default(0)
+  createdAt     DateTime @default(now())
+  processedBy   String
+  items         ReturnItem[]
+}
+
+model ReturnItem {
+  id              String           @id @default(cuid())
+  returnId        String
+  return          Return           @relation(fields: [returnId], references: [id])
+  productId       String
+  product         Product          @relation(fields: [productId], references: [id])
+  quantity        Int
+  reason          String
+  status          ReturnStatus
+  refundAmount    Float
+  supplierId      String?
+  supplierName    String?
+  awardedType     AwardedType      @default(REFUND)
+  awardedAmount   Float           @default(0)
+  repairCost      Float           @default(0)
+  replacementProductId       String?
+  replacementProductName     String?
+  replacementProductPrice     Float?
+  originalProductValue        Float?
+  priceDifference             Float     @default(0)
+  differencePaidBy           String    @default("CLIENT")
+  notes           String?
+  createdAt       DateTime         @default(now())
+}
+
+enum AwardedType {
+  REFUND
+  REPLACEMENT
+  REPAIR
+  STORE_CREDIT
+}
+
+enum ReturnStatus {
+  PENDING
+  RESELLABLE
+  FAULTY
+  REFUNDED
+  DISCARDED
+}
+
+model PurchaseOrder {
+  id              String   @id @default(cuid())
+  orderNumber     String   @unique
+  supplierId      String
+  supplier        Supplier @relation(fields: [supplierId], references: [id])
+  status          PurchaseOrderStatus @default(PENDING)
+  totalAmount     Float    @default(0)
+  paidAmount      Float    @default(0)
+  notes           String?
+  expectedDelivery DateTime?
+  receivedAt      DateTime?
+  createdAt       DateTime @default(now())
+  createdBy       String
+  items           PurchaseOrderItem[]
+}
+
+enum PurchaseOrderStatus {
+  PENDING
+  ORDERED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+model PurchaseOrderItem {
+  id              String   @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id])
+  quantityOrdered Int
+  quantityReceived Int    @default(0)
+  unitCost        Float
+  totalCost       Float
+}
+
+model PriceTag {
+  id          String   @id @default(cuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  barcode      String
+  printedAt   DateTime @default(now())
+  printedBy   String?
+}
+
+model StockCount {
+  id          String   @id @default(cuid())
+  countNumber String   @unique
+  status      StockCountStatus @default(IN_PROGRESS)
+  notes       String?
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+  createdBy   String
+  items       StockCountItem[]
+}
+
+enum StockCountStatus {
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model StockCountItem {
+  id          String   @id @default(cuid())
+  stockCountId String
+  stockCount  StockCount @relation(fields: [stockCountId], references: [id])
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  systemQty   Int
+  countedQty  Int?
+  variance    Int?
+  notes       String?
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  category    ExpenseCategory
+  amount      Float
+  description String
+  reference   String?
+  date        DateTime @default(now())
+  createdBy   String
+}
+
+enum ExpenseCategory {
+  RENT
+  UTILITIES
+  SALARIES
+  SUPPLIES
+  MAINTENANCE
+  MARKETING
+  TRANSPORT
+  OTHER
+}
+
+model Settings {
+  id              String   @id @default("default")
+  businessName     String   @default("My Shop")
+  businessPhone   String?
+  businessEmail   String?
+  businessAddress String?
+  currency        String    @default("TZS")
+  currencySymbol  String   @default("$")
+  taxRate         Float    @default(0)
+  receiptFooter   String?
+  lowStockAlert   Boolean  @default(true)
+  expiryAlert     Boolean  @default(true)
+  expiryAlertDays Int      @default(7)
+}
+
+model RolePermission {
+  id        String   @id @default(cuid())
+  role      String   @unique
+  module    String
+  canRead   Boolean  @default(true)
+  canWrite  Boolean  @default(false)
+  canDelete Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
