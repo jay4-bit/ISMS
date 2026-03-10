@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const cashierId = await getCashierId();
     const body = await request.json();
     
-    const { items, discount = 0, paymentMethod, saleType = 'RETAIL', customerName, customerPhone, amountPaid = 0 } = body;
+    const { items, discount = 0, paymentMethod, saleType = 'RETAIL', customerName, customerPhone, customerAddress, amountPaid = 0, customerId, saveCustomer = false } = body;
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: 'No items in cart' }, { status: 400 });
@@ -36,6 +36,27 @@ export async function POST(request: NextRequest) {
 
     const isCredit = paymentMethod === 'CREDIT';
     const useWholesale = saleType === 'WHOLESALE';
+    
+    let finalCustomerId = customerId;
+    
+    // Save customer if requested
+    if (saveCustomer && customerName) {
+      let customer = null;
+      if (customerPhone) {
+        customer = await prisma.customer.findFirst({ where: { phone: customerPhone } });
+      }
+      if (!customer) {
+        customer = await prisma.customer.create({
+          data: {
+            name: customerName,
+            phone: customerPhone || null,
+            email: null,
+            address: customerAddress || null,
+          }
+        });
+      }
+      finalCustomerId = customer.id;
+    }
     
     let subtotal = 0;
     const saleItemsData = [];
@@ -59,28 +80,42 @@ export async function POST(request: NextRequest) {
     const paid = isCredit ? amountPaid : total;
     const change = paymentMethod === 'CASH' ? Math.max(0, amountPaid - total) : 0;
     
-    const sale = await prisma.sale.create({
-      data: {
-        receiptNumber: generateReceiptNumber(),
-        subtotal,
-        discount: discount || 0,
-        total,
-        paymentMethod,
-        saleType,
-        amountPaid: paid,
-        changeGiven: change,
-        customerName: customerName || null,
-        customerPhone: customerPhone || null,
-        isInstallment: isCredit,
-        installmentTotal: isCredit ? total : null,
-        installmentPaid: isCredit ? amountPaid : null,
-        installmentDue: isCredit ? Math.max(0, total - amountPaid) : null,
-        nextPaymentDate: isCredit ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null,
-        cashierId,
-        items: {
-          create: saleItemsData,
-        },
+    const saleData: any = {
+      receiptNumber: generateReceiptNumber(),
+      subtotal,
+      discount: discount || 0,
+      total,
+      paymentMethod,
+      saleType,
+      amountPaid: paid,
+      changeGiven: change,
+      customerName: customerName || null,
+      customerPhone: customerPhone || null,
+      customerAddress: customerAddress || null,
+      isInstallment: isCredit,
+      saleStatus: isCredit ? 'INSTALLMENT' : 'COMPLETE',
+      isPaid: !isCredit,
+      cashier: {
+        connect: { id: cashierId }
       },
+      items: {
+        create: saleItemsData,
+      },
+    };
+
+    if (finalCustomerId) {
+      saleData.installmentCustomer = { connect: { id: finalCustomerId } };
+    }
+
+    if (isCredit) {
+      saleData.installmentTotal = total;
+      saleData.installmentPaid = amountPaid;
+      saleData.installmentDue = Math.max(0, total - amountPaid);
+      saleData.nextPaymentDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    }
+
+    const sale = await prisma.sale.create({
+      data: saleData,
       include: {
         items: { include: { product: true } },
         cashier: { select: { name: true, email: true } },

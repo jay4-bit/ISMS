@@ -1,6 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 
+function generateBarcode(sku: string): string {
+  const prefix = '2';
+  const timestamp = Date.now().toString().slice(-6);
+  const skuHash = sku.replace(/\D/g, '').slice(-4).padStart(4, '0');
+  const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+  const base = prefix + timestamp + skuHash + random;
+  
+  let sum = 0;
+  for (let i = 0; i < base.length; i++) {
+    sum += parseInt(base[i]) * (i % 2 === 0 ? 1 : 3);
+  }
+  const checkDigit = (10 - (sum % 10)) % 10;
+  
+  return base + checkDigit;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -45,7 +61,7 @@ export async function POST(request: NextRequest) {
       name, sku, barcode, description, categoryId, supplierId,
       purchaseCost, sellingPrice, wholesalePrice, stockQuantity,
       lowStockThreshold, reorderPoint, hasExpiry, expiryDate,
-      taxRate, location
+      taxRate, location, variant, variantType
     } = body;
 
     const existingSku = await prisma.product.findUnique({ where: { sku } });
@@ -53,11 +69,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'SKU already exists' }, { status: 400 });
     }
 
+    const generatedBarcode = barcode || generateBarcode(sku);
+
     const product = await prisma.product.create({
       data: {
         name,
         sku,
-        barcode: barcode || null,
+        barcode: generatedBarcode,
         description,
         categoryId,
         supplierId: supplierId || null,
@@ -71,6 +89,8 @@ export async function POST(request: NextRequest) {
         expiryDate: expiryDate ? new Date(expiryDate) : null,
         taxRate: parseFloat(taxRate) || 0,
         location: location || null,
+        variant: variant || null,
+        variantType: variantType || null,
       },
       include: { category: true },
     });
@@ -89,14 +109,14 @@ export async function PUT(request: NextRequest) {
       id, name, sku, barcode, description, categoryId, supplierId,
       purchaseCost, sellingPrice, wholesalePrice, stockQuantity,
       lowStockThreshold, reorderPoint, hasExpiry, expiryDate,
-      taxRate, location, isFaulty
+      taxRate, location, isFaulty, variant, variantType
     } = body;
 
     const product = await prisma.product.update({
       where: { id },
       data: {
         name,
-        barcode: barcode || null,
+        barcode: barcode || generateBarcode(sku),
         description,
         categoryId,
         supplierId: supplierId || null,
@@ -111,6 +131,8 @@ export async function PUT(request: NextRequest) {
         taxRate: parseFloat(taxRate) || 0,
         location: location || null,
         isFaulty: isFaulty || false,
+        variant: variant || null,
+        variantType: variantType || null,
       },
       include: { category: true },
     });
@@ -136,6 +158,36 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Delete product error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const action = searchParams.get('action');
+
+    if (action === 'generateBarcodes') {
+      const productsWithoutBarcode = await prisma.product.findMany({
+        where: { barcode: null }
+      });
+
+      let updated = 0;
+      for (const product of productsWithoutBarcode) {
+        const newBarcode = generateBarcode(product.sku);
+        await prisma.product.update({
+          where: { id: product.id },
+          data: { barcode: newBarcode }
+        });
+        updated++;
+      }
+
+      return NextResponse.json({ success: true, updated });
+    }
+
+    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+  } catch (error) {
+    console.error('Patch error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

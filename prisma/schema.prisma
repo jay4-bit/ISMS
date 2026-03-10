@@ -77,9 +77,35 @@ model Product {
   taxRate         Float    @default(0)
   location        String?
   imageUrl        String?
+  variant         String?
+  variantType     String?
+  
+  brand           String?
+  model           String?
+  warranty        String?
+  voltage         String?
+  wattage         Float?
+  
+  size            String?
+  color           String?
+  material        String?
+  season          String?
+  
+  dosage          String?
+  composition     String?
+  manufacturer    String?
+  batchNumber     String?
+  prescriptionRequired Boolean @default(false)
+  
+  alcoholPercentage Float?
+  volume           Float?
+  vintage          String?
+  liquorLicense    Boolean @default(false)
+  
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  variants        ProductVariant[]
   saleItems       SaleItem[]
   stockMovements  StockMovement[]
   returns         ReturnItem[]
@@ -87,6 +113,22 @@ model Product {
   priceTags       PriceTag[]
   stockCounts    StockCountItem[]
   serialNumbers   SerialNumber[]
+}
+
+model ProductVariant {
+  id            String   @id @default(cuid())
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variantValue  String
+  sku           String   @unique
+  barcode       String?
+  stockQuantity Int      @default(0)
+  sellingPrice  Float
+  purchaseCost  Float?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([productId, variantValue])
 }
 
 model SerialNumber {
@@ -136,13 +178,18 @@ model Sale {
   changeGiven   Float    @default(0)
   customerId    String?
   customer      Customer? @relation(fields: [customerId], references: [id])
+  installmentCustomerId String?
+  installmentCustomer Customer? @relation("InstallmentCustomer", fields: [installmentCustomerId], references: [id])
   customerName  String?
   customerPhone String?
+  customerAddress String?
   isInstallment Boolean  @default(false)
   installmentTotal Float?
-  installmentPaid Float   @default(0)
+  installmentPaid Float?
   installmentDue Float?
   nextPaymentDate DateTime?
+  saleStatus   SaleStatus @default(COMPLETE)
+  isPaid       Boolean   @default(true)
   createdAt     DateTime @default(now())
   cashierId     String
   cashier       User     @relation(fields: [cashierId], references: [id])
@@ -161,6 +208,12 @@ enum PaymentMethod {
 enum SaleType {
   RETAIL
   WHOLESALE
+}
+
+enum SaleStatus {
+  COMPLETE
+  INSTALLMENT
+  CANCELLED
 }
 
 model InstallmentPayment {
@@ -197,9 +250,12 @@ model Customer {
   address     String?
   creditBalance Float  @default(0)
   loyaltyPoints Int    @default(0)
+  totalPurchases Float @default(0)
+  isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   sales       Sale[]
+  installmentSales Sale[] @relation("InstallmentCustomer")
 }
 
 model Return {
@@ -348,6 +404,16 @@ enum ExpenseCategory {
   OTHER
 }
 
+model BusinessType {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  fields      String   @default("[]")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model Settings {
   id              String   @id @default("default")
   businessName     String   @default("My Shop")
@@ -361,15 +427,18 @@ model Settings {
   lowStockAlert   Boolean  @default(true)
   expiryAlert     Boolean  @default(true)
   expiryAlertDays Int      @default(7)
+  businessTypeId  String?
 }
 
 model RolePermission {
   id        String   @id @default(cuid())
-  role      String   @unique
+  role      String
   module    String
   canRead   Boolean  @default(true)
   canWrite  Boolean  @default(false)
   canDelete Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([role, module])
 }

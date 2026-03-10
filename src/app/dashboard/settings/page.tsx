@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { 
   Settings as SettingsIcon, Building2, Phone, Mail, MapPin, DollarSign, 
   Users, UserPlus, Edit, Trash2, X, Save, Bell, Shield, Palette,
-  Check, AlertTriangle, Key
+  Check, AlertTriangle, Key, Plus
 } from 'lucide-react';
 import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
 import { CURRENCIES, useSettings } from '@/context/SettingsContext';
@@ -33,7 +33,7 @@ interface Settings {
 export default function SettingsPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'business' | 'users' | 'alerts' | 'permissions'>('business');
+  const [activeTab, setActiveTab] = useState<'business' | 'users' | 'alerts' | 'permissions' | 'types'>('business');
   const [showUserModal, setShowUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -187,6 +187,7 @@ export default function SettingsPage() {
 
   const tabs = [
     { id: 'business', label: 'Business', icon: Building2 },
+    { id: 'types', label: 'Business Types', icon: Palette },
     { id: 'users', label: 'Users & Roles', icon: Users },
     { id: 'permissions', label: 'Permissions', icon: Shield },
     { id: 'alerts', label: 'Alerts', icon: Bell },
@@ -419,6 +420,10 @@ export default function SettingsPage() {
           </div>
         )}
 
+        {activeTab === 'types' && (
+          <BusinessTypesSection />
+        )}
+
         {activeTab === 'alerts' && (
           <div style={styles.section}>
             <div style={styles.sectionHeader}>
@@ -636,3 +641,139 @@ const styles: Record<string, React.CSSProperties> = {
   modalBody: { display: 'flex', flexDirection: 'column', gap: '1rem' },
   submitBtn: { marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.875rem', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', border: 'none', borderRadius: '0.5rem', color: 'white', fontWeight: '600', cursor: 'pointer' },
 };
+
+function BusinessTypesSection() {
+  const [businessTypes, setBusinessTypes] = useState<any[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [editingType, setEditingType] = useState<any>(null);
+  const [formData, setFormData] = useState({ name: '', description: '' });
+
+  useEffect(() => {
+    fetch('/api/business-types')
+      .then(res => res.json())
+      .then(data => setBusinessTypes(data.businessTypes || []))
+      .catch(console.error);
+  }, []);
+
+  function openModal(type?: any) {
+    if (type) {
+      setEditingType(type);
+      setFormData({ name: type.name, description: type.description || '' });
+    } else {
+      setEditingType(null);
+      setFormData({ name: '', description: '' });
+    }
+    setShowModal(true);
+  }
+
+  async function handleSubmit() {
+    if (!formData.name.trim()) return;
+    
+    const url = editingType ? '/api/business-types' : '/api/business-types';
+    const method = editingType ? 'PUT' : 'POST';
+    const body = editingType 
+      ? { id: editingType.id, name: formData.name, description: formData.description }
+      : { name: formData.name, description: formData.description };
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        if (editingType) {
+          setBusinessTypes(prev => prev.map(t => t.id === data.businessType.id ? data.businessType : t));
+        } else {
+          setBusinessTypes(prev => [...prev, data.businessType]);
+        }
+        setShowModal(false);
+      }
+    } catch (error) {
+      console.error('Save error:', error);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm('Delete this business type?')) return;
+    try {
+      await fetch(`/api/business-types?id=${id}`, { method: 'DELETE' });
+      setBusinessTypes(prev => prev.filter(t => t.id !== id));
+    } catch (error) {
+      console.error('Delete error:', error);
+    }
+  }
+
+  return (
+    <div style={styles.section}>
+      <div style={styles.sectionHeader}>
+        <Palette size={20} />
+        <h2>Business Types</h2>
+      </div>
+      <p style={{ color: '#64748b', marginBottom: '1rem' }}>
+        Define business types (Electronics, Pharmacy, Clothing, etc.) with custom product fields
+      </p>
+
+      <button onClick={() => openModal()} style={styles.submitBtn}>
+        <Plus size={18} /> Add Business Type
+      </button>
+
+      <div style={{ marginTop: '1rem' }}>
+        {businessTypes.map(type => (
+          <div key={type.id} style={{ ...styles.card, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontWeight: '600', color: '#f1f5f9' }}>{type.name}</div>
+              <div style={{ fontSize: '0.85rem', color: '#64748b' }}>{type.description}</div>
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button onClick={() => openModal(type)} style={{ padding: '0.4rem', background: '#3b82f6', border: 'none', borderRadius: '0.375rem', color: 'white', cursor: 'pointer' }}>
+                <Edit size={14} />
+              </button>
+              <button onClick={() => handleDelete(type.id)} style={{ padding: '0.4rem', background: '#ef4444', border: 'none', borderRadius: '0.375rem', color: 'white', cursor: 'pointer' }}>
+                <Trash2 size={14} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {showModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowModal(false)}>
+          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h3>{editingType ? 'Edit' : 'Add'} Business Type</h3>
+              <button onClick={() => setShowModal(false)} style={styles.closeBtn}><X size={20} /></button>
+            </div>
+            <div style={styles.modalBody}>
+              <div>
+                <label style={styles.label}>Name *</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g., Electronics, Pharmacy, Clothing"
+                  style={styles.input}
+                />
+              </div>
+              <div>
+                <label style={styles.label}>Description</label>
+                <input
+                  type="text"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Brief description"
+                  style={styles.input}
+                />
+              </div>
+              <button onClick={handleSubmit} style={styles.submitBtn}>
+                <Save size={18} /> Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

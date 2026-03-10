@@ -205,8 +205,11 @@ export default function PermissionsPage() {
                         type="checkbox"
                         checked={perm.canRead}
                         onChange={(e) => updatePermission(module.id, 'canRead', e.target.checked)}
+                        style={styles.checkboxInput}
                       />
-                      <span style={styles.checkboxMark} />
+                      <span style={{ ...styles.checkboxMark, ...(perm.canRead ? styles.checkboxChecked : {}) }}>
+                        {perm.canRead && <Check size={14} color="white" />}
+                      </span>
                     </label>
                   </div>
                   <div style={styles.actionCol}>
@@ -215,8 +218,11 @@ export default function PermissionsPage() {
                         type="checkbox"
                         checked={perm.canWrite}
                         onChange={(e) => updatePermission(module.id, 'canWrite', e.target.checked)}
+                        style={styles.checkboxInput}
                       />
-                      <span style={styles.checkboxMark} />
+                      <span style={{ ...styles.checkboxMark, ...(perm.canWrite ? styles.checkboxChecked : {}) }}>
+                        {perm.canWrite && <Check size={14} color="white" />}
+                      </span>
                     </label>
                   </div>
                   <div style={styles.actionCol}>
@@ -225,8 +231,11 @@ export default function PermissionsPage() {
                         type="checkbox"
                         checked={perm.canDelete}
                         onChange={(e) => updatePermission(module.id, 'canDelete', e.target.checked)}
+                        style={styles.checkboxInput}
                       />
-                      <span style={styles.checkboxMark} />
+                      <span style={{ ...styles.checkboxMark, ...(perm.canDelete ? styles.checkboxChecked : {}) }}>
+                        {perm.canDelete && <Check size={14} color="white" />}
+                      </span>
                     </label>
                   </div>
                 </div>
@@ -306,8 +315,9 @@ const styles: Record<string, React.CSSProperties> = {
   moduleDesc: { fontSize: '0.75rem', color: '#64748b' },
   actionCol: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', color: '#94a3b8', fontSize: '0.8rem' },
   checkbox: { position: 'relative', display: 'inline-block', width: '22px', height: '22px', cursor: 'pointer' },
-  checkboxInput: { opacity: 0, width: 0, height: 0 },
-  checkboxMark: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: '#0f172a', border: '2px solid #475569', borderRadius: '0.25rem', transition: 'all 0.2s' },
+  checkboxInput: { opacity: 0, width: '22px', height: '22px', cursor: 'pointer', position: 'absolute' },
+  checkboxMark: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: '#0f172a', border: '2px solid #475569', borderRadius: '0.25rem', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  checkboxChecked: { background: '#22c55e', border: '2px solid #22c55e' },
   quickActions: { display: 'flex', gap: '0.75rem', marginTop: '1rem', flexWrap: 'wrap' },
   quickBtn: { display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.5rem 0.75rem', background: '#334155', border: 'none', borderRadius: '0.5rem', color: '#94a3b8', cursor: 'pointer', fontSize: '0.8rem' },
 };

@@ -6,58 +6,152 @@ import { usePathname, useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, Package, ShoppingCart, Undo2, BarChart3, 
   Menu, X, Users, FileText, ClipboardCheck, DollarSign, Settings, 
-  User, LogOut, CreditCard, TrendingUp, Shield
+  User, LogOut, CreditCard, TrendingUp, Shield, ChevronDown, ChevronRight,
+  HandCoins, Truck, Receipt
 } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/components/AuthProvider';
 
-const ROLE_MENUS: Record<string, { href: string; label: string; icon: any; module: string }[]> = {
+interface MenuItem {
+  href?: string;
+  label: string;
+  icon: any;
+  module?: string;
+  children?: MenuItem[];
+}
+
+const ROLE_MENUS: Record<string, MenuItem[]> = {
   ADMIN: [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, module: 'dashboard' },
-    { href: '/dashboard/inventory', label: 'Inventory', icon: Package, module: 'inventory' },
-    { href: '/dashboard/pos', label: 'POS / Sales', icon: ShoppingCart, module: 'pos' },
-    { href: '/dashboard/installments', label: 'Installments', icon: CreditCard, module: 'pos' },
-    { href: '/dashboard/returns', label: 'Returns', icon: Undo2, module: 'returns' },
-    { href: '/dashboard/suppliers', label: 'Suppliers', icon: Users, module: 'suppliers' },
-    { href: '/dashboard/purchase-orders', label: 'Purchase Orders', icon: FileText, module: 'purchase-orders' },
-    { href: '/dashboard/stock-count', label: 'Stock Count', icon: ClipboardCheck, module: 'stock-count' },
-    { href: '/dashboard/expenses', label: 'Expenses', icon: DollarSign, module: 'expenses' },
-    { href: '/dashboard/profit-loss', label: 'Profit & Loss', icon: TrendingUp, module: 'profit-loss' },
+    { 
+      label: 'POS & Sales', 
+      icon: ShoppingCart, 
+      children: [
+        { href: '/dashboard/pos', label: 'Point of Sale', icon: ShoppingCart, module: 'pos' },
+        { href: '/dashboard/sales', label: 'Sales History', icon: Receipt, module: 'sales' },
+        { href: '/dashboard/installments', label: 'Installments', icon: CreditCard, module: 'pos' },
+      ]
+    },
+    { 
+      label: 'Inventory', 
+      icon: Package, 
+      children: [
+        { href: '/dashboard/inventory', label: 'Products', icon: Package, module: 'inventory' },
+        { href: '/dashboard/stock-count', label: 'Stock Count', icon: ClipboardCheck, module: 'stock-count' },
+        { href: '/dashboard/returns', label: 'Returns', icon: Undo2, module: 'returns' },
+      ]
+    },
+    { 
+      label: 'Purchases', 
+      icon: Truck, 
+      children: [
+        { href: '/dashboard/purchase-orders', label: 'Purchase Orders', icon: FileText, module: 'purchase-orders' },
+        { href: '/dashboard/suppliers', label: 'Suppliers', icon: Users, module: 'suppliers' },
+      ]
+    },
+    { 
+      label: 'Finance', 
+      icon: DollarSign, 
+      children: [
+        { href: '/dashboard/expenses', label: 'Expenses', icon: DollarSign, module: 'expenses' },
+        { href: '/dashboard/profit-loss', label: 'Profit & Loss', icon: TrendingUp, module: 'profit-loss' },
+      ]
+    },
+    { href: '/dashboard/clients', label: 'Clients', icon: Users, module: 'clients' },
     { href: '/dashboard/reports', label: 'Reports', icon: BarChart3, module: 'reports' },
-    { href: '/dashboard/settings', label: 'Settings', icon: Settings, module: 'settings' },
+    { 
+      label: 'Settings', 
+      icon: Settings, 
+      children: [
+        { href: '/dashboard/settings', label: 'Settings', icon: Settings, module: 'settings' },
+        { href: '/dashboard/permissions', label: 'Permissions', icon: Shield, module: 'users' },
+      ]
+    },
   ],
   MANAGER: [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, module: 'dashboard' },
-    { href: '/dashboard/inventory', label: 'Inventory', icon: Package, module: 'inventory' },
-    { href: '/dashboard/pos', label: 'POS / Sales', icon: ShoppingCart, module: 'pos' },
-    { href: '/dashboard/installments', label: 'Installments', icon: CreditCard, module: 'pos' },
-    { href: '/dashboard/returns', label: 'Returns', icon: Undo2, module: 'returns' },
-    { href: '/dashboard/suppliers', label: 'Suppliers', icon: Users, module: 'suppliers' },
-    { href: '/dashboard/purchase-orders', label: 'Purchase Orders', icon: FileText, module: 'purchase-orders' },
-    { href: '/dashboard/stock-count', label: 'Stock Count', icon: ClipboardCheck, module: 'stock-count' },
-    { href: '/dashboard/expenses', label: 'Expenses', icon: DollarSign, module: 'expenses' },
-    { href: '/dashboard/profit-loss', label: 'Profit & Loss', icon: TrendingUp, module: 'profit-loss' },
+    { 
+      label: 'POS & Sales', 
+      icon: ShoppingCart, 
+      children: [
+        { href: '/dashboard/pos', label: 'Point of Sale', icon: ShoppingCart, module: 'pos' },
+        { href: '/dashboard/sales', label: 'Sales History', icon: Receipt, module: 'sales' },
+        { href: '/dashboard/installments', label: 'Installments', icon: CreditCard, module: 'pos' },
+      ]
+    },
+    { 
+      label: 'Inventory', 
+      icon: Package, 
+      children: [
+        { href: '/dashboard/inventory', label: 'Products', icon: Package, module: 'inventory' },
+        { href: '/dashboard/stock-count', label: 'Stock Count', icon: ClipboardCheck, module: 'stock-count' },
+        { href: '/dashboard/returns', label: 'Returns', icon: Undo2, module: 'returns' },
+      ]
+    },
+    { 
+      label: 'Purchases', 
+      icon: Truck, 
+      children: [
+        { href: '/dashboard/purchase-orders', label: 'Purchase Orders', icon: FileText, module: 'purchase-orders' },
+        { href: '/dashboard/suppliers', label: 'Suppliers', icon: Users, module: 'suppliers' },
+      ]
+    },
+    { 
+      label: 'Finance', 
+      icon: DollarSign, 
+      children: [
+        { href: '/dashboard/expenses', label: 'Expenses', icon: DollarSign, module: 'expenses' },
+        { href: '/dashboard/profit-loss', label: 'Profit & Loss', icon: TrendingUp, module: 'profit-loss' },
+      ]
+    },
+    { href: '/dashboard/clients', label: 'Clients', icon: Users, module: 'clients' },
     { href: '/dashboard/reports', label: 'Reports', icon: BarChart3, module: 'reports' },
+    { 
+      label: 'Settings', 
+      icon: Settings, 
+      children: [
+        { href: '/dashboard/settings', label: 'Settings', icon: Settings, module: 'settings' },
+        { href: '/dashboard/permissions', label: 'Permissions', icon: Shield, module: 'users' },
+      ]
+    },
   ],
   CASHIER: [
     { href: '/dashboard/inventory', label: 'Inventory', icon: Package, module: 'inventory' },
-    { href: '/dashboard/pos', label: 'POS / Sales', icon: ShoppingCart, module: 'pos' },
-    { href: '/dashboard/installments', label: 'Installments', icon: CreditCard, module: 'installments' },
-    { href: '/dashboard/returns', label: 'Returns', icon: Undo2, module: 'returns' },
+    { 
+      label: 'POS & Sales', 
+      icon: ShoppingCart, 
+      children: [
+        { href: '/dashboard/pos', label: 'Point of Sale', icon: ShoppingCart, module: 'pos' },
+        { href: '/dashboard/installments', label: 'Installments', icon: CreditCard, module: 'installments' },
+        { href: '/dashboard/returns', label: 'Returns', icon: Undo2, module: 'returns' },
+      ]
+    },
   ],
   WINGER: [
     { href: '/dashboard/inventory', label: 'Inventory', icon: Package, module: 'inventory' },
   ],
   SHOP_ASSISTANT: [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, module: 'dashboard' },
-    { href: '/dashboard/inventory', label: 'Inventory', icon: Package, module: 'inventory' },
+    { 
+      label: 'Inventory', 
+      icon: Package, 
+      children: [
+        { href: '/dashboard/inventory', label: 'Products', icon: Package, module: 'inventory' },
+        { href: '/dashboard/stock-count', label: 'Stock Count', icon: ClipboardCheck, module: 'stock-count' },
+      ]
+    },
     { href: '/dashboard/pos', label: 'POS / Sales', icon: ShoppingCart, module: 'pos' },
-    { href: '/dashboard/stock-count', label: 'Stock Count', icon: ClipboardCheck, module: 'stock-count' },
   ],
   ACCOUNTANT: [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, module: 'dashboard' },
-    { href: '/dashboard/expenses', label: 'Expenses', icon: DollarSign, module: 'expenses' },
-    { href: '/dashboard/profit-loss', label: 'Profit & Loss', icon: TrendingUp, module: 'profit-loss' },
+    { 
+      label: 'Finance', 
+      icon: DollarSign, 
+      children: [
+        { href: '/dashboard/expenses', label: 'Expenses', icon: DollarSign, module: 'expenses' },
+        { href: '/dashboard/profit-loss', label: 'Profit & Loss', icon: TrendingUp, module: 'profit-loss' },
+      ]
+    },
     { href: '/dashboard/reports', label: 'Reports', icon: BarChart3, module: 'reports' },
   ],
 };
@@ -70,12 +164,14 @@ const bottomNavItems = [
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
   const pathname = usePathname();
   const router = useRouter();
   const { settings, loading: settingsLoading } = useSettings();
-  const { user, logout } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
 
   const userRole = user?.role || 'CASHIER';
+  
   const navItems = ROLE_MENUS[userRole] || ROLE_MENUS.CASHIER;
   
   const filteredBottomNav = bottomNavItems.filter(item => item.href === '/dashboard/profile');
@@ -86,14 +182,38 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [userRole, pathname, router]);
 
-  const isActive = (href: string) => {
+  useEffect(() => {
+    const newOpenMenus: Record<string, boolean> = {};
+    navItems.forEach(item => {
+      if (item.children) {
+        const isChildActive = item.children.some(child => child.href && pathname.startsWith(child.href));
+        newOpenMenus[item.label] = isChildActive;
+      }
+    });
+    setOpenMenus(newOpenMenus);
+  }, [pathname, navItems]);
+
+  const isActive = (href?: string) => {
+    if (!href) return false;
     if (href === '/dashboard') return pathname === '/dashboard';
     return pathname.startsWith(href);
+  };
+
+  const toggleMenu = (label: string) => {
+    setOpenMenus(prev => ({ ...prev, [label]: !prev[label] }));
   };
 
   const handleLogout = () => {
     logout();
   };
+
+  if (authLoading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f172a', color: '#94a3b8' }}>
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
@@ -171,11 +291,111 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
           
           {navItems.map(item => {
+            if (item.children) {
+              const isOpen = openMenus[item.label] || false;
+              const hasActiveChild = item.children.some(child => isActive(child.href));
+              
+              return (
+                <div key={item.label} style={{ marginBottom: '0.25rem' }}>
+                  <button
+                    onClick={() => toggleMenu(item.label)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      padding: '0.875rem 1rem',
+                      borderRadius: '0.6rem',
+                      color: hasActiveChild ? '#f1f5f9' : '#94a3b8',
+                      textDecoration: 'none',
+                      fontWeight: hasActiveChild ? '600' : '500',
+                      fontSize: '0.9rem',
+                      width: '100%',
+                      background: hasActiveChild ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!hasActiveChild) {
+                        e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)';
+                        e.currentTarget.style.color = '#f1f5f9';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!hasActiveChild) {
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.style.color = '#94a3b8';
+                      }
+                    }}
+                  >
+                    <item.icon size={20} style={{ color: hasActiveChild ? '#fff' : '#94a3b8' }} />
+                    <span style={{ flex: 1, textAlign: 'left' }}>{item.label}</span>
+                    {isOpen ? (
+                      <ChevronDown size={18} style={{ color: hasActiveChild ? '#fff' : '#94a3b8' }} />
+                    ) : (
+                      <ChevronRight size={18} style={{ color: hasActiveChild ? '#fff' : '#94a3b8' }} />
+                    )}
+                  </button>
+                  
+                  {isOpen && (
+                    <div style={{ 
+                      marginLeft: '0.5rem', 
+                      paddingLeft: '0.75rem', 
+                      borderLeft: '2px solid #334155',
+                      marginTop: '0.25rem'
+                    }}>
+                      {item.children.map(child => {
+                        const childActive = isActive(child.href);
+                        return (
+                          <Link
+                            key={child.href}
+                            href={child.href || '#'}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.75rem',
+                              padding: '0.7rem 1rem',
+                              borderRadius: '0.5rem',
+                              color: childActive ? '#f1f5f9' : '#94a3b8',
+                              textDecoration: 'none',
+                              fontWeight: childActive ? '600' : '500',
+                              fontSize: '0.85rem',
+                              marginBottom: '0.125rem',
+                              background: childActive ? 'rgba(59, 130, 246, 0.25)' : 'transparent',
+                              transition: 'all 0.15s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!childActive) {
+                                e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)';
+                                e.currentTarget.style.color = '#f1f5f9';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!childActive) {
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.color = '#94a3b8';
+                              }
+                            }}
+                          >
+                            <child.icon size={18} style={{ color: childActive ? '#fff' : '#94a3b8' }} />
+                            {child.label}
+                            {childActive && (
+                              <div style={{ marginLeft: 'auto', width: '5px', height: '5px', borderRadius: '50%', background: '#22c55e' }} />
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+            
             const active = isActive(item.href);
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={item.href || '#'}
                 style={{
                   display: 'flex',
                   alignItems: 'center',

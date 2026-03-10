@@ -39,9 +39,17 @@ interface SaleData {
   installmentDue?: number;
   customerName?: string;
   customerPhone?: string;
+  customerId?: string;
   createdAt: string;
   cashier: { name: string };
   items: { id: string; product: { name: string }; quantity: number; unitPrice: number; total: number }[];
+}
+
+interface Client {
+  id: string;
+  name: string;
+  phone?: string;
+  isActive?: boolean;
 }
 
 export default function POSPage() {
@@ -62,6 +70,11 @@ export default function POSPage() {
   const [manualQty, setManualQty] = useState(1);
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [showClientSelect, setShowClientSelect] = useState(false);
+  const [showNewClientModal, setShowNewClientModal] = useState(false);
+  const [newClientData, setNewClientData] = useState({ name: '', phone: '', email: '', address: '' });
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const barcodeInputRef = useRef<HTMLInputElement>(null);
@@ -83,11 +96,16 @@ export default function POSPage() {
 
   async function fetchProducts() {
     try {
-      const res = await fetch('/api/inventory');
-      const data = await res.json();
-      setProducts(data.products?.filter((p: Product) => p.stockQuantity > 0 && !p.isFaulty) || []);
+      const [productsRes, clientsRes] = await Promise.all([
+        fetch('/api/inventory'),
+        fetch('/api/clients')
+      ]);
+      const productsData = await productsRes.json();
+      const clientsData = await clientsRes.json();
+      setProducts(productsData.products?.filter((p: Product) => p.stockQuantity > 0 && !p.isFaulty) || []);
+      setClients(clientsData.customers?.filter((c: Client) => c.isActive !== false) || []);
     } catch (error) {
-      console.error('Failed to fetch products:', error);
+      console.error('Failed to fetch data:', error);
     } finally {
       setLoading(false);
     }
@@ -96,6 +114,38 @@ export default function POSPage() {
   function showNotification(message: string, type: 'success' | 'error') {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 3000);
+  }
+
+  async function createClient() {
+    if (!newClientData.name.trim()) {
+      showNotification('Please enter client name', 'error');
+      return;
+    }
+    try {
+      const res = await fetch('/api/clients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newClientData.name,
+          phone: newClientData.phone || null,
+          email: newClientData.email || null,
+          address: newClientData.address || null,
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showNotification(data.error || 'Failed to create client', 'error');
+        return;
+      }
+      const newClient = data.customer;
+      setClients(prev => [...prev, newClient]);
+      setSelectedClient(newClient);
+      setShowNewClientModal(false);
+      setNewClientData({ name: '', phone: '', email: '', address: '' });
+      showNotification('Client created successfully', 'success');
+    } catch (error) {
+      showNotification('Failed to create client', 'error');
+    }
   }
 
   async function startScanner() {
@@ -177,12 +227,14 @@ export default function POSPage() {
     const cashAmount = parseFloat(cashReceived) || 0;
     
     if (isCredit) {
-      if (!customerName || customerName.trim() === '') {
-        showNotification('Please enter customer name for credit sale', 'error');
+      const hasCustomer = selectedClient || (customerName && customerName.trim() !== '');
+      const hasPhone = selectedClient?.phone || (customerPhone && customerPhone.trim() !== '');
+      if (!hasCustomer) {
+        showNotification('Please select or enter customer name for credit sale', 'error');
         return;
       }
-      if (!customerPhone || customerPhone.trim() === '') {
-        showNotification('Please enter customer phone for credit sale', 'error');
+      if (!hasPhone) {
+        showNotification('Please select or enter customer phone for credit sale', 'error');
         return;
       }
       if (cashAmount <= 0) {
@@ -202,13 +254,17 @@ export default function POSPage() {
     }
     
     try {
+      const finalCustomerName = selectedClient?.name || customerName;
+      const finalCustomerPhone = selectedClient?.phone || customerPhone;
+      
       const saleData = { 
         items: cart, 
         discount, 
         paymentMethod,
         saleType,
-        customerName: isCredit ? customerName : null,
-        customerPhone: isCredit ? customerPhone : null,
+        customerName: finalCustomerName || null,
+        customerPhone: finalCustomerPhone || null,
+        customerId: selectedClient?.id || null,
         isInstallment: isCredit,
         amountPaid: cashAmount,
       };
@@ -522,6 +578,30 @@ export default function POSPage() {
                   </div>
                 </div>
 
+                <div style={{ marginTop: '1rem' }}>
+                  <button
+                    onClick={() => setShowClientSelect(true)}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
+                      padding: '0.75rem',
+                      background: selectedClient ? '#22c55e' : '#1e293b',
+                      border: `1px solid ${selectedClient ? '#22c55e' : '#334155'}`,
+                      borderRadius: '0.5rem',
+                      color: selectedClient ? 'white' : '#94a3b8',
+                      cursor: 'pointer',
+                      fontWeight: '600'
+                    }}
+                  >
+                    <User size={18} />
+                    {selectedClient ? `Customer: ${selectedClient.name}` : 'Select Customer (Optional)'}
+                    {selectedClient && <span style={{ marginLeft: 'auto', fontSize: '0.8rem' }} onClick={(e) => { e.stopPropagation(); setSelectedClient(null); }}>×</span>}
+                  </button>
+                </div>
+
                 {isCredit && (
                   <div className="credit-scroll" style={styles.creditSection}>
                     <div style={styles.creditTitle}><FileText size={16} /> Credit / Installment Details</div>
@@ -653,6 +733,118 @@ export default function POSPage() {
               />
               <button onClick={() => { if(manualCode) handleBarcodeScan(manualCode); setShowManualEntry(false); }} style={styles.submitBtn}>
                 Add to Cart
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showClientSelect && (
+        <div style={styles.modalOverlay} onClick={() => setShowClientSelect(false)}>
+          <div style={{ ...styles.modal, maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h2><User size={20} /> Select Customer</h2>
+              <button onClick={() => setShowClientSelect(false)} style={styles.closeBtn}><X size={20} /></button>
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <input
+                type="text"
+                placeholder="Search customers..."
+                onChange={(e) => {
+                  const query = e.target.value.toLowerCase();
+                  const filtered = clients.filter(c => 
+                    c.name.toLowerCase().includes(query) || 
+                    (c.phone && c.phone.includes(query))
+                  );
+                  if (query === '') {
+                    fetchProducts();
+                  }
+                }}
+                style={{ ...styles.inputField, width: '100%' }}
+                autoFocus
+              />
+            </div>
+            <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem' }}>
+              {clients.length === 0 ? (
+                <p style={{ color: '#64748b', textAlign: 'center', padding: '2rem' }}>No customers found</p>
+              ) : (
+                clients.slice(0, 10).map(client => (
+                  <div
+                    key={client.id}
+                    onClick={() => {
+                      setSelectedClient(client);
+                      setCustomerName(client.name);
+                      setCustomerPhone(client.phone || '');
+                      setShowClientSelect(false);
+                    }}
+                    style={{
+                      padding: '0.75rem',
+                      background: selectedClient?.id === client.id ? '#3b82f6' : '#1e293b',
+                      borderRadius: '0.5rem',
+                      marginBottom: '0.5rem',
+                      cursor: 'pointer',
+                      border: '1px solid #334155'
+                    }}
+                  >
+                    <div style={{ fontWeight: '600', color: '#f1f5f9' }}>{client.name}</div>
+                    {client.phone && <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{client.phone}</div>}
+                  </div>
+                ))
+              )}
+            </div>
+            <button
+              onClick={() => { setShowClientSelect(false); setShowNewClientModal(true); }}
+              style={styles.submitBtn}
+            >
+              + Add New Customer
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showNewClientModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowNewClientModal(false)}>
+          <div style={{ ...styles.modal, maxWidth: '450px' }} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h2><User size={20} /> New Customer</h2>
+              <button onClick={() => setShowNewClientModal(false)} style={styles.closeBtn}><X size={20} /></button>
+            </div>
+            <div style={styles.manualForm}>
+              <label style={styles.inputLabel}>Full Name *</label>
+              <input
+                type="text"
+                value={newClientData.name}
+                onChange={(e) => setNewClientData({ ...newClientData, name: e.target.value })}
+                placeholder="Customer name"
+                style={styles.inputField}
+                autoFocus
+              />
+              <label style={styles.inputLabel}>Phone Number</label>
+              <input
+                type="text"
+                value={newClientData.phone}
+                onChange={(e) => setNewClientData({ ...newClientData, phone: e.target.value })}
+                placeholder="+255..."
+                style={styles.inputField}
+              />
+              <label style={styles.inputLabel}>Email</label>
+              <input
+                type="email"
+                value={newClientData.email}
+                onChange={(e) => setNewClientData({ ...newClientData, email: e.target.value })}
+                placeholder="email@example.com"
+                style={styles.inputField}
+              />
+              <label style={styles.inputLabel}>Address</label>
+              <input
+                type="text"
+                value={newClientData.address}
+                onChange={(e) => setNewClientData({ ...newClientData, address: e.target.value })}
+                placeholder="Address"
+                style={styles.inputField}
+              />
+              <button onClick={createClient} style={styles.submitBtn}>
+                Save Customer
               </button>
             </div>
           </div>

@@ -5,7 +5,7 @@ import {
   Package, Plus, Search, Edit, Trash2, X, Camera, 
   Barcode, Printer, Tag, AlertTriangle, TrendingUp, 
   TrendingDown, DollarSign, ShoppingCart, Settings,
-  CameraOff, Zap, Hash, ScanLine, FolderPlus, Lock, Eye
+  CameraOff, Zap, Hash, ScanLine, FolderPlus, Lock, Eye, Upload, Download
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useAuth } from '@/components/AuthProvider';
@@ -30,6 +30,8 @@ interface Product {
   expiryDate?: string;
   taxRate: number;
   location?: string;
+  variant?: string;
+  variantType?: string;
 }
 
 interface Category {
@@ -49,13 +51,27 @@ interface PriceTagTemplate {
   showPrice: boolean;
   showName: boolean;
   showSku: boolean;
+  copies: number;
 }
+
+const VARIANT_TYPES = [
+  { value: 'COLOR', label: 'Color' },
+  { value: 'SIZE', label: 'Size' },
+  { value: 'LENGTH', label: 'Length' },
+  { value: 'WEIGHT', label: 'Weight' },
+  { value: 'VOLUME', label: 'Volume' },
+  { value: 'PACK', label: 'Pack' },
+  { value: 'FLAVOR', label: 'Flavor' },
+  { value: 'MATERIAL', label: 'Material' },
+  { value: 'OTHER', label: 'Other' },
+];
 
 export default function InventoryPage() {
   const { user } = useAuth();
   const isWinger = user?.role === 'WINGER';
   const isCashier = user?.role === 'CASHIER';
   const isReadOnly = isCashier || isWinger;
+
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -67,6 +83,9 @@ export default function InventoryPage() {
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const [showPriceTags, setShowPriceTags] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ success: number; failed: number; errors: string[] } | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -77,14 +96,17 @@ export default function InventoryPage() {
     showBarcode: true,
     showPrice: true,
     showName: true,
-    showSku: true
+    showSku: true,
+    copies: 1
   });
   const videoRef = useRef<HTMLVideoElement>(null);
+  const scannerRef = useRef<any>(null);
+  const [scannerActive, setScannerActive] = useState(false);
   const [formData, setFormData] = useState({
     name: '', sku: '', barcode: '', description: '', categoryId: '', supplierId: '',
     purchaseCost: '', sellingPrice: '', wholesalePrice: '', stockQuantity: '',
     lowStockThreshold: '10', reorderPoint: '20', hasExpiry: false, expiryDate: '',
-    taxRate: '0', location: ''
+    taxRate: '0', location: '', variant: '', variantType: ''
   });
 
   useEffect(() => { fetchData(); }, []);
@@ -108,6 +130,52 @@ export default function InventoryPage() {
       setLoading(false);
     }
   }
+
+  async function startScanner() {
+    if (scannerRef.current) return;
+    try {
+      const { Html5Qrcode } = await import('html5-qrcode');
+      scannerRef.current = new Html5Qrcode('scanner-container');
+      
+      await scannerRef.current.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 250, height: 150 } },
+        (decodedText: string) => {
+          const product = products.find(p => p.barcode === decodedText || p.sku === decodedText);
+          if (product) {
+            openModal(product);
+          } else {
+            alert(`Product not found for code: ${decodedText}`);
+          }
+          stopScanner();
+          setShowScanner(false);
+        },
+        () => {}
+      );
+      setScannerActive(true);
+    } catch (err) {
+      console.error('Scanner error:', err);
+      alert('Camera not available or permission denied');
+    }
+  }
+
+  async function stopScanner() {
+    if (scannerRef.current) {
+      try {
+        await scannerRef.current.stop();
+        scannerRef.current = null;
+      } catch (e) {}
+    }
+    setScannerActive(false);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.stop().catch(() => {});
+      }
+    };
+  }, []);
 
   async function createCategory() {
     if (!newCategoryName.trim()) return;
@@ -175,7 +243,9 @@ export default function InventoryPage() {
         hasExpiry: product.hasExpiry,
         expiryDate: product.expiryDate || '',
         taxRate: product.taxRate.toString(),
-        location: product.location || ''
+        location: product.location || '',
+        variant: product.variant || '',
+        variantType: product.variantType || ''
       });
     } else {
       setEditingProduct(null);
@@ -184,7 +254,8 @@ export default function InventoryPage() {
         categoryId: categories[0]?.id || '', supplierId: '',
         purchaseCost: '', sellingPrice: '', wholesalePrice: '', 
         stockQuantity: '', lowStockThreshold: '10', reorderPoint: '20',
-        hasExpiry: false, expiryDate: '', taxRate: '0', location: ''
+        hasExpiry: false, expiryDate: '', taxRate: '0', location: '',
+        variant: '', variantType: ''
       });
     }
     setShowModal(true);
@@ -231,47 +302,129 @@ export default function InventoryPage() {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
-    let html = `
-      <html>
-      <head>
-        <title>Price Tags</title>
-        <style>
-          @media print {
-            .tag { 
-              border: 1px solid #000; 
-              padding: 10px; 
-              margin: 5px; 
-              display: inline-block; 
-              text-align: center;
-              font-family: Arial, sans-serif;
-              page-break-inside: avoid;
-            }
-            .tag-name { font-weight: bold; font-size: 14px; }
-            .tag-price { font-size: 20px; font-weight: bold; color: #000; }
-            .tag-sku { font-size: 10px; color: #666; }
-            .tag-barcode { margin-top: 5px; }
-            .tag-barcode img { height: 40px; }
+    const generateAllBarcodes = async () => {
+      const JsBarcode = (await import('jsbarcode')).default;
+      const tagsHtml: string[] = [];
+      
+      for (let i = 0; i < selected.length; i++) {
+        const product = selected[i];
+        const code = product.barcode || product.sku || '0000000000000';
+        
+        for (let copy = 0; copy < tagTemplate.copies; copy++) {
+          let barcodeImg = '';
+          try {
+            const canvas = document.createElement('canvas');
+            JsBarcode(canvas, code, {
+              format: 'EAN13',
+              width: 2,
+              height: 40,
+              displayValue: true,
+              fontSize: 10,
+              margin: 0,
+              background: '#ffffff',
+              lineColor: '#000000'
+            });
+            barcodeImg = canvas.toDataURL('image/png');
+          } catch (e) {
+            barcodeImg = '';
           }
-        </style>
-      </head>
-      <body>
-    `;
+          
+          tagsHtml.push(`
+            <div class="tag">
+              ${tagTemplate.showName ? `<div class="tag-name">${product.name}</div>` : ''}
+              ${tagTemplate.showPrice ? `<div class="tag-price">${formatCurrency(product.sellingPrice)}</div>` : ''}
+              ${tagTemplate.showSku ? `<div class="tag-sku">SKU: ${product.sku}</div>` : ''}
+              ${tagTemplate.showBarcode && barcodeImg ? `<div class="tag-barcode"><img src="${barcodeImg}" /></div>` : ''}
+            </div>
+          `);
+        }
+      }
+      return tagsHtml.join('');
+    };
 
-    selected.forEach(product => {
-      html += `
-        <div class="tag">
-          ${tagTemplate.showName ? `<div class="tag-name">${product.name}</div>` : ''}
-          ${tagTemplate.showPrice ? `<div class="tag-price">${formatCurrency(product.sellingPrice)}</div>` : ''}
-          ${tagTemplate.showSku ? `<div class="tag-sku">SKU: ${product.sku}</div>` : ''}
-          ${tagTemplate.showBarcode ? `<div class="tag-barcode"><img src="https://barcode.tec-it.com/${product.barcode || product.sku}?code=Code128&showtext=false" /></div>` : ''}
-        </div>
+    generateAllBarcodes().then(tagsHtml => {
+      let html = `
+        <html>
+        <head>
+          <title>Price Tags - Barcode Labels</title>
+          <style>
+            @page {
+              margin: 0;
+              size: 58mm auto;
+            }
+            @media print {
+              body { 
+                margin: 0; 
+                padding: 2mm;
+              }
+              .tags-container {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 2mm;
+              }
+              .tag { 
+                width: 52mm;
+                min-height: 22mm;
+                padding: 2mm;
+                display: inline-block; 
+                text-align: center;
+                font-family: Arial, sans-serif;
+                page-break-inside: avoid;
+                box-sizing: border-box;
+              }
+              .tag-name { font-weight: bold; font-size: 10px; line-height: 1.2; margin-bottom: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 48mm; }
+              .tag-price { font-size: 14px; font-weight: bold; color: #000; margin: 1px 0; }
+              .tag-sku { font-size: 8px; color: #666; }
+              .tag-barcode { margin-top: 2px; }
+              .tag-barcode img { max-width: 100%; height: 25mm; }
+            }
+            @media screen {
+              body { 
+                background: #f0f0f0; 
+                padding: 20px;
+              }
+              .tags-container {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 5px;
+                justify-content: center;
+              }
+              .tag { 
+                width: 52mm;
+                min-height: 22mm;
+                padding: 5px;
+                background: white;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                display: inline-block; 
+                text-align: center;
+                font-family: Arial, sans-serif;
+              }
+              .tag-name { font-weight: bold; font-size: 10px; line-height: 1.2; margin-bottom: 1px; }
+              .tag-price { font-size: 14px; font-weight: bold; color: #000; margin: 1px 0; }
+              .tag-sku { font-size: 8px; color: #666; }
+              .tag-barcode { margin-top: 2px; }
+              .tag-barcode img { max-width: 100%; height: 25mm; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="tags-container">
+            ${tagsHtml}
+          </div>
+          <script>
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+              }, 300);
+            };
+          </script>
+        </body>
+        </html>
       `;
-    });
 
-    html += '</body></html>';
-    printWindow.document.write(html);
-    printWindow.document.close();
-    printWindow.print();
+      printWindow.document.write(html);
+      printWindow.document.close();
+    });
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -327,6 +480,80 @@ export default function InventoryPage() {
               </button>
               <button onClick={() => setShowPriceTags(true)} className="btn btn-secondary" title="Print Price Tags" disabled={selectedProducts.length === 0} style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}>
                 <Tag size={16} /> Tags ({selectedProducts.length})
+              </button>
+              <button onClick={() => setShowImportModal(true)} className="btn btn-secondary" title="Import from Excel" style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}>
+                <Upload size={16} /> Import
+              </button>
+              <button 
+                onClick={async () => {
+                  try {
+                    const XLSX = await import('xlsx');
+                    const exportData = products.map(p => ({
+                      name: p.name,
+                      sku: p.sku,
+                      barcode: p.barcode || '',
+                      description: p.description || '',
+                      category: p.category?.name || '',
+                      supplier: p.supplier?.name || '',
+                      purchaseCost: p.purchaseCost,
+                      sellingPrice: p.sellingPrice,
+                      wholesalePrice: p.wholesalePrice || '',
+                      stockQuantity: p.stockQuantity,
+                      lowStockThreshold: p.lowStockThreshold,
+                      reorderPoint: p.reorderPoint,
+                      taxRate: p.taxRate,
+                      location: p.location || '',
+                      hasExpiry: p.hasExpiry,
+                      expiryDate: p.expiryDate || '',
+                      variant: p.variant || '',
+                      variantType: p.variantType || ''
+                    }));
+                    
+                    const worksheet = XLSX.utils.json_to_sheet(exportData);
+                    const workbook = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(workbook, worksheet, 'Products');
+                    
+                    const date = new Date().toISOString().split('T')[0];
+                    XLSX.writeFile(workbook, `inventory-export-${date}.xlsx`);
+                  } catch (err) {
+                    console.error('Export error:', err);
+                    alert('Failed to export. Please try again.');
+                  }
+                }} 
+                className="btn btn-secondary" 
+                title="Export to Excel" 
+                style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}
+              >
+                <Download size={16} /> Export
+              </button>
+              <button 
+                onClick={async () => {
+                  const productsWithoutBarcode = products.filter(p => !p.barcode);
+                  if (productsWithoutBarcode.length === 0) {
+                    alert('All products already have barcodes!');
+                    return;
+                  }
+                  if (!confirm(`Generate barcodes for ${productsWithoutBarcode.length} products?`)) return;
+                  
+                  try {
+                    const res = await fetch('/api/inventory?action=generateBarcodes', { method: 'PATCH' });
+                    const data = await res.json();
+                    if (res.ok) {
+                      alert(`Generated ${data.updated} barcodes successfully!`);
+                      fetchData();
+                    } else {
+                      alert('Failed to generate barcodes');
+                    }
+                  } catch (err) {
+                    console.error('Generate error:', err);
+                    alert('Failed to generate barcodes');
+                  }
+                }} 
+                className="btn btn-secondary" 
+                title="Generate Barcodes for products without barcodes" 
+                style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}
+              >
+                <Barcode size={16} /> Generate Barcodes
               </button>
               <button onClick={() => openModal()} className="btn btn-primary" style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}>
                 <Plus size={16} /> Add
@@ -498,8 +725,40 @@ export default function InventoryPage() {
                 <th style={{ width: '80px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>LOCATION</th>
                 <th style={{ width: '90px', padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>WHOLESALE</th>
                 <th style={{ width: '60px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>STOCK</th>
+                {!isReadOnly && <th style={{ width: '70px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>ACTIONS</th>}
               </tr>
             </thead>
+            <tbody>
+              {filteredProducts.map((product, index) => (
+                <tr key={product.id} style={{ background: index % 2 === 0 ? '#1e293b' : '#0f172a', transition: 'background 0.2s' }}>
+                  <td style={{ padding: '0.5rem' }}>
+                    <div style={{ fontWeight: '500', color: '#f1f5f9', fontSize: '0.8rem' }}>{product.name}</div>
+                  </td>
+                  <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem', fontFamily: 'monospace' }}>{product.barcode || '-'}</td>
+                  <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>{product.category?.name || '-'}</td>
+                  <td style={{ padding: '0.5rem', color: '#64748b', fontSize: '0.75rem' }}>{product.location || '-'}</td>
+                  <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: '#22c55e', fontSize: '0.75rem' }}>
+                    {formatCurrency(product.wholesalePrice || product.sellingPrice)}
+                  </td>
+                  <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                    <span style={{ fontWeight: '600', fontSize: '0.75rem', color: product.stockQuantity <= product.lowStockThreshold ? '#f59e0b' : product.stockQuantity === 0 ? '#ef4444' : '#f1f5f9' }}>
+                      {product.stockQuantity}
+                    </span>
+                  </td>
+                  {!isReadOnly && (
+                    <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                      <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
+                        <button onClick={() => openModal(product)} style={{ padding: '0.3rem', background: '#3b82f6', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Edit"><Edit size={12} /></button>
+                        <button onClick={() => handleDelete(product.id)} style={{ padding: '0.3rem', background: '#ef4444', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Delete"><Trash2 size={12} /></button>
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <table className="table" style={{ fontSize: '0.8rem', width: '100%', borderCollapse: 'collapse' }}>
             <tbody>
               {filteredProducts.map((product, index) => (
                 <tr key={product.id} style={{ background: index % 2 === 0 ? '#1e293b' : '#0f172a', transition: 'background 0.2s' }}>
@@ -521,71 +780,11 @@ export default function InventoryPage() {
                       {product.stockQuantity}
                     </span>
                   </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <table className="table" style={{ fontSize: '0.8rem', width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ background: '#1e293b' }}>
-                {!isReadOnly && (
-                  <th style={{ width: '35px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155' }}>
-                    <input type="checkbox" checked={selectedProducts.length > 0 && selectedProducts.length === products.length} onChange={selectAllProducts} />
-                  </th>
-                )}
-                <th style={{ minWidth: '160px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>PRODUCT</th>
-                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>SKU</th>
-                <th style={{ width: '100px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>BARCODE</th>
-                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>CATEGORY</th>
-                <th style={{ width: '70px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>LOC</th>
-                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>COST</th>
-                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>PRICE</th>
-                <th style={{ width: '50px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>STOCK</th>
-                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>STATUS</th>
-                {!isReadOnly && <th style={{ width: '70px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>ACTIONS</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProducts.map((product, index) => (
-                <tr key={product.id} style={{ background: selectedProducts.includes(product.id) ? '#3b82f620' : index % 2 === 0 ? '#1e293b' : '#0f172a', transition: 'background 0.2s' }}>
-                  {!isReadOnly && (
-                    <td style={{ padding: '0.5rem', textAlign: 'center' }}>
-                      <input type="checkbox" checked={selectedProducts.includes(product.id)} onChange={() => toggleProductSelection(product.id)} />
-                    </td>
-                  )}
-                  <td style={{ padding: '0.5rem' }}>
-                    <div style={{ fontWeight: '500', color: '#f1f5f9', fontSize: '0.8rem' }}>{product.name}</div>
-                    <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.25rem' }}>
-                      {product.isFaulty && <span style={{ padding: '0.125rem 0.375rem', background: '#ef444420', color: '#ef4444', borderRadius: '0.25rem', fontSize: '0.6rem', fontWeight: '500' }}>Faulty</span>}
-                      {product.hasExpiry && product.expiryDate && new Date(product.expiryDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) && <span style={{ padding: '0.125rem 0.375rem', background: '#f59e0b20', color: '#f59e0b', borderRadius: '0.25rem', fontSize: '0.6rem', fontWeight: '500' }}>Expiring</span>}
-                    </div>
-                  </td>
-                  <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>{product.sku}</td>
-                  <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem', fontFamily: 'monospace' }}>{product.barcode || '-'}</td>
-                  <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>{product.category?.name || '-'}</td>
-                  <td style={{ padding: '0.5rem', color: '#64748b', fontSize: '0.75rem' }}>{product.location || '-'}</td>
-                  <td style={{ padding: '0.5rem', textAlign: 'right', color: '#94a3b8', fontSize: '0.75rem' }}>{formatCurrency(product.purchaseCost)}</td>
-                  <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: '#22c55e', fontSize: '0.75rem' }}>{formatCurrency(product.sellingPrice)}</td>
-                  <td style={{ padding: '0.5rem', textAlign: 'center' }}>
-                    <span style={{ fontWeight: '600', fontSize: '0.75rem', color: product.stockQuantity <= product.lowStockThreshold ? '#f59e0b' : product.stockQuantity === 0 ? '#ef4444' : '#f1f5f9' }}>{product.stockQuantity}</span>
-                  </td>
-                  <td style={{ padding: '0.5rem', textAlign: 'center' }}>
-                    {product.stockQuantity === 0 ? (
-                      <span style={{ padding: '0.2rem 0.4rem', background: '#ef444420', color: '#ef4444', borderRadius: '0.25rem', fontSize: '0.65rem', fontWeight: '600' }}>Out</span>
-                    ) : product.stockQuantity <= product.lowStockThreshold ? (
-                      <span style={{ padding: '0.2rem 0.4rem', background: '#f59e0b20', color: '#f59e0b', borderRadius: '0.25rem', fontSize: '0.65rem', fontWeight: '600' }}>Low</span>
-                    ) : product.stockQuantity <= product.reorderPoint ? (
-                      <span style={{ padding: '0.2rem 0.4rem', background: '#3b82f620', color: '#3b82f6', borderRadius: '0.25rem', fontSize: '0.65rem', fontWeight: '600' }}>Reorder</span>
-                    ) : (
-                      <span style={{ padding: '0.2rem 0.4rem', background: '#22c55e20', color: '#22c55e', borderRadius: '0.25rem', fontSize: '0.65rem', fontWeight: '600' }}>In Stock</span>
-                    )}
-                  </td>
                   {!isReadOnly && (
                     <td style={{ padding: '0.5rem', textAlign: 'center' }}>
                       <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
-                        <button onClick={() => openModal(product)} style={{ padding: '0.3rem', background: '#3b82f6', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Edit"><Edit size={12} /></button>
-                        <button onClick={() => handleDelete(product.id)} style={{ padding: '0.3rem', background: '#ef4444', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Delete"><Trash2 size={12} /></button>
+                        <button onClick={() => openModal(product)} style={{ padding: '0.3rem', background: '#3b82f6', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="Edit"><Edit size={12} /></button>
+                        <button onClick={() => handleDelete(product.id)} style={{ padding: '0.3rem', background: '#ef4444', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="Delete"><Trash2 size={12} /></button>
                       </div>
                     </td>
                   )}
@@ -594,15 +793,8 @@ export default function InventoryPage() {
             </tbody>
           </table>
         )}
-        {filteredProducts.length === 0 && (
-          <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
-            <Package size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
-            <p style={{ fontSize: '1rem' }}>No products found</p>
-            <p style={{ fontSize: '0.85rem', color: '#475569' }}>Try adjusting your search or filter</p>
-          </div>
-        )}
       </div>
-
+        
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px' }}>
@@ -622,6 +814,32 @@ export default function InventoryPage() {
                     <input type="text" className="input" value={formData.sku} onChange={e => setFormData({ ...formData, sku: e.target.value })} required disabled={!!editingProduct} style={{ flex: 1 }} />
                     <button type="button" onClick={generateBarcode} className="btn btn-secondary" title="Generate SKU"><Hash size={18} /></button>
                   </div>
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div>
+                  <label className="label">Variant Type</label>
+                  <select 
+                    className="select" 
+                    value={formData.variantType} 
+                    onChange={e => setFormData({ ...formData, variantType: e.target.value, variant: '' })}
+                  >
+                    <option value="">No Variant</option>
+                    {VARIANT_TYPES.map(vt => (
+                      <option key={vt.value} value={vt.value}>{vt.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="label">Variant Value</label>
+                  <input 
+                    type="text" 
+                    className="input" 
+                    value={formData.variant} 
+                    onChange={e => setFormData({ ...formData, variant: e.target.value })} 
+                    placeholder={formData.variantType ? `e.g., ${formData.variantType === 'COLOR' ? 'Red, Blue' : formData.variantType === 'SIZE' ? 'S, M, L' : 'variant'}` : 'Select variant type first'}
+                    disabled={!formData.variantType}
+                  />
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
@@ -715,17 +933,42 @@ export default function InventoryPage() {
       )}
 
       {showScanner && (
-        <div className="modal-overlay" onClick={() => setShowScanner(false)}>
+        <div className="modal-overlay" onClick={() => { setShowScanner(false); stopScanner(); }}>
           <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>Barcode Scanner</h2>
-              <button onClick={() => setShowScanner(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
+              <button onClick={() => { setShowScanner(false); stopScanner(); }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
             </div>
-            <div style={{ textAlign: 'center', padding: '2rem', border: '2px dashed #e2e8f0', borderRadius: '0.5rem', marginBottom: '1rem' }}>
-              <Camera size={48} color="#94a3b8" />
-              <p style={{ marginTop: '1rem', color: '#64748b' }}>Camera scanner ready</p>
-              <p style={{ fontSize: '0.875rem', color: '#94a3b8' }}>Point camera at barcode or use manual input below</p>
+            
+            <div style={{ marginBottom: '1rem' }}>
+              {!scannerActive ? (
+                <button 
+                  onClick={startScanner}
+                  style={{
+                    width: '100%',
+                    padding: '1rem',
+                    background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                    border: 'none',
+                    borderRadius: '0.5rem',
+                    color: 'white',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem'
+                  }}
+                >
+                  <Camera size={20} /> Start Camera Scanner
+                </button>
+              ) : (
+                <div id="scanner-container" style={{ width: '100%', minHeight: '200px', borderRadius: '0.5rem', overflow: 'hidden', background: '#000' }} />
+              )}
             </div>
+            
+            <p style={{ textAlign: 'center', marginBottom: '1rem', color: '#64748b', fontSize: '0.875rem' }}>
+              Or enter barcode manually below
+            </p>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <input 
                 type="text" 
@@ -737,6 +980,7 @@ export default function InventoryPage() {
                   if (e.key === 'Enter' && scannedCode) {
                     const product = products.find(p => p.barcode === scannedCode || p.sku === scannedCode);
                     if (product) openModal(product);
+                    else alert('Product not found');
                     setScannedCode('');
                     setShowScanner(false);
                   }
@@ -749,6 +993,7 @@ export default function InventoryPage() {
                   if (scannedCode) {
                     const product = products.find(p => p.barcode === scannedCode || p.sku === scannedCode);
                     if (product) openModal(product);
+                    else alert('Product not found');
                     setScannedCode('');
                     setShowScanner(false);
                   }
@@ -787,6 +1032,25 @@ export default function InventoryPage() {
                 <input type="checkbox" checked={tagTemplate.showBarcode} onChange={(e) => setTagTemplate({ ...tagTemplate, showBarcode: e.target.checked })} />
                 <span>Show Barcode</span>
               </label>
+              <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #334155' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: '#94a3b8', fontSize: '0.875rem' }}>Number of copies per product</label>
+                <input 
+                  type="number" 
+                  min="1" 
+                  max="100"
+                  value={tagTemplate.copies} 
+                  onChange={(e) => setTagTemplate({ ...tagTemplate, copies: parseInt(e.target.value) || 1 })}
+                  style={{ 
+                    width: '80px', 
+                    padding: '0.5rem', 
+                    background: '#0f172a', 
+                    border: '1px solid #334155', 
+                    borderRadius: '0.375rem', 
+                    color: '#e2e8f0',
+                    fontSize: '1rem'
+                  }}
+                />
+              </div>
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
@@ -881,6 +1145,199 @@ export default function InventoryPage() {
                 <Plus size={18} /> Add Supplier
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showImportModal && (
+        <div className="modal-overlay" onClick={() => { setShowImportModal(false); setImportResult(null); }}>
+          <div style={{ background: '#1e293b', borderRadius: '1rem', padding: '1.5rem', maxWidth: '550px', width: '90%', border: '1px solid #334155' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ color: '#f1f5f9', fontSize: '1.25rem', fontWeight: '600' }}><Upload size={20} /> Import Products from Excel</h2>
+              <button onClick={() => { setShowImportModal(false); setImportResult(null); }} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={20} /></button>
+            </div>
+            
+            {!importResult ? (
+              <>
+                <div style={{ marginBottom: '1rem', padding: '1rem', background: '#0f172a', borderRadius: '0.5rem', border: '1px dashed #475569' }}>
+                  <p style={{ color: '#94a3b8', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
+                    Upload an Excel file (.xlsx) with the following columns:
+                  </p>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b', fontFamily: 'monospace' }}>
+                    name, sku, barcode, description, category, supplier, purchaseCost, sellingPrice, wholesalePrice, stockQuantity, lowStockThreshold, reorderPoint, taxRate, location, hasExpiry, expiryDate
+                  </div>
+                </div>
+                
+                <input
+                  type="file"
+                  accept=".xlsx"
+                  id="excel-upload"
+                  style={{ display: 'none' }}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    
+                    setImporting(true);
+                    try {
+                      const XLSX = await import('xlsx');
+                      const data = await file.arrayBuffer();
+                      const workbook = XLSX.read(data);
+                      const sheetName = workbook.SheetNames[0];
+                      const sheet = workbook.Sheets[sheetName];
+                      const json = XLSX.utils.sheet_to_json(sheet);
+                      
+                      if (!json || json.length === 0) {
+                        alert('No data found in the Excel file');
+                        setImporting(false);
+                        return;
+                      }
+                      
+                      const res = await fetch('/api/inventory/import', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ products: json })
+                      });
+                      
+                      const result = await res.json();
+                      setImportResult(result);
+                      if (result.success > 0) {
+                        fetchData();
+                      }
+                    } catch (err) {
+                      console.error('Import error:', err);
+                      alert('Failed to import. Make sure the file is a valid Excel file.');
+                    } finally {
+                      setImporting(false);
+                    }
+                  }}
+                />
+                <label
+                  htmlFor="excel-upload"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    padding: '1rem',
+                    background: importing ? '#334155' : 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                    borderRadius: '0.5rem',
+                    color: 'white',
+                    cursor: importing ? 'not-allowed' : 'pointer',
+                    fontWeight: '600',
+                    marginBottom: '1rem'
+                  }}
+                >
+                  <Upload size={20} /> {importing ? 'Importing...' : 'Select Excel File'}
+                </label>
+                
+                <div style={{ textAlign: 'center' }}>
+                  <button 
+                    onClick={async () => {
+                      try {
+                        const XLSX = await import('xlsx');
+                        const sampleData = [
+                          {
+                            name: 'Sample Product 1',
+                            sku: 'SKU001',
+                            barcode: '1234567890123',
+                            description: 'Sample product description',
+                            category: 'Electronics',
+                            supplier: 'Sample Supplier',
+                            purchaseCost: 10000,
+                            sellingPrice: 15000,
+                            wholesalePrice: 12000,
+                            stockQuantity: 50,
+                            lowStockThreshold: 10,
+                            reorderPoint: 20,
+                            taxRate: 0,
+                            location: 'Shelf A1',
+                            hasExpiry: false,
+                            expiryDate: ''
+                          },
+                          {
+                            name: 'Sample Product 2',
+                            sku: 'SKU002',
+                            barcode: '1234567890124',
+                            description: 'Another product',
+                            category: 'Food',
+                            supplier: '',
+                            purchaseCost: 5000,
+                            sellingPrice: 8000,
+                            wholesalePrice: 6500,
+                            stockQuantity: 100,
+                            lowStockThreshold: 15,
+                            reorderPoint: 30,
+                            taxRate: 0,
+                            location: 'Shelf B2',
+                            hasExpiry: true,
+                            expiryDate: '2026-12-31'
+                          }
+                        ];
+                        
+                        const worksheet = XLSX.utils.json_to_sheet(sampleData);
+                        const workbook = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(workbook, worksheet, 'Products');
+                        
+                        XLSX.writeFile(workbook, 'sample-import.xlsx');
+                      } catch (err) {
+                        console.error('Download error:', err);
+                      }
+                    }}
+                    style={{ 
+                      color: '#3b82f6', 
+                      fontSize: '0.875rem', 
+                      textDecoration: 'underline',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Download Sample Template
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div>
+                <div style={{ 
+                  display: 'flex', 
+                  gap: '1rem', 
+                  marginBottom: '1rem',
+                  padding: '1rem',
+                  background: importResult.success > 0 ? '#22c55e20' : '#0f172a',
+                  borderRadius: '0.5rem',
+                  border: `1px solid ${importResult.success > 0 ? '#22c55e' : '#475569'}`
+                }}>
+                  <div style={{ textAlign: 'center', flex: 1 }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#22c55e' }}>{importResult.success}</div>
+                    <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Imported</div>
+                  </div>
+                  <div style={{ textAlign: 'center', flex: 1 }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: importResult.failed > 0 ? '#ef4444' : '#64748b' }}>{importResult.failed}</div>
+                    <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Failed</div>
+                  </div>
+                </div>
+                
+                {importResult.errors.length > 0 && (
+                  <div style={{ maxHeight: '150px', overflowY: 'auto', marginBottom: '1rem' }}>
+                    <div style={{ fontSize: '0.875rem', color: '#f1f5f9', marginBottom: '0.5rem' }}>Errors:</div>
+                    {importResult.errors.slice(0, 10).map((err, i) => (
+                      <div key={i} style={{ fontSize: '0.75rem', color: '#ef4444', padding: '0.25rem 0' }}>{err}</div>
+                    ))}
+                    {importResult.errors.length > 10 && (
+                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>...and {importResult.errors.length - 10} more</div>
+                    )}
+                  </div>
+                )}
+                
+                <button 
+                  onClick={() => { setImportResult(null); setShowImportModal(false); }} 
+                  className="btn btn-primary" 
+                  style={{ width: '100%' }}
+                >
+                  Done
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
