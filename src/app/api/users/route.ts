@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import bcrypt from 'bcryptjs';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    if (!shopId) { return NextResponse.json({ error: 'Shop ID required' }, { status: 400 }); }
     const users = await prisma.user.findMany({
+      where: { shopId },
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
+        isActive: true,
         createdAt: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -22,41 +27,36 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    if (!shopId) { return NextResponse.json({ error: 'Shop ID required' }, { status: 400 }); }
     const body = await request.json();
-    const { name, username, email, password, role } = body;
+    const { name, email, password, role } = body;
 
     if (!name || !email || !password || !role) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await prisma.user.findUnique({ where: { email_shopId: { email, shopId } } });
     if (existingUser) {
       return NextResponse.json({ error: 'Email already exists' }, { status: 400 });
     }
 
-    if (username) {
-      const existingUsername = await prisma.user.findUnique({ where: { username } });
-      if (existingUsername) {
-        return NextResponse.json({ error: 'Username already exists' }, { status: 400 });
-      }
-    }
-
-    const bcrypt = require('bcryptjs');
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
       data: {
         name,
-        username,
         email,
         password: hashedPassword,
         role,
+        shopId,
       },
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
+        isActive: true,
       },
     });
 
@@ -69,19 +69,19 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    if (!shopId) { return NextResponse.json({ error: 'Shop ID required' }, { status: 400 }); }
     const body = await request.json();
-    const { id, name, phone, role, newPassword, resetByAdmin } = body;
+    const { id, name, role, isActive, newPassword } = body;
 
     if (newPassword) {
-      const bcrypt = require('bcryptjs');
-      
       if (!id) {
         return NextResponse.json({ error: 'User ID required' }, { status: 400 });
       }
 
       const hashedPassword = await bcrypt.hash(newPassword, 10);
       await prisma.user.update({
-        where: { id },
+        where: { id, shopId },
         data: { password: hashedPassword },
       });
 
@@ -90,10 +90,11 @@ export async function PUT(request: NextRequest) {
 
     if (id) {
       const user = await prisma.user.update({
-        where: { id },
+        where: { id, shopId },
         data: {
           ...(name && { name }),
           ...(role && { role }),
+          ...(isActive !== undefined && { isActive }),
         },
       });
       return NextResponse.json({ user });
@@ -108,6 +109,8 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    if (!shopId) { return NextResponse.json({ error: 'Shop ID required' }, { status: 400 }); }
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -115,7 +118,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 });
     }
 
-    await prisma.user.delete({ where: { id } });
+    await prisma.user.delete({ where: { id, shopId } });
 
     return NextResponse.json({ success: true });
   } catch (error) {

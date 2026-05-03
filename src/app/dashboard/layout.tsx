@@ -1,582 +1,423 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { 
-  LayoutDashboard, Package, ShoppingCart, Undo2, BarChart3, 
-  Menu, X, Users, FileText, ClipboardCheck, DollarSign, Settings, 
-  User, LogOut, CreditCard, TrendingUp, Shield, ChevronDown, ChevronRight,
-  HandCoins, Truck, Receipt
-} from 'lucide-react';
-import { useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/components/AuthProvider';
-
-interface MenuItem {
-  href?: string;
-  label: string;
-  icon: any;
-  module?: string;
-  children?: MenuItem[];
-}
-
-const ROLE_MENUS: Record<string, MenuItem[]> = {
-  ADMIN: [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, module: 'dashboard' },
-    { 
-      label: 'POS & Sales', 
-      icon: ShoppingCart, 
-      children: [
-        { href: '/dashboard/pos', label: 'Point of Sale', icon: ShoppingCart, module: 'pos' },
-        { href: '/dashboard/sales', label: 'Sales History', icon: Receipt, module: 'sales' },
-        { href: '/dashboard/installments', label: 'Installments', icon: CreditCard, module: 'pos' },
-      ]
-    },
-    { 
-      label: 'Inventory', 
-      icon: Package, 
-      children: [
-        { href: '/dashboard/inventory', label: 'Products', icon: Package, module: 'inventory' },
-        { href: '/dashboard/stock-count', label: 'Stock Count', icon: ClipboardCheck, module: 'stock-count' },
-        { href: '/dashboard/returns', label: 'Returns', icon: Undo2, module: 'returns' },
-      ]
-    },
-    { 
-      label: 'Purchases', 
-      icon: Truck, 
-      children: [
-        { href: '/dashboard/purchase-orders', label: 'Purchase Orders', icon: FileText, module: 'purchase-orders' },
-        { href: '/dashboard/suppliers', label: 'Suppliers', icon: Users, module: 'suppliers' },
-      ]
-    },
-    { 
-      label: 'Finance', 
-      icon: DollarSign, 
-      children: [
-        { href: '/dashboard/expenses', label: 'Expenses', icon: DollarSign, module: 'expenses' },
-        { href: '/dashboard/profit-loss', label: 'Profit & Loss', icon: TrendingUp, module: 'profit-loss' },
-      ]
-    },
-    { href: '/dashboard/clients', label: 'Clients', icon: Users, module: 'clients' },
-    { href: '/dashboard/reports', label: 'Reports', icon: BarChart3, module: 'reports' },
-    { 
-      label: 'Settings', 
-      icon: Settings, 
-      children: [
-        { href: '/dashboard/settings', label: 'Settings', icon: Settings, module: 'settings' },
-        { href: '/dashboard/permissions', label: 'Permissions', icon: Shield, module: 'users' },
-      ]
-    },
-  ],
-  MANAGER: [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, module: 'dashboard' },
-    { 
-      label: 'POS & Sales', 
-      icon: ShoppingCart, 
-      children: [
-        { href: '/dashboard/pos', label: 'Point of Sale', icon: ShoppingCart, module: 'pos' },
-        { href: '/dashboard/sales', label: 'Sales History', icon: Receipt, module: 'sales' },
-        { href: '/dashboard/installments', label: 'Installments', icon: CreditCard, module: 'pos' },
-      ]
-    },
-    { 
-      label: 'Inventory', 
-      icon: Package, 
-      children: [
-        { href: '/dashboard/inventory', label: 'Products', icon: Package, module: 'inventory' },
-        { href: '/dashboard/stock-count', label: 'Stock Count', icon: ClipboardCheck, module: 'stock-count' },
-        { href: '/dashboard/returns', label: 'Returns', icon: Undo2, module: 'returns' },
-      ]
-    },
-    { 
-      label: 'Purchases', 
-      icon: Truck, 
-      children: [
-        { href: '/dashboard/purchase-orders', label: 'Purchase Orders', icon: FileText, module: 'purchase-orders' },
-        { href: '/dashboard/suppliers', label: 'Suppliers', icon: Users, module: 'suppliers' },
-      ]
-    },
-    { 
-      label: 'Finance', 
-      icon: DollarSign, 
-      children: [
-        { href: '/dashboard/expenses', label: 'Expenses', icon: DollarSign, module: 'expenses' },
-        { href: '/dashboard/profit-loss', label: 'Profit & Loss', icon: TrendingUp, module: 'profit-loss' },
-      ]
-    },
-    { href: '/dashboard/clients', label: 'Clients', icon: Users, module: 'clients' },
-    { href: '/dashboard/reports', label: 'Reports', icon: BarChart3, module: 'reports' },
-    { 
-      label: 'Settings', 
-      icon: Settings, 
-      children: [
-        { href: '/dashboard/settings', label: 'Settings', icon: Settings, module: 'settings' },
-        { href: '/dashboard/permissions', label: 'Permissions', icon: Shield, module: 'users' },
-      ]
-    },
-  ],
-  CASHIER: [
-    { href: '/dashboard/inventory', label: 'Inventory', icon: Package, module: 'inventory' },
-    { 
-      label: 'POS & Sales', 
-      icon: ShoppingCart, 
-      children: [
-        { href: '/dashboard/pos', label: 'Point of Sale', icon: ShoppingCart, module: 'pos' },
-        { href: '/dashboard/installments', label: 'Installments', icon: CreditCard, module: 'installments' },
-        { href: '/dashboard/returns', label: 'Returns', icon: Undo2, module: 'returns' },
-      ]
-    },
-  ],
-  WINGER: [
-    { href: '/dashboard/inventory', label: 'Inventory', icon: Package, module: 'inventory' },
-  ],
-  SHOP_ASSISTANT: [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, module: 'dashboard' },
-    { 
-      label: 'Inventory', 
-      icon: Package, 
-      children: [
-        { href: '/dashboard/inventory', label: 'Products', icon: Package, module: 'inventory' },
-        { href: '/dashboard/stock-count', label: 'Stock Count', icon: ClipboardCheck, module: 'stock-count' },
-      ]
-    },
-    { href: '/dashboard/pos', label: 'POS / Sales', icon: ShoppingCart, module: 'pos' },
-  ],
-  ACCOUNTANT: [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, module: 'dashboard' },
-    { 
-      label: 'Finance', 
-      icon: DollarSign, 
-      children: [
-        { href: '/dashboard/expenses', label: 'Expenses', icon: DollarSign, module: 'expenses' },
-        { href: '/dashboard/profit-loss', label: 'Profit & Loss', icon: TrendingUp, module: 'profit-loss' },
-      ]
-    },
-    { href: '/dashboard/reports', label: 'Reports', icon: BarChart3, module: 'reports' },
-  ],
-};
-
-const bottomNavItems = [
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings, module: 'settings' },
-  { href: '/dashboard/permissions', label: 'Permissions', icon: Shield, module: 'users' },
-  { href: '/dashboard/profile', label: 'My Profile', icon: User, module: 'settings' },
-];
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Users,
+  DollarSign,
+  ArrowLeftRight,
+  FileText,
+  Settings,
+  ChevronLeft,
+  ChevronRight,
+  LogOut,
+  Menu,
+  X,
+  TrendingUp,
+  AlertTriangle,
+  BarChart3,
+  UserPlus,
+  ShoppingBag,
+  Truck,
+  Receipt,
+  PieChart,
+  Calculator,
+  RefreshCw,
+  PackagePlus
+} from 'lucide-react';
+import { SHOP_TYPE_CONFIG } from '@/lib/auth';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
-  const pathname = usePathname();
+  const { user, shop, logout, hasPermission } = useAuth();
   const router = useRouter();
-  const { settings, loading: settingsLoading } = useSettings();
-  const { user, logout, loading: authLoading } = useAuth();
-
-  const userRole = user?.role || 'CASHIER';
-  
-  const navItems = ROLE_MENUS[userRole] || ROLE_MENUS.CASHIER;
-  
-  const filteredBottomNav = bottomNavItems.filter(item => item.href === '/dashboard/profile');
+  const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    if (userRole === 'WINGER' && pathname === '/dashboard') {
-      router.replace('/dashboard/inventory');
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/');
     }
-  }, [userRole, pathname, router]);
+  }, [router]);
 
-  useEffect(() => {
-    const newOpenMenus: Record<string, boolean> = {};
-    navItems.forEach(item => {
-      if (item.children) {
-        const isChildActive = item.children.some(child => child.href && pathname.startsWith(child.href));
-        newOpenMenus[item.label] = isChildActive;
-      }
-    });
-    setOpenMenus(newOpenMenus);
-  }, [pathname, navItems]);
-
-  const isActive = (href?: string) => {
-    if (!href) return false;
-    if (href === '/dashboard') return pathname === '/dashboard';
-    return pathname.startsWith(href);
-  };
-
-  const toggleMenu = (label: string) => {
-    setOpenMenus(prev => ({ ...prev, [label]: !prev[label] }));
-  };
-
-  const handleLogout = () => {
-    logout();
-  };
-
-  if (authLoading) {
+  if (!user || !shop) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f172a', color: '#94a3b8' }}>
-        Loading...
+      <div style={styles.loading}>
+        <div style={styles.spinner}></div>
+        <p>Loading...</p>
       </div>
     );
   }
 
-  return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        style={{
-          position: 'fixed',
-          top: '1rem',
-          left: '1rem',
-          zIndex: 60,
-          padding: '0.5rem',
-          background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-          border: 'none',
-          borderRadius: '0.5rem',
-          cursor: 'pointer',
-          display: 'none',
-        }}
-      >
-        {sidebarOpen ? <X size={20} color="white" /> : <Menu size={20} color="white" />}
-      </button>
+  const shopConfig = SHOP_TYPE_CONFIG[shop.shopType] || {};
 
+  const navigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, permission: 'dashboard' },
+    { name: 'Inventory', href: '/dashboard/inventory', icon: Package, permission: 'inventory' },
+    { name: 'POS', href: '/dashboard/pos', icon: ShoppingCart, permission: 'pos' },
+    { name: 'Sales', href: '/dashboard/sales', icon: DollarSign, permission: 'sales' },
+    { name: 'Returns', href: '/dashboard/returns', icon: RefreshCw, permission: 'returns' },
+    { name: 'Installments', href: '/dashboard/installments', icon: Calculator, permission: 'installments' },
+    { name: 'Suppliers', href: '/dashboard/suppliers', icon: Truck, permission: 'suppliers' },
+    { name: 'Purchase Orders', href: '/dashboard/purchase-orders', icon: PackagePlus, permission: 'purchase-orders' },
+    { name: 'Expenses', href: '/dashboard/expenses', icon: Receipt, permission: 'expenses' },
+    { name: 'Reports', href: '/dashboard/reports', icon: BarChart3, permission: 'reports' },
+    { name: 'Users', href: '/dashboard/users', icon: Users, permission: 'users' },
+    { name: 'Settings', href: '/dashboard/settings', icon: Settings, permission: 'settings' },
+  ].filter(item => hasPermission(item.permission, 'read') || item.permission === 'dashboard');
+
+  const shopIcons: Record<string, string> = {
+    PHARMACY: '💊',
+    GENERAL: '🏪',
+    LIQUOR: '🍷',
+    ELECTRONICS: '📱',
+    CLOTHING: '👕',
+  };
+
+  return (
+    <div style={styles.layout}>
       <aside style={{
-        width: '280px',
-        height: '100vh',
-        position: 'fixed',
-        left: 0,
-        top: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
-        borderRight: '1px solid #334155',
-        zIndex: 50,
+        ...styles.sidebar,
+        width: collapsed ? '80px' : '260px',
       }}>
-        {/* Header */}
-        <div style={{ padding: '1.25rem', borderBottom: '1px solid #334155', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{ 
-              width: '42px', 
-              height: '42px', 
-              borderRadius: '0.75rem', 
-              background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Package size={24} color="white" />
-            </div>
-            <div>
-              <span style={{ fontWeight: '700', fontSize: '1.3rem', color: '#f1f5f9' }}>ISMS Pro</span>
-              <div style={{ fontSize: '0.7rem', color: '#22c55e', fontWeight: '600' }}>
-                {settingsLoading ? 'Loading...' : `${settings.currencySymbol} ${settings.currency}`}
+        <div style={styles.sidebarHeader}>
+          <div style={styles.shopBadge}>
+            <span style={styles.shopIcon}>{shopIcons[shop.shopType]}</span>
+            {!collapsed && (
+              <div style={styles.shopInfo}>
+                <span style={styles.shopName}>{shop.name}</span>
+                <span style={styles.shopType}>{shopConfig.name}</span>
               </div>
-            </div>
+            )}
           </div>
+          <button onClick={() => setCollapsed(!collapsed)} style={styles.collapseBtn}>
+            {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          </button>
         </div>
 
-        {/* Scrollable Navigation */}
-        <nav style={{ 
-          flex: 1, 
-          overflowY: 'auto',
-          padding: '1rem 0.75rem',
-          scrollbarWidth: 'thin',
-          scrollbarColor: '#475569 transparent',
-        }}>
-          {/* Custom scrollbar for webkit */}
-          <style>{`
-            nav::-webkit-scrollbar { width: 6px; }
-            nav::-webkit-scrollbar-track { background: transparent; }
-            nav::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
-            nav::-webkit-scrollbar-thumb:hover { background: #64748b; }
-          `}</style>
-
-          <div style={{ fontSize: '0.7rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.75rem', paddingLeft: '0.75rem' }}>
-            Main Menu
-          </div>
-          
-          {navItems.map(item => {
-            if (item.children) {
-              const isOpen = openMenus[item.label] || false;
-              const hasActiveChild = item.children.some(child => isActive(child.href));
-              
-              return (
-                <div key={item.label} style={{ marginBottom: '0.25rem' }}>
-                  <button
-                    onClick={() => toggleMenu(item.label)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                      padding: '0.875rem 1rem',
-                      borderRadius: '0.6rem',
-                      color: hasActiveChild ? '#f1f5f9' : '#94a3b8',
-                      textDecoration: 'none',
-                      fontWeight: hasActiveChild ? '600' : '500',
-                      fontSize: '0.9rem',
-                      width: '100%',
-                      background: hasActiveChild ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
-                      border: 'none',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!hasActiveChild) {
-                        e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)';
-                        e.currentTarget.style.color = '#f1f5f9';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!hasActiveChild) {
-                        e.currentTarget.style.background = 'transparent';
-                        e.currentTarget.style.color = '#94a3b8';
-                      }
-                    }}
-                  >
-                    <item.icon size={20} style={{ color: hasActiveChild ? '#fff' : '#94a3b8' }} />
-                    <span style={{ flex: 1, textAlign: 'left' }}>{item.label}</span>
-                    {isOpen ? (
-                      <ChevronDown size={18} style={{ color: hasActiveChild ? '#fff' : '#94a3b8' }} />
-                    ) : (
-                      <ChevronRight size={18} style={{ color: hasActiveChild ? '#fff' : '#94a3b8' }} />
-                    )}
-                  </button>
-                  
-                  {isOpen && (
-                    <div style={{ 
-                      marginLeft: '0.5rem', 
-                      paddingLeft: '0.75rem', 
-                      borderLeft: '2px solid #334155',
-                      marginTop: '0.25rem'
-                    }}>
-                      {item.children.map(child => {
-                        const childActive = isActive(child.href);
-                        return (
-                          <Link
-                            key={child.href}
-                            href={child.href || '#'}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.75rem',
-                              padding: '0.7rem 1rem',
-                              borderRadius: '0.5rem',
-                              color: childActive ? '#f1f5f9' : '#94a3b8',
-                              textDecoration: 'none',
-                              fontWeight: childActive ? '600' : '500',
-                              fontSize: '0.85rem',
-                              marginBottom: '0.125rem',
-                              background: childActive ? 'rgba(59, 130, 246, 0.25)' : 'transparent',
-                              transition: 'all 0.15s ease',
-                            }}
-                            onMouseEnter={(e) => {
-                              if (!childActive) {
-                                e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)';
-                                e.currentTarget.style.color = '#f1f5f9';
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!childActive) {
-                                e.currentTarget.style.background = 'transparent';
-                                e.currentTarget.style.color = '#94a3b8';
-                              }
-                            }}
-                          >
-                            <child.icon size={18} style={{ color: childActive ? '#fff' : '#94a3b8' }} />
-                            {child.label}
-                            {childActive && (
-                              <div style={{ marginLeft: 'auto', width: '5px', height: '5px', borderRadius: '50%', background: '#22c55e' }} />
-                            )}
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            }
-            
-            const active = isActive(item.href);
+        <nav style={styles.nav}>
+          {navigation.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
             return (
               <Link
-                key={item.href}
-                href={item.href || '#'}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '0.875rem 1rem',
-                  borderRadius: '0.6rem',
-                  color: active ? '#f1f5f9' : '#94a3b8',
-                  textDecoration: 'none',
-                  fontWeight: active ? '600' : '500',
-                  fontSize: '0.9rem',
-                  marginBottom: '0.25rem',
-                  background: active ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
-                  transition: 'all 0.15s ease',
-                  border: active ? 'none' : '1px solid transparent',
-                }}
-                onMouseEnter={(e) => {
-                  if (!active) {
-                    e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)';
-                    e.currentTarget.style.color = '#f1f5f9';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!active) {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = '#94a3b8';
-                  }
-                }}
-              >
-                <item.icon size={20} style={{ color: active ? '#fff' : '#94a3b8' }} />
-                {item.label}
-                {active && (
-                  <div style={{ marginLeft: 'auto', width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e' }} />
-                )}
-              </Link>
-            );
-          })}
-
-          <div style={{ fontSize: '0.7rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.75rem', marginTop: '1.5rem', paddingLeft: '0.75rem' }}>
-            Account
-          </div>
-          
-          {filteredBottomNav.map(item => {
-            const active = isActive(item.href);
-            return (
-              <Link
-                key={item.href}
+                key={item.name}
                 href={item.href}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '0.875rem 1rem',
-                  borderRadius: '0.6rem',
-                  color: active ? '#f1f5f9' : '#94a3b8',
-                  textDecoration: 'none',
-                  fontWeight: active ? '600' : '500',
-                  fontSize: '0.9rem',
-                  marginBottom: '0.25rem',
-                  background: active ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  if (!active) {
-                    e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)';
-                    e.currentTarget.style.color = '#f1f5f9';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!active) {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = '#94a3b8';
-                  }
+                  ...styles.navItem,
+                  ...(isActive ? styles.navItemActive : {}),
+                  justifyContent: collapsed ? 'center' : 'flex-start',
                 }}
               >
-                <item.icon size={20} style={{ color: active ? '#fff' : '#94a3b8' }} />
-                {item.label}
+                <item.icon size={20} />
+                {!collapsed && <span>{item.name}</span>}
               </Link>
             );
           })}
-
-          <button
-            onClick={handleLogout}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '0.875rem 1rem',
-              borderRadius: '0.6rem',
-              color: '#ef4444',
-              textDecoration: 'none',
-              fontWeight: '500',
-              fontSize: '0.9rem',
-              marginTop: '0.75rem',
-              background: 'transparent',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              width: '100%',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-            }}
-          >
-            <LogOut size={20} />
-            Logout
-          </button>
         </nav>
 
-        {/* Footer - User Profile */}
-        <div style={{ 
-          padding: '1rem', 
-          borderTop: '1px solid #334155',
-          background: '#0f172a',
-          flexShrink: 0,
-        }}>
-          <div style={{ 
-            padding: '0.75rem', 
-            borderRadius: '0.6rem',
-            background: 'linear-gradient(135deg, #334155, #1e293b)',
-            border: '1px solid #475569'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                fontWeight: '700',
-                fontSize: '1rem'
-              }}>
-                {user?.name?.charAt(0).toUpperCase() || 'U'}
-              </div>
-              <div>
-                <div style={{ fontWeight: '600', fontSize: '0.9rem', color: '#f1f5f9' }}>{user?.name || 'User'}</div>
-                <div style={{ fontSize: '0.7rem', color: '#22c55e', fontWeight: '500' }}>{user?.role || 'User'}</div>
-              </div>
+        <div style={styles.sidebarFooter}>
+          <div style={styles.userInfo}>
+            <div style={styles.userAvatar}>
+              {user.name.charAt(0).toUpperCase()}
             </div>
+            {!collapsed && (
+              <div style={styles.userDetails}>
+                <span style={styles.userName}>{user.name}</span>
+                <span style={styles.userRole}>{user.role}</span>
+              </div>
+            )}
           </div>
+          <button onClick={logout} style={styles.logoutBtn}>
+            <LogOut size={18} />
+            {!collapsed && <span>Logout</span>}
+          </button>
         </div>
       </aside>
 
-      <main style={{ marginLeft: '280px', minHeight: '100vh', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-        {children}
-        
-        {/* Global Footer */}
-        <footer style={{
-          marginTop: 'auto',
-          padding: '1.5rem',
-          borderTop: '1px solid #334155',
-          background: 'linear-gradient(135deg, #1e293b, #0f172a)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '1rem',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Package size={20} style={{ color: '#8b5cf6' }} />
-            <span style={{ fontSize: '0.875rem', color: '#94a3b8', fontWeight: '500' }}>
-              ISMS Pro - Tanzania
-            </span>
+      <div style={styles.main}>
+        <header style={styles.header}>
+          <button onClick={() => setMobileOpen(!mobileOpen)} style={styles.menuBtn}>
+            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+          <div style={styles.headerTitle}>
+            <h1 style={styles.pageTitle}>
+              {navigation.find(n => pathname === n.href || pathname.startsWith(n.href + '/'))?.name || 'Dashboard'}
+            </h1>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', fontSize: '0.8rem', color: '#64748b' }}>
-            <span>Inventory & Sales Management System</span>
-            <span style={{ color: '#475569' }}>|</span>
-            <span>Version 1.0.0</span>
-            <span style={{ color: '#475569' }}>|</span>
-            <span>&copy; 2026</span>
+          <div style={styles.headerRight}>
+            <span style={styles.currencyBadge}>{shop.currencySymbol}</span>
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#22c55e', fontWeight: '600' }}>
-            Made for Tanzania • {settings.currencySymbol} {settings.currency}
+        </header>
+
+        <main style={styles.content}>
+          {children}
+        </main>
+      </div>
+
+      {mobileOpen && (
+        <div style={styles.mobileOverlay} onClick={() => setMobileOpen(false)}>
+          <div style={styles.mobileMenu} onClick={e => e.stopPropagation()}>
+            <div style={styles.mobileHeader}>
+              <span style={styles.shopIcon}>{shopIcons[shop.shopType]}</span>
+              <span style={styles.shopName}>{shop.name}</span>
+              <button onClick={() => setMobileOpen(false)}><X size={24} /></button>
+            </div>
+            <nav style={styles.mobileNav}>
+              {navigation.map((item) => {
+                const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    style={{
+                      ...styles.mobileNavItem,
+                      ...(isActive ? styles.navItemActive : {}),
+                    }}
+                  >
+                    <item.icon size={20} />
+                    <span>{item.name}</span>
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
-        </footer>
-      </main>
+        </div>
+      )}
     </div>
   );
 }
+
+const styles: Record<string, React.CSSProperties> = {
+  layout: {
+    display: 'flex',
+    minHeight: '100vh',
+    background: '#0f172a',
+  },
+  sidebar: {
+    width: '260px',
+    background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
+    borderRight: '1px solid #334155',
+    display: 'flex',
+    flexDirection: 'column',
+    transition: 'width 0.2s',
+    position: 'fixed',
+    height: '100vh',
+    zIndex: 100,
+  },
+  sidebarHeader: {
+    padding: '1.25rem',
+    borderBottom: '1px solid #334155',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  shopBadge: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+  },
+  shopIcon: {
+    fontSize: '1.75rem',
+  },
+  shopInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  shopName: {
+    fontSize: '0.95rem',
+    fontWeight: '600',
+    color: '#f1f5f9',
+  },
+  shopType: {
+    fontSize: '0.75rem',
+    color: '#64748b',
+  },
+  collapseBtn: {
+    background: 'none',
+    border: 'none',
+    color: '#64748b',
+    cursor: 'pointer',
+    padding: '0.25rem',
+  },
+  nav: {
+    flex: 1,
+    padding: '1rem 0.75rem',
+    overflowY: 'auto',
+  },
+  navItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    padding: '0.75rem 1rem',
+    color: '#94a3b8',
+    textDecoration: 'none',
+    borderRadius: '0.5rem',
+    marginBottom: '0.25rem',
+    transition: 'all 0.15s',
+    fontSize: '0.875rem',
+  },
+  navItemActive: {
+    background: 'rgba(59, 130, 246, 0.1)',
+    color: '#3b82f6',
+    borderLeft: '3px solid #3b82f6',
+  },
+  sidebarFooter: {
+    padding: '1rem',
+    borderTop: '1px solid #334155',
+  },
+  userInfo: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    marginBottom: '1rem',
+  },
+  userAvatar: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: '1rem',
+  },
+  userDetails: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  userName: {
+    fontSize: '0.875rem',
+    fontWeight: '500',
+    color: '#f1f5f9',
+  },
+  userRole: {
+    fontSize: '0.75rem',
+    color: '#64748b',
+  },
+  logoutBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    width: '100%',
+    padding: '0.625rem 1rem',
+    background: 'rgba(239, 68, 68, 0.1)',
+    border: '1px solid rgba(239, 68, 68, 0.3)',
+    borderRadius: '0.5rem',
+    color: '#ef4444',
+    cursor: 'pointer',
+    fontSize: '0.875rem',
+  },
+  main: {
+    flex: 1,
+    marginLeft: '260px',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  header: {
+    height: '64px',
+    background: '#1e293b',
+    borderBottom: '1px solid #334155',
+    padding: '0 1.5rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem',
+  },
+  menuBtn: {
+    display: 'none',
+    background: 'none',
+    border: 'none',
+    color: '#f1f5f9',
+    cursor: 'pointer',
+  },
+  headerTitle: {
+    flex: 1,
+  },
+  pageTitle: {
+    fontSize: '1.25rem',
+    fontWeight: '600',
+    color: '#f1f5f9',
+    margin: 0,
+  },
+  headerRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem',
+  },
+  currencyBadge: {
+    background: '#3b82f6',
+    color: 'white',
+    padding: '0.25rem 0.75rem',
+    borderRadius: '0.5rem',
+    fontSize: '0.75rem',
+    fontWeight: '600',
+  },
+  content: {
+    flex: 1,
+    padding: '1.5rem',
+    overflow: 'auto',
+  },
+  loading: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100vh',
+    background: '#0f172a',
+    color: '#f1f5f9',
+  },
+  spinner: {
+    width: '40px',
+    height: '40px',
+    border: '3px solid #334155',
+    borderTopColor: '#3b82f6',
+    borderRadius: '50%',
+    animation: 'spin 1s linear infinite',
+  },
+  mobileOverlay: {
+    display: 'none',
+    position: 'fixed',
+    inset: 0,
+    background: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 200,
+  },
+  mobileMenu: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: '280px',
+    background: '#1e293b',
+    padding: '1rem',
+  },
+  mobileHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    padding: '0.5rem 0 1rem',
+    borderBottom: '1px solid #334155',
+    marginBottom: '1rem',
+  },
+  mobileNav: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.25rem',
+  },
+  mobileNavItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    padding: '0.75rem 1rem',
+    color: '#94a3b8',
+    textDecoration: 'none',
+    borderRadius: '0.5rem',
+  },
+};

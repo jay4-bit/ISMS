@@ -3,6 +3,12 @@ import prisma from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    
+    if (!shopId) {
+      return NextResponse.json({ error: 'Shop ID required' }, { status: 400 });
+    }
+
     const { searchParams } = new URL(request.url);
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
@@ -10,7 +16,7 @@ export async function GET(request: NextRequest) {
     const productId = searchParams.get('productId');
     const type = searchParams.get('type') || 'sales';
 
-    const where: any = {};
+    const where: any = { shopId };
 
     if (startDate || endDate) {
       where.createdAt = {};
@@ -96,6 +102,7 @@ export async function GET(request: NextRequest) {
 
     if (type === 'inventory') {
       const products = await prisma.product.findMany({
+        where: { shopId },
         include: { category: true },
       });
 
@@ -104,7 +111,7 @@ export async function GET(request: NextRequest) {
         filteredProducts = products.filter(p => p.categoryId === categoryId);
       }
       if (productId) {
-        filteredProducts = products.filter(p => p.id === productId);
+        filteredProducts = filteredProducts.filter(p => p.id === productId);
       }
 
       const totalValue = filteredProducts.reduce((sum, p) => sum + p.sellingPrice * p.stockQuantity, 0);

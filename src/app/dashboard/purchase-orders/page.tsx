@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { FileText, Plus, Eye, X, Truck, CheckCircle, Clock, Package, DollarSign, Calendar, Search, UserPlus, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useSettings } from '@/context/SettingsContext';
+import { useAuth } from '@/components/AuthProvider';
 
 interface PurchaseOrder {
   id: string;
@@ -31,6 +32,8 @@ interface Product {
 }
 
 export default function PurchaseOrdersPage() {
+  const { shop } = useAuth();
+  const { settings } = useSettings();
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -39,8 +42,7 @@ export default function PurchaseOrdersPage() {
   const [showAddSupplier, setShowAddSupplier] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<PurchaseOrder | null>(null);
   const [search, setSearch] = useState('');
-  const { settings } = useSettings();
-  const formatCurr = (amount: number) => formatCurrency(amount, settings.currency);
+  const formatCurr = (amount: number) => formatCurrency(amount, settings?.currency || 'TZS');
 
   const [formData, setFormData] = useState({
     supplierId: '',
@@ -55,14 +57,15 @@ export default function PurchaseOrdersPage() {
     address: ''
   });
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, [shop]);
 
   async function fetchData() {
     try {
+      const headers = { 'x-shop-id': shop?.id || '' };
       const [ordersRes, suppliersRes, productsRes] = await Promise.all([
-        fetch('/api/purchase-orders'),
-        fetch('/api/suppliers'),
-        fetch('/api/inventory')
+        fetch('/api/purchase-orders', { headers }),
+        fetch('/api/suppliers', { headers }),
+        fetch('/api/inventory', { headers })
       ]);
       const ordersData = await ordersRes.json();
       const suppliersData = await suppliersRes.json();
@@ -105,25 +108,54 @@ export default function PurchaseOrdersPage() {
   }
 
   async function handleCreateSupplier() {
+    const name = newSupplier.name.trim();
+    if (!name) {
+      alert('Please enter supplier name');
+      return;
+    }
+    
+    if (!shop?.id) {
+      alert('Shop not loaded. Please refresh the page.');
+      return;
+    }
+    
+    console.log('Creating supplier:', { name, shopId: shop.id });
+    
     try {
-      const res = await fetch('/api/suppliers', {
+      const response = await fetch('/api/suppliers', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newSupplier)
+        headers: {
+          'Content-Type': 'application/json',
+          'x-shop-id': shop.id
+        },
+        body: JSON.stringify({
+          name: name,
+          email: newSupplier.email || null,
+          phone: newSupplier.phone || null,
+          address: newSupplier.address || null
+        })
       });
-      if (res.ok) {
-        const data = await res.json();
+      
+      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('Response data:', data);
+      
+      if (response.ok) {
         setSuppliers([...suppliers, data.supplier]);
         setFormData({ ...formData, supplierId: data.supplier.id });
         setShowAddSupplier(false);
         setNewSupplier({ name: '', email: '', phone: '', address: '' });
+        alert('Supplier added successfully!');
+      } else {
+        alert(data.error || 'Failed to create supplier');
       }
     } catch (error) {
-      console.error('Failed to create supplier:', error);
+      console.error('Error creating supplier:', error);
+      alert('Error: ' + (error as Error).message);
     }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!formData.supplierId || formData.items.length === 0) {
       alert('Please select a supplier and add at least one item');
@@ -134,7 +166,7 @@ export default function PurchaseOrdersPage() {
       const supplier = suppliers.find(s => s.id === formData.supplierId);
       const res = await fetch('/api/purchase-orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
         body: JSON.stringify({
           supplierId: formData.supplierId,
           supplierName: supplier?.name,
@@ -142,10 +174,13 @@ export default function PurchaseOrdersPage() {
           items: formData.items
         })
       });
+      const data = await res.json();
       if (res.ok) {
         setShowModal(false);
         setFormData({ supplierId: '', expectedDelivery: '', items: [] });
         fetchData();
+      } else {
+        alert(data.error || 'Failed to create order');
       }
     } catch (error) {
       console.error('Failed to create order:', error);
@@ -156,7 +191,7 @@ export default function PurchaseOrdersPage() {
     try {
       await fetch('/api/purchase-orders', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
         body: JSON.stringify({ id: orderId, status })
       });
       fetchData();
@@ -168,7 +203,10 @@ export default function PurchaseOrdersPage() {
   async function deleteOrder(orderId: string) {
     if (!confirm('Are you sure you want to delete this order?')) return;
     try {
-      await fetch(`/api/purchase-orders?id=${orderId}`, { method: 'DELETE' });
+      await fetch(`/api/purchase-orders?id=${orderId}`, { 
+        method: 'DELETE',
+        headers: { 'x-shop-id': shop?.id || '' }
+      });
       fetchData();
     } catch (error) {
       console.error('Failed to delete order:', error);
@@ -361,7 +399,10 @@ export default function PurchaseOrdersPage() {
                           <option key={s.id} value={s.id}>{s.name}</option>
                         ))}
                       </select>
-                      <button type="button" onClick={() => setShowAddSupplier(true)} className="btn btn-secondary" title="Add Supplier">
+                      <button type="button" onClick={() => {
+                        console.log('Opening supplier modal');
+                        setShowAddSupplier(true);
+                      }} className="btn btn-secondary" title="Add Supplier">
                         <UserPlus size={18} />
                       </button>
                     </div>
@@ -478,7 +519,7 @@ export default function PurchaseOrdersPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
                 <label className="label">Name *</label>
-                <input type="text" className="input" value={newSupplier.name} onChange={(e) => setNewSupplier({ ...newSupplier, name: e.target.value })} required />
+                <input type="text" className="input" value={newSupplier.name} onChange={(e) => setNewSupplier({ ...newSupplier, name: e.target.value })} onKeyDown={(e) => e.key === 'Enter' && handleCreateSupplier()} required />
               </div>
               <div>
                 <label className="label">Email</label>
@@ -492,7 +533,7 @@ export default function PurchaseOrdersPage() {
                 <label className="label">Address</label>
                 <input type="text" className="input" value={newSupplier.address} onChange={(e) => setNewSupplier({ ...newSupplier, address: e.target.value })} />
               </div>
-              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+<div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
                 <button type="button" onClick={() => setShowAddSupplier(false)} className="btn btn-secondary">Cancel</button>
                 <button type="button" onClick={handleCreateSupplier} className="btn btn-primary">Add Supplier</button>
               </div>

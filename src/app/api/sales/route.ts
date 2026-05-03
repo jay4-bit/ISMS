@@ -1,23 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { generateReceiptNumber } from '@/lib/utils';
 import bcrypt from 'bcryptjs';
 
-async function getCashierId() {
+function generateReceiptNumber(): string {
+  return 'RCP' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
+}
+
+async function getCashierId(shopId: string) {
   let cashier = await prisma.user.findFirst({
-    where: { role: 'ADMIN' }
+    where: { role: 'OWNER', shopId }
   });
   
   if (!cashier) {
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    cashier = await prisma.user.findFirst({
+      where: { role: 'CASHIER', shopId }
+    });
+  }
+  
+  if (!cashier) {
+    const hashedPassword = await bcrypt.hash('demo123', 10);
+    const uniqueSuffix = Date.now().toString(36);
     cashier = await prisma.user.create({
       data: {
-        email: 'admin@isms.local',
+        email: `cashier-${uniqueSuffix}@local`,
         password: hashedPassword,
-        name: 'Administrator',
-        role: 'ADMIN',
+        name: 'Cashier',
+        role: 'CASHIER',
+        shopId,
       }
     });
+  }
+  
+  if (!cashier?.id) {
+    throw new Error('No cashier found for shop');
   }
   
   return cashier.id;
@@ -25,7 +40,16 @@ async function getCashierId() {
 
 export async function POST(request: NextRequest) {
   try {
-    const cashierId = await getCashierId();
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    if (!shopId) { 
+      return NextResponse.json({ error: 'Shop ID required' }, { status: 400 }); 
+    }
+    
+    const cashierId = await getCashierId(shopId);
+    if (!cashierId) {
+      return NextResponse.json({ error: 'Cashier not found' }, { status: 400 });
+    }
+    
     const body = await request.json();
     
     const { items, discount = 0, paymentMethod, saleType = 'RETAIL', customerName, customerPhone, customerAddress, amountPaid = 0, customerId, saveCustomer = false } = body;
@@ -39,11 +63,10 @@ export async function POST(request: NextRequest) {
     
     let finalCustomerId = customerId;
     
-    // Save customer if requested
     if (saveCustomer && customerName) {
       let customer = null;
       if (customerPhone) {
-        customer = await prisma.customer.findFirst({ where: { phone: customerPhone } });
+        customer = await prisma.customer.findFirst({ where: { phone: customerPhone, shopId } });
       }
       if (!customer) {
         customer = await prisma.customer.create({
@@ -52,6 +75,7 @@ export async function POST(request: NextRequest) {
             phone: customerPhone || null,
             email: null,
             address: customerAddress || null,
+            shopId,
           }
         });
       }
@@ -80,8 +104,9 @@ export async function POST(request: NextRequest) {
     const paid = isCredit ? amountPaid : total;
     const change = paymentMethod === 'CASH' ? Math.max(0, amountPaid - total) : 0;
     
-    const saleData: any = {
+const saleData: any = {
       receiptNumber: generateReceiptNumber(),
+      shopId,
       subtotal,
       discount: discount || 0,
       total,
@@ -95,16 +120,14 @@ export async function POST(request: NextRequest) {
       isInstallment: isCredit,
       saleStatus: isCredit ? 'INSTALLMENT' : 'COMPLETE',
       isPaid: !isCredit,
-      cashier: {
-        connect: { id: cashierId }
-      },
+      cashierId,
       items: {
         create: saleItemsData,
       },
     };
 
     if (finalCustomerId) {
-      saleData.installmentCustomer = { connect: { id: finalCustomerId } };
+      saleData.customerId = finalCustomerId;
     }
 
     if (isCredit) {
@@ -114,6 +137,24 @@ export async function POST(request: NextRequest) {
       saleData.nextPaymentDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     }
 
+    // Validate all product IDs exist
+    for (const item of items) {
+      const productExists = await prisma.product.findUnique({ where: { id: item.product.id } });
+      if (!productExists) {
+        console.error('Product not found:', item.product.id);
+        return NextResponse.json({ error: `Product not found: ${item.product.id}` }, { status: 400 });
+      }
+    }
+
+    // Validate cashier exists
+    const cashierExists = await prisma.user.findUnique({ where: { id: cashierId } });
+    if (!cashierExists) {
+      console.error('Cashier not found:', cashierId);
+      return NextResponse.json({ error: 'Cashier not found' }, { status: 400 });
+    }
+
+    console.log('All validations passed, creating sale with data:', JSON.stringify(saleData, null, 2));
+
     const sale = await prisma.sale.create({
       data: saleData,
       include: {
@@ -121,8 +162,8 @@ export async function POST(request: NextRequest) {
         cashier: { select: { name: true, email: true } },
       },
     });
+    console.log('Sale created successfully:', sale.id);
 
-    // Update stock
     for (const item of items) {
       await prisma.product.update({
         where: { id: item.product.id },
@@ -139,17 +180,19 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    if (!shopId) { return NextResponse.json({ error: 'Shop ID required' }, { status: 400 }); }
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     const installment = searchParams.get('installment');
 
     if (id) {
       const sale = await prisma.sale.findUnique({
-        where: { id },
+        where: { id, shopId },
         include: { 
           items: { include: { product: true } }, 
           cashier: { select: { name: true } },
-          payments: true,
+          installmentPayments: true,
         },
       });
       return NextResponse.json({ sale });
@@ -158,12 +201,13 @@ export async function GET(request: NextRequest) {
     if (installment === 'true') {
       const sales = await prisma.sale.findMany({
         where: { 
+          shopId,
           isInstallment: true,
         },
         include: { 
           items: { include: { product: true } }, 
           cashier: { select: { name: true } },
-          payments: { orderBy: { createdAt: 'desc' } },
+          installmentPayments: { orderBy: { createdAt: 'desc' } },
         },
         orderBy: { createdAt: 'desc' },
       });
@@ -171,6 +215,7 @@ export async function GET(request: NextRequest) {
     }
 
     const sales = await prisma.sale.findMany({
+      where: { shopId },
       include: { 
         items: { include: { product: true } }, 
         cashier: { select: { name: true } },
@@ -188,19 +233,21 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    if (!shopId) { return NextResponse.json({ error: 'Shop ID required' }, { status: 400 }); }
     const body = await request.json();
     const { id, amount, notes } = body;
 
-    const sale = await prisma.sale.findUnique({ where: { id } });
+    const sale = await prisma.sale.findUnique({ where: { id, shopId } });
     if (!sale) {
       return NextResponse.json({ error: 'Sale not found' }, { status: 404 });
     }
 
-    const newPaid = sale.installmentPaid + amount;
+    const newPaid = (sale.installmentPaid || 0) + amount;
     const newDue = (sale.installmentTotal || 0) - newPaid;
 
     const updatedSale = await prisma.sale.update({
-      where: { id },
+      where: { id, shopId },
       data: {
         installmentPaid: newPaid,
         installmentDue: newDue,
@@ -233,8 +280,12 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json({ sale: updatedSale });
-  } catch (error) {
-    console.error('Update sale error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+} catch (error) {
+    console.error('Create sale error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ 
+      error: 'Failed to create sale',
+      details: errorMessage
+    }, { status: 500 });
   }
 }

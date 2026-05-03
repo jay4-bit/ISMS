@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    
+    if (!shopId) {
+      return NextResponse.json({ error: 'Shop ID required' }, { status: 400 });
+    }
+
     const orders = await prisma.purchaseOrder.findMany({
+      where: { shopId },
       include: { supplier: true },
       orderBy: { createdAt: 'desc' },
     });
@@ -28,6 +35,12 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    
+    if (!shopId) {
+      return NextResponse.json({ error: 'Shop ID required' }, { status: 400 });
+    }
+
     const body = await request.json();
     const { supplierId, items, notes, expectedDelivery } = body;
 
@@ -42,6 +55,7 @@ export async function POST(request: NextRequest) {
         notes,
         expectedDelivery: expectedDelivery ? new Date(expectedDelivery) : null,
         createdBy: 'admin',
+        shopId,
         items: {
           create: items.map((item: any) => ({
             productId: item.productId,
@@ -63,11 +77,17 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    
+    if (!shopId) {
+      return NextResponse.json({ error: 'Shop ID required' }, { status: 400 });
+    }
+
     const body = await request.json();
     const { id, status, paidAmount } = body;
 
     const order = await prisma.purchaseOrder.findUnique({
-      where: { id },
+      where: { id, shopId },
       include: { items: true }
     });
 
@@ -95,7 +115,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const updatedOrder = await prisma.purchaseOrder.update({
-      where: { id },
+      where: { id, shopId },
       data: {
         status,
         ...(paidAmount !== undefined && { paidAmount }),
@@ -113,19 +133,20 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
-    if (!id) {
-      return NextResponse.json({ error: 'Order ID required' }, { status: 400 });
+    if (!id || !shopId) {
+      return NextResponse.json({ error: 'Order ID and Shop ID required' }, { status: 400 });
     }
 
     await prisma.purchaseOrderItem.deleteMany({
-      where: { purchaseOrderId: id }
+      where: { purchaseOrderId: id, purchaseOrder: { shopId } }
     });
 
     await prisma.purchaseOrder.delete({
-      where: { id }
+      where: { id, shopId }
     });
 
     return NextResponse.json({ success: true });

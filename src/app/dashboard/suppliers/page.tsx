@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Users, Plus, Edit, Trash2, X, Phone, Mail, MapPin, Package, ToggleLeft, ToggleRight } from 'lucide-react';
+import { useAuth } from '@/components/AuthProvider';
 
 interface SupplierData {
   id: string;
@@ -15,6 +16,7 @@ interface SupplierData {
 }
 
 export default function SuppliersPage() {
+  const { user, shop } = useAuth();
   const [suppliers, setSuppliers] = useState<SupplierData[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -27,8 +29,9 @@ export default function SuppliersPage() {
   useEffect(() => { fetchSuppliers(); }, []);
 
   async function fetchSuppliers() {
+    if (!shop) return;
     try {
-      const res = await fetch('/api/suppliers');
+      const res = await fetch('/api/suppliers', { headers: { 'x-shop-id': shop.id } });
       const data = await res.json();
       setSuppliers(data.suppliers || []);
     } catch (error) {
@@ -58,12 +61,13 @@ export default function SuppliersPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!shop) return;
     try {
       const method = editingSupplier ? 'PUT' : 'POST';
       const body = editingSupplier ? { ...formData, id: editingSupplier.id } : formData;
       const res = await fetch('/api/suppliers', {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-shop-id': shop.id },
         body: JSON.stringify(body)
       });
       if (res.ok) {
@@ -76,9 +80,9 @@ export default function SuppliersPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Are you sure you want to delete this supplier?')) return;
+    if (!shop || !confirm('Are you sure you want to delete this supplier?')) return;
     try {
-      await fetch(`/api/suppliers?id=${id}`, { method: 'DELETE' });
+      await fetch(`/api/suppliers?id=${id}`, { method: 'DELETE', headers: { 'x-shop-id': shop.id } });
       fetchSuppliers();
     } catch (error) {
       console.error('Delete failed:', error);
@@ -86,10 +90,11 @@ export default function SuppliersPage() {
   }
 
   async function toggleActive(supplier: SupplierData) {
+    if (!shop) return;
     try {
       await fetch('/api/suppliers', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-shop-id': shop.id },
         body: JSON.stringify({ id: supplier.id, isActive: !supplier.isActive })
       });
       fetchSuppliers();

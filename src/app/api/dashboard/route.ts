@@ -1,9 +1,16 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+
+    if (!shopId) {
+      return NextResponse.json({ error: 'Shop ID required' }, { status: 400 });
+    }
+
     const products = await prisma.product.findMany({
+      where: { shopId },
       include: { category: true },
     });
 
@@ -15,7 +22,7 @@ export async function GET() {
     today.setHours(0, 0, 0, 0);
 
     const todaySales = await prisma.sale.findMany({
-      where: { createdAt: { gte: today } },
+      where: { shopId, createdAt: { gte: today } },
       include: { items: { include: { product: true } } },
     });
 
@@ -32,7 +39,7 @@ export async function GET() {
 
     const recentSales = await prisma.saleItem.groupBy({
       by: ['productId'],
-      where: { sale: { createdAt: { gte: thirtyDaysAgo } } },
+      where: { sale: { shopId, createdAt: { gte: thirtyDaysAgo } } },
       _sum: { quantity: true },
       orderBy: { _sum: { quantity: 'desc' } },
       take: 10,

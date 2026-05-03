@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    if (!shopId) { return NextResponse.json({ error: 'Shop ID required' }, { status: 400 }); }
     const suppliers = await prisma.supplier.findMany({
+      where: { shopId },
       orderBy: { name: 'asc' },
     });
     return NextResponse.json({ suppliers });
@@ -15,27 +18,39 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    console.log('Creating supplier, shopId:', shopId);
+    if (!shopId) { return NextResponse.json({ error: 'Shop ID required' }, { status: 400 }); }
     const body = await request.json();
+    console.log('Supplier data:', body);
     const { name, email, phone, address, contactPerson, notes } = body;
 
+    if (!name) {
+      return NextResponse.json({ error: 'Supplier name is required' }, { status: 400 });
+    }
+
     const supplier = await prisma.supplier.create({
-      data: { name, email, phone, address, contactPerson, notes },
+      data: { name, email, phone, address, contactPerson, notes, shopId },
     });
+    console.log('Supplier created:', supplier);
 
     return NextResponse.json({ supplier });
   } catch (error) {
     console.error('Create supplier error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to create supplier', details: errorMessage }, { status: 500 });
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    if (!shopId) { return NextResponse.json({ error: 'Shop ID required' }, { status: 400 }); }
     const body = await request.json();
     const { id, name, email, phone, address, contactPerson, notes, isActive } = body;
 
     const supplier = await prisma.supplier.update({
-      where: { id },
+      where: { id, shopId },
       data: { name, email, phone, address, contactPerson, notes, isActive },
     });
 
@@ -48,10 +63,12 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    if (!shopId) { return NextResponse.json({ error: 'Shop ID required' }, { status: 400 }); }
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id') || undefined;
 
-    await prisma.supplier.delete({ where: { id } });
+    await prisma.supplier.delete({ where: { id, shopId } });
 
     return NextResponse.json({ success: true });
   } catch (error) {

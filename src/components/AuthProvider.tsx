@@ -2,122 +2,131 @@
 
 import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { SHOP_TYPE_CONFIG } from '@/lib/auth';
+
+interface Shop {
+  id: string;
+  name: string;
+  shopType: string;
+  currency: string;
+  currencySymbol: string;
+}
 
 interface User {
   id: string;
   email: string;
   name: string;
-  username?: string;
   role: string;
-}
-
-interface Permission {
-  role: string;
-  module: string;
-  canRead: boolean;
-  canWrite: boolean;
-  canDelete: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
-  permissions: Permission[];
+  shop: Shop | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string, shopId?: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   hasPermission: (module: string, action: 'read' | 'write' | 'delete') => boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({ 
-  user: null, 
-  permissions: [],
-  loading: true, 
-  login: async () => false, 
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  shop: null,
+  loading: true,
+  login: async () => ({ success: false }),
   logout: () => {},
   hasPermission: () => true
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [shop, setShop] = useState<Shop | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
+    const storedShop = localStorage.getItem('shop');
+
     if (storedUser) {
-      const userData = JSON.parse(storedUser);
-      setUser(userData);
-      
-      fetch('/api/permissions')
-        .then(res => res.json())
-        .then(data => {
-          const rolePerms = (data.permissions || []).filter((p: Permission) => p.role === userData.role);
-          setPermissions(rolePerms);
-        })
-        .catch(e => console.error('Failed to fetch permissions:', e))
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        localStorage.removeItem('user');
+      }
     }
+
+    if (storedShop) {
+      try {
+        setShop(JSON.parse(storedShop));
+      } catch {
+        localStorage.removeItem('shop');
+      }
+    }
+
+    setLoading(false);
   }, []);
 
   const hasPermission = (module: string, action: 'read' | 'write' | 'delete'): boolean => {
-    if (loading) return true;
     if (!user) return false;
-    if (user.role === 'ADMIN') return true;
-    
-    const perm = permissions.find(p => p.module === module);
-    if (!perm) return false;
-    
-    switch (action) {
-      case 'read': return perm.canRead;
-      case 'write': return perm.canWrite;
-      case 'delete': return perm.canDelete;
-      default: return false;
-    }
+    if (user.role === 'OWNER') return true;
+
+    const shopConfig = SHOP_TYPE_CONFIG[shop?.shopType || ''];
+    if (!shopConfig) return false;
+
+    const allowedModules: Record<string, string[]> = {
+      PHARMACIST: ['pos', 'inventory', 'returns'],
+      MANAGER: ['dashboard', 'inventory', 'pos', 'returns', 'suppliers', 'expenses', 'reports'],
+      CASHIER: ['pos', 'returns'],
+      WINGER: ['pos', 'inventory'],
+      ASSISTANT: ['inventory', 'pos']
+    };
+
+    const userModules = allowedModules[user.role] || [];
+    return userModules.includes(module);
   };
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string, shopId?: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, shopId }),
       });
-      
+
+      if (!res.ok) {
+        const data = await res.json();
+        return { success: false, error: data.error || 'Login failed' };
+      }
+
       const data = await res.json();
-      
-      if (res.ok && data.user) {
+
+      if (data.user && data.shop) {
         localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('shop', JSON.stringify(data.shop));
         localStorage.setItem('token', data.token);
         setUser(data.user);
-        
-        const permRes = await fetch('/api/permissions');
-        const permData = await permRes.json();
-        const rolePerms = (permData.permissions || []).filter((p: Permission) => p.role === data.user.role);
-        setPermissions(rolePerms);
-        setLoading(false);
-        
-        return true;
+        setShop(data.shop);
+        return { success: true };
       }
-      return false;
+
+      return { success: false, error: 'Invalid response' };
     } catch (error) {
       console.error('Login error:', error);
-      return false;
+      return { success: false, error: 'Connection error' };
     }
   };
 
   const logout = () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('shop');
     localStorage.removeItem('token');
     setUser(null);
-    setPermissions([]);
-    router.push('/login');
+    setShop(null);
+    router.push('/');
   };
 
   return (
-    <AuthContext.Provider value={{ user, permissions, loading, login, logout, hasPermission }}>
+    <AuthContext.Provider value={{ user, shop, loading, login, logout, hasPermission }}>
       {children}
     </AuthContext.Provider>
   );

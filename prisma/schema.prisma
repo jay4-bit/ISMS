@@ -4,59 +4,109 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db"
+  url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  username  String?  @unique
-  password  String
-  name      String
-  role      Role     @default(CASHIER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  sales     Sale[]
+enum ShopType {
+  PHARMACY
+  GENERAL
+  LIQUOR
+  ELECTRONICS
+  CLOTHING
 }
 
 enum Role {
-  ADMIN
+  OWNER
   MANAGER
   CASHIER
-  ACCOUNTANT
+  PHARMACIST
   WINGER
-  SHOP_ASSISTANT
+  ASSISTANT
+}
+
+model Shop {
+  id          String    @id @default(cuid())
+  name        String
+  shopType    ShopType
+  phone       String?
+  email       String?
+  address     String?
+  currency    String    @default("TZS")
+  currencySymbol String @default("TSh")
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  users       User[]
+  products    Product[]
+  categories  Category[]
+  suppliers   Supplier[]
+  customers   Customer[]
+  sales       Sale[]
+  expenses    Expense[]
+  returns     Return[]
+  purchaseOrders PurchaseOrder[]
+  stockCounts StockCount[]
+  settings    ShopSettings?
+  
+  @@unique([name, shopType])
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String
+  password     String
+  name         String
+  role         Role     @default(CASHIER)
+  isActive     Boolean  @default(true)
+  shopId       String
+  shop         Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  sales        Sale[]
+  
+  @@unique([email, shopId])
 }
 
 model Category {
   id          String    @id @default(cuid())
   name        String
   description String?
-  profitMargin Float   @default(0)
+  profitMargin Float    @default(0)
+  shopId      String
+  shop        Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   products    Product[]
+  
+  @@unique([name, shopId])
 }
 
 model Supplier {
-  id          String   @id @default(cuid())
-  name        String
-  email       String?
-  phone       String?
-  address     String?
-  contactPerson String?
-  notes       String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  products    Product[]
+  id             String   @id @default(cuid())
+  name           String
+  email          String?
+  phone          String?
+  address        String?
+  contactPerson  String?
+  notes          String?
+  licenseNumber  String?
+  isActive       Boolean  @default(true)
+  shopId         String
+  shop           Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  products       Product[]
   purchaseOrders PurchaseOrder[]
+  
+  @@unique([name, shopId])
 }
 
 model Product {
   id              String   @id @default(cuid())
   name            String
-  sku             String   @unique
+  sku             String
   barcode         String?
   description     String?
   categoryId      String
@@ -67,7 +117,7 @@ model Product {
   sellingPrice    Float
   wholesalePrice  Float?
   stockQuantity   Int      @default(0)
-  lowStockThreshold Int     @default(10)
+  lowStockThreshold Int    @default(10)
   reorderPoint    Int      @default(20)
   isFaulty        Boolean  @default(false)
   hasExpiry       Boolean  @default(false)
@@ -79,29 +129,8 @@ model Product {
   imageUrl        String?
   variant         String?
   variantType     String?
-  
-  brand           String?
-  model           String?
-  warranty        String?
-  voltage         String?
-  wattage         Float?
-  
-  size            String?
-  color           String?
-  material        String?
-  season          String?
-  
-  dosage          String?
-  composition     String?
-  manufacturer    String?
-  batchNumber     String?
-  prescriptionRequired Boolean @default(false)
-  
-  alcoholPercentage Float?
-  volume           Float?
-  vintage          String?
-  liquorLicense    Boolean @default(false)
-  
+  shopId          String
+  shop            Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -113,6 +142,82 @@ model Product {
   priceTags       PriceTag[]
   stockCounts    StockCountItem[]
   serialNumbers   SerialNumber[]
+  
+  pharmacyFields  PharmacyProduct?
+  liquorFields    LiquorProduct?
+  electronicsFields ElectronicsProduct?
+  clothingFields  ClothingProduct?
+  
+  @@unique([sku, shopId])
+}
+
+model PharmacyProduct {
+  id                    String   @id @default(cuid())
+  productId             String   @unique
+  product               Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  brandName             String?
+  genericName           String?
+  batchNumber           String?
+  manufacturingDate     DateTime?
+  expiryDate            DateTime?
+  dosage                String?
+  composition           String?
+  manufacturer          String?
+  prescriptionRequired  Boolean  @default(false)
+  requiresColdStorage   Boolean  @default(false)
+  drugSchedule          String?
+  sideEffects           String?
+  contraindications     String?
+  interactionWarnings   String?
+  storageInstructions   String?
+}
+
+model LiquorProduct {
+  id                    String   @id @default(cuid())
+  productId             String   @unique
+  product               Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  brand                 String?
+  size                  Float?
+  volume                Float?
+  liquorType            String?
+  vintage               String?
+  origin                String?
+  alcoholPercentage     Float?
+  requiresLiquorLicense Boolean  @default(false)
+  ageStatement          String?
+  notes                 String?
+}
+
+model ElectronicsProduct {
+  id                    String   @id @default(cuid())
+  productId             String   @unique
+  product               Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  brand                 String?
+  model                 String?
+  condition             String?
+  imei                  String?
+  serialNumber          String?
+  color                 String?
+  storage               String?
+  warranty               String?
+  voltage               String?
+  wattage               Float?
+  specifications        String?
+  weight                Float?
+  accessoryGroup       String?
+}
+
+model ClothingProduct {
+  id                    String   @id @default(cuid())
+  productId             String   @unique
+  product               Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  size                  String?
+  color                 String?
+  material              String?
+  brand                 String?
+  season                String?
+  gender                String?
+  pattern               String?
 }
 
 model ProductVariant {
@@ -193,9 +298,12 @@ model Sale {
   createdAt     DateTime @default(now())
   cashierId     String
   cashier       User     @relation(fields: [cashierId], references: [id])
+  shopId        String
+  shop          Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  
+  installmentPayments InstallmentPayment[]
 
   items         SaleItem[]
-  payments      InstallmentPayment[]
 }
 
 enum PaymentMethod {
@@ -248,14 +356,21 @@ model Customer {
   email       String?
   phone       String?
   address     String?
+  prescriptionNumber String?
+  dateOfBirth DateTime?
+  creditLimit Float    @default(0)
   creditBalance Float  @default(0)
   loyaltyPoints Int    @default(0)
   totalPurchases Float @default(0)
   isActive    Boolean  @default(true)
+  shopId      String
+  shop        Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   sales       Sale[]
   installmentSales Sale[] @relation("InstallmentCustomer")
+  
+  @@unique([phone, shopId])
 }
 
 model Return {
@@ -266,6 +381,8 @@ model Return {
   totalRefund   Float    @default(0)
   createdAt     DateTime @default(now())
   processedBy   String
+  shopId        String
+  shop          Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   items         ReturnItem[]
 }
 
@@ -322,6 +439,8 @@ model PurchaseOrder {
   receivedAt      DateTime?
   createdAt       DateTime @default(now())
   createdBy       String
+  shopId          String
+  shop            Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   items           PurchaseOrderItem[]
 }
 
@@ -362,6 +481,8 @@ model StockCount {
   startedAt   DateTime @default(now())
   completedAt DateTime?
   createdBy   String
+  shopId      String
+  shop        Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   items       StockCountItem[]
 }
 
@@ -391,6 +512,8 @@ model Expense {
   reference   String?
   date        DateTime @default(now())
   createdBy   String
+  shopId      String
+  shop        Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
 }
 
 enum ExpenseCategory {
@@ -401,44 +524,27 @@ enum ExpenseCategory {
   MAINTENANCE
   MARKETING
   TRANSPORT
+  MEDICAL_WASTE
+  SECURITY
+  INSURANCE
   OTHER
 }
 
-model BusinessType {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  description String?
-  fields      String   @default("[]")
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-model Settings {
-  id              String   @id @default("default")
-  businessName     String   @default("My Shop")
-  businessPhone   String?
-  businessEmail   String?
-  businessAddress String?
-  currency        String    @default("TZS")
-  currencySymbol  String   @default("$")
+model ShopSettings {
+  id              String   @id @default(cuid())
+  shopId          String   @unique
+  shop            Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  businessName    String   @default("My Shop")
   taxRate         Float    @default(0)
   receiptFooter   String?
   lowStockAlert   Boolean  @default(true)
   expiryAlert     Boolean  @default(true)
   expiryAlertDays Int      @default(7)
-  businessTypeId  String?
-}
-
-model RolePermission {
-  id        String   @id @default(cuid())
-  role      String
-  module    String
-  canRead   Boolean  @default(true)
-  canWrite  Boolean  @default(false)
-  canDelete Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([role, module])
+  pharmacyLicense String?
+  liquorLicense   String?
+  pharmacyName    String?
+  pharmacistName  String?
+  pharmacistLicense String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

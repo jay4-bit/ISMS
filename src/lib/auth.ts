@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { cookies } from 'next/headers';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'isms-secret-key-change-in-production';
 
@@ -12,37 +11,72 @@ export async function verifyPassword(password: string, hashedPassword: string): 
   return bcrypt.compare(password, hashedPassword);
 }
 
-export function generateToken(userId: string, role: string): string {
-  return jwt.sign({ userId, role }, JWT_SECRET, { expiresIn: '7d' });
+export function generateToken(userId: string, shopId: string, role: string): string {
+  return jwt.sign({ userId, shopId, role }, JWT_SECRET, { expiresIn: '7d' });
 }
 
-export function verifyToken(token: string): { userId: string; role: string } | null {
+export function verifyToken(token: string): { userId: string; shopId: string; role: string } | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as { userId: string; role: string };
+    return jwt.verify(token, JWT_SECRET) as { userId: string; shopId: string; role: string };
   } catch {
     return null;
   }
 }
 
-export async function getCurrentUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('auth-token')?.value;
-  
-  if (!token) return null;
-  
-  const decoded = verifyToken(token);
-  if (!decoded) return null;
-  
-  return decoded;
-}
+export const SHOP_TYPE_CONFIG: Record<string, {
+  name: string;
+  icon: string;
+  description: string;
+  color: string;
+  features: string[];
+  roles: string[];
+}> = {
+  PHARMACY: {
+    name: 'Pharmacy',
+    icon: '💊',
+    description: 'Manage prescriptions, medications, and health products',
+    color: '#22c55e',
+    features: ['Prescription Management', 'Batch Tracking', 'Expiry Alerts', 'Drug Interactions'],
+    roles: ['OWNER', 'PHARMACIST', 'CASHIER', 'ASSISTANT']
+  },
+  GENERAL: {
+    name: 'General Store',
+    icon: '🏪',
+    description: 'Handle daily essentials and household items',
+    color: '#f59e0b',
+    features: ['Multi-category Products', 'Supplier Management', 'Bulk Pricing', 'Stock Alerts'],
+    roles: ['OWNER', 'MANAGER', 'CASHIER', 'ASSISTANT']
+  },
+  LIQUOR: {
+    name: 'Liquor Store',
+    icon: '🍷',
+    description: 'Track beverages, wines, and spirits inventory',
+    color: '#8b5cf6',
+    features: ['Age Verification', 'License Tracking', 'Batch Numbers', 'Variety Management'],
+    roles: ['OWNER', 'MANAGER', 'CASHIER', 'WINGER']
+  },
+  ELECTRONICS: {
+    name: 'Electronics Shop',
+    icon: '📱',
+    description: 'Manage phones, gadgets, and tech accessories',
+    color: '#3b82f6',
+    features: ['Serial Number Tracking', 'Warranty Management', 'IMEI Tracking', 'Model Variants'],
+    roles: ['OWNER', 'MANAGER', 'CASHIER', 'WINGER']
+  },
+  CLOTHING: {
+    name: 'Clothing Store',
+    icon: '👕',
+    description: 'Track apparel, sizes, and fashion inventory',
+    color: '#ec4899',
+    features: ['Size Variants', 'Color Options', 'Seasonal Stock', 'Fashion Categories'],
+    roles: ['OWNER', 'MANAGER', 'CASHIER', 'ASSISTANT']
+  }
+};
 
-export function hasPermission(userRole: string, requiredRoles: string[]): boolean {
-  return requiredRoles.includes(userRole);
-}
-
-export const ROLE_PERMISSIONS = {
-  ADMIN: ['dashboard', 'inventory', 'sales', 'returns', 'reports', 'users'],
-  MANAGER: ['dashboard', 'inventory', 'returns', 'reports'],
-  CASHIER: ['sales'],
-  ACCOUNTANT: ['reports'],
+export const DEFAULT_CATEGORIES: Record<string, string[]> = {
+  PHARMACY: ['Prescription Drugs', 'OTC Medicines', 'Vitamins & Supplements', 'First Aid', 'Medical Supplies', 'Baby Care', 'Skincare'],
+  GENERAL: ['Food & Beverages', 'Household Items', 'Personal Care', 'Stationery', 'Cleaning Supplies', 'Pet Care', 'Garden'],
+  LIQUOR: ['Beer', 'Wine', 'Spirits', 'Cocktail Mixers', 'Non-Alcoholic', 'Accessories', 'Tobacco'],
+  ELECTRONICS: ['Phones & Tablets', 'Accessories', 'Networking', 'Audio', 'Power Solutions', 'Smart Home', 'Gaming'],
+  CLOTHING: ["Men's Wear", "Women's Wear", 'Kids Wear', 'Accessories', 'Footwear', 'Sportswear', 'Underwear']
 };

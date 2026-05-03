@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { FileText, DollarSign, Phone, User, Calendar, CheckCircle, Clock, AlertTriangle, X, Plus, CreditCard, Eye, Trash2, Search, Filter, Check, Printer } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { useAuth } from '@/components/AuthProvider';
 
 interface InstallmentPayment {
   id: string;
@@ -35,6 +36,7 @@ interface InstallmentSale {
 }
 
 export default function InstallmentsPage() {
+  const { shop } = useAuth();
   const [sales, setSales] = useState<InstallmentSale[]>([]);
   const [completedSales, setCompletedSales] = useState<InstallmentSale[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,11 +51,13 @@ export default function InstallmentsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  useEffect(() => { fetchInstallments(); }, []);
+  useEffect(() => { fetchInstallments(); }, [shop]);
 
   async function fetchInstallments() {
     try {
-      const res = await fetch('/api/sales?installment=true');
+      const res = await fetch('/api/sales?installment=true', {
+        headers: { 'x-shop-id': shop?.id || '' }
+      });
       const data = await res.json();
       const allSales = data.sales || [];
       
@@ -79,7 +83,7 @@ export default function InstallmentsPage() {
     try {
       const res = await fetch('/api/sales', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
         body: JSON.stringify({
           id: selectedSale.id,
           amount: parseFloat(paymentAmount),

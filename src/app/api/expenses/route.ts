@@ -3,12 +3,18 @@ import prisma from '@/lib/db';
 
 export async function GET(request: Request) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    
+    if (!shopId) {
+      return NextResponse.json({ error: 'Shop ID required' }, { status: 400 });
+    }
+
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
-    const where: Record<string, unknown> = {};
+    const where: Record<string, unknown> = { shopId };
     
     if (category) {
       where.category = category;
@@ -42,6 +48,12 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    
+    if (!shopId) {
+      return NextResponse.json({ error: 'Shop ID required' }, { status: 400 });
+    }
+
     const body = await request.json();
     const { category, amount, description, reference, date } = body;
 
@@ -57,6 +69,7 @@ export async function POST(request: Request) {
         reference: reference || null,
         date: date ? new Date(date) : new Date(),
         createdBy: 'system',
+        shopId,
       },
     });
 
@@ -69,6 +82,12 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    
+    if (!shopId) {
+      return NextResponse.json({ error: 'Shop ID required' }, { status: 400 });
+    }
+
     const body = await request.json();
     const { id, category, amount, description, reference, date } = body;
 
@@ -77,7 +96,7 @@ export async function PUT(request: Request) {
     }
 
     const expense = await prisma.expense.update({
-      where: { id },
+      where: { id, shopId },
       data: {
         ...(category && { category }),
         ...(amount && { amount: parseFloat(amount) }),
@@ -96,14 +115,15 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
-    if (!id) {
-      return NextResponse.json({ error: 'Expense ID required' }, { status: 400 });
+    if (!id || !shopId) {
+      return NextResponse.json({ error: 'Expense ID and Shop ID required' }, { status: 400 });
     }
 
-    await prisma.expense.delete({ where: { id } });
+    await prisma.expense.delete({ where: { id, shopId } });
 
     return NextResponse.json({ success: true });
   } catch (error) {

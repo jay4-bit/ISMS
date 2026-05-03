@@ -3,10 +3,12 @@ import prisma from '@/lib/db';
 
 export async function GET(request: Request) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    if (!shopId) { return NextResponse.json({ error: 'Shop ID required' }, { status: 400 }); }
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
 
-    const where: Record<string, unknown> = {};
+    const where: Record<string, unknown> = { shopId };
     if (status) {
       where.status = status;
     }
@@ -38,6 +40,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    if (!shopId) { return NextResponse.json({ error: 'Shop ID required' }, { status: 400 }); }
     const body = await request.json();
     const { notes, productIds } = body;
 
@@ -48,12 +52,13 @@ export async function POST(request: Request) {
         countNumber,
         notes: notes || null,
         createdBy: 'system',
+        shopId,
         items: productIds && productIds.length > 0
           ? {
               create: await Promise.all(
                 productIds.map(async (productId: string) => {
                   const product = await prisma.product.findUnique({
-                    where: { id: productId },
+                    where: { id: productId, shopId },
                   });
                   return {
                     productId,
@@ -84,6 +89,8 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    if (!shopId) { return NextResponse.json({ error: 'Shop ID required' }, { status: 400 }); }
     const body = await request.json();
     const { id, items, status, notes } = body;
 
@@ -118,7 +125,7 @@ export async function PUT(request: Request) {
 
         if (status === 'COMPLETED' && item.countedQty !== null) {
           await prisma.product.update({
-            where: { id: item.productId },
+            where: { id: item.productId, shopId },
             data: {
               stockQuantity: item.countedQty,
             },
@@ -128,7 +135,7 @@ export async function PUT(request: Request) {
     }
 
     const stockCount = await prisma.stockCount.update({
-      where: { id },
+      where: { id, shopId },
       data: updateData,
       include: {
         items: {
@@ -148,6 +155,8 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    if (!shopId) { return NextResponse.json({ error: 'Shop ID required' }, { status: 400 }); }
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -155,8 +164,8 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Stock count ID required' }, { status: 400 });
     }
 
-    await prisma.stockCountItem.deleteMany({ where: { stockCountId: id } });
-    await prisma.stockCount.delete({ where: { id } });
+    await prisma.stockCountItem.deleteMany({ where: { stockCountId: id, stockCount: { shopId } } });
+    await prisma.stockCount.delete({ where: { id, shopId } });
 
     return NextResponse.json({ success: true });
   } catch (error) {

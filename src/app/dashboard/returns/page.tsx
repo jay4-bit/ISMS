@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Undo2, Plus, X, AlertTriangle, RefreshCw, DollarSign, Wrench, FileText, Package, ArrowUpDown, Eye, Pencil, Trash2, CheckCircle } from 'lucide-react';
 import { formatCurrency, formatDate, getCurrencySymbol } from '@/lib/utils';
 import { useSettings } from '@/context/SettingsContext';
+import { useAuth } from '@/components/AuthProvider';
 
 interface Product {
   id: string;
@@ -62,15 +63,17 @@ export default function ReturnsPage() {
   const [search, setSearch] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const { settings } = useSettings();
+  const { shop } = useAuth();
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, [shop]);
 
   async function fetchData() {
     try {
+      const headers = { 'x-shop-id': shop?.id || '' };
       const [productsRes, returnsRes, suppliersRes] = await Promise.all([
-        fetch('/api/inventory'),
-        fetch('/api/returns'),
-        fetch('/api/suppliers')
+        fetch('/api/inventory', { headers }),
+        fetch('/api/returns', { headers }),
+        fetch('/api/suppliers', { headers })
       ]);
       const productsData = await productsRes.json();
       const returnsData = await returnsRes.json();
@@ -174,7 +177,7 @@ export default function ReturnsPage() {
     try {
       const res = await fetch('/api/returns', { 
         method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
+        headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' }, 
         body: JSON.stringify({ items: returnItems, reason }) 
       });
       if (res.ok) { setShowModal(false); setReturnItems([]); setReason(''); fetchData(); }
@@ -188,7 +191,10 @@ export default function ReturnsPage() {
 
   async function deleteReturn(returnId: string) {
     try {
-      const res = await fetch(`/api/returns?id=${returnId}`, { method: 'DELETE' });
+      const res = await fetch(`/api/returns?id=${returnId}`, { 
+        method: 'DELETE',
+        headers: { 'x-shop-id': shop?.id || '' }
+      });
       if (res.ok) { setDeleteConfirm(null); fetchData(); }
     } catch (error) { console.error('Delete failed:', error); }
   }
@@ -360,10 +366,19 @@ export default function ReturnsPage() {
             
             <div style={{ marginBottom: '1rem' }}>
               <label style={styles.label}>Add Product</label>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <input type="text" placeholder="Search product..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ ...styles.input, flex: 1 }} />
-                <button onClick={() => { const product = products.find(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.sku.toLowerCase().includes(search.toLowerCase())); if (product) addReturnItem(product); }} style={styles.secondaryBtn}>Add</button>
-              </div>
+              <select 
+                value="" 
+                onChange={(e) => {
+                  const product = products.find(p => p.id === e.target.value);
+                  if (product) addReturnItem(product);
+                }}
+                style={{ ...styles.input, width: '100%', padding: '0.5rem' }}
+              >
+                <option value="">-- Select a product --</option>
+                {products.filter(p => !returnItems.find(item => item.productId === p.id)).map(p => (
+                  <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>
+                ))}
+              </select>
             </div>
 
             {returnItems.length > 0 && (

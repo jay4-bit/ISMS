@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { ShoppingCart, Search, Trash2, CreditCard, DollarSign, Smartphone, Printer, Camera, QrCode, FileText, X, Check, ScanLine, Keyboard, Building2, User } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { useAuth } from '@/components/AuthProvider';
 
 interface Product {
   id: string;
@@ -53,6 +54,7 @@ interface Client {
 }
 
 export default function POSPage() {
+  const { shop } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -214,7 +216,7 @@ export default function POSPage() {
 
   const subtotal = cart.reduce((sum, item) => sum + getPrice(item.product) * item.quantity, 0);
   const total = subtotal - discount;
-  const change = Math.max(0, parseFloat(cashReceived) || 0 - total);
+  const change = paymentMethod === 'CASH' ? 0 : Math.max(0, parseFloat(cashReceived) || 0 - total);
 
   const isCredit = paymentMethod === 'CREDIT';
 
@@ -224,7 +226,7 @@ export default function POSPage() {
       return;
     }
     
-    const cashAmount = parseFloat(cashReceived) || 0;
+    const cashAmount = paymentMethod === 'CASH' ? total : (parseFloat(cashReceived) || 0);
     
     if (isCredit) {
       const hasCustomer = selectedClient || (customerName && customerName.trim() !== '');
@@ -241,16 +243,6 @@ export default function POSPage() {
         showNotification('Please enter initial payment amount', 'error');
         return;
       }
-    }
-    
-    if (paymentMethod === 'CASH' && cashAmount <= 0) {
-      showNotification('Please enter cash received amount', 'error');
-      return;
-    }
-    
-    if (paymentMethod === 'CASH' && cashAmount < total) {
-      showNotification('Insufficient cash received', 'error');
-      return;
     }
     
     try {
@@ -271,14 +263,17 @@ export default function POSPage() {
       
       const res = await fetch('/api/sales', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-shop-id': shop?.id || ''
+        },
         body: JSON.stringify(saleData)
       });
       
       const data = await res.json();
       
       if (!res.ok) {
-        showNotification(data.error || 'Sale failed', 'error');
+        showNotification(data.error + (data.details ? '\n' + data.details : '') || 'Sale failed', 'error');
         return;
       }
       
@@ -654,25 +649,6 @@ export default function POSPage() {
                         <span style={{ fontWeight: '700', fontSize: '1.1rem' }}>{formatCurrency(total - (parseFloat(cashReceived) || 0))}</span>
                       </div>
                     </div>
-                  </div>
-                )}
-
-                {!isCredit && paymentMethod === 'CASH' && (
-                  <div style={styles.cashInput}>
-                    <label style={styles.cashLabel}>Cash Received *</label>
-                    <input
-                      type="number"
-                      value={cashReceived}
-                      onChange={(e) => setCashReceived(e.target.value)}
-                      placeholder="Enter amount"
-                      style={styles.cashField}
-                      required
-                    />
-                    {parseFloat(cashReceived) > 0 && (
-                      <div style={styles.changeDisplay}>
-                        Change: <span style={styles.changeAmount}>{formatCurrency(change)}</span>
-                      </div>
-                    )}
                   </div>
                 )}
 

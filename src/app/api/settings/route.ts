@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    let settings = await prisma.settings.findFirst();
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    if (!shopId) { return NextResponse.json({ error: 'Shop ID required' }, { status: 400 }); }
+    let settings = await prisma.shopSettings.findUnique({
+      where: { shopId }
+    });
     
     if (!settings) {
-      settings = await prisma.settings.create({
+      settings = await prisma.shopSettings.create({
         data: {
-          id: 'default',
-          businessName: 'ISMS Pro Shop',
-          currency: 'TZS',
-          currencySymbol: 'TSh',
+          shopId,
+          businessName: 'My Shop',
           taxRate: 0,
           lowStockAlert: true,
           expiryAlert: true,
@@ -29,23 +31,25 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
+    const shopId = request.headers.get('x-shop-id') || undefined;
+    if (!shopId) { return NextResponse.json({ error: 'Shop ID required' }, { status: 400 }); }
     const body = await request.json();
     
-    const settings = await prisma.settings.upsert({
-      where: { id: 'default' },
+    const settings = await prisma.shopSettings.upsert({
+      where: { shopId },
       update: body,
       create: {
-        id: 'default',
-        businessName: body.businessName || 'ISMS Pro Shop',
-        businessPhone: body.businessPhone,
-        businessEmail: body.businessEmail,
-        businessAddress: body.businessAddress,
-        currency: body.currency || 'TZS',
-        currencySymbol: body.currencySymbol || 'TSh',
+        shopId,
+        businessName: body.businessName || 'My Shop',
         taxRate: body.taxRate || 0,
         lowStockAlert: body.lowStockAlert ?? true,
         expiryAlert: body.expiryAlert ?? true,
         expiryAlertDays: body.expiryAlertDays || 7,
+        pharmacyLicense: body.pharmacyLicense,
+        liquorLicense: body.liquorLicense,
+        pharmacyName: body.pharmacyName,
+        pharmacistName: body.pharmacistName,
+        pharmacistLicense: body.pharmacistLicense,
       },
     });
 
