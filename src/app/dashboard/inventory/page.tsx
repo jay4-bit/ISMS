@@ -5,10 +5,21 @@ import {
   Package, Plus, Search, Edit, Trash2, X, Camera, 
   Barcode, Printer, Tag, AlertTriangle, TrendingUp, 
   TrendingDown, DollarSign, ShoppingCart, Settings,
-  CameraOff, Zap, Hash, ScanLine, FolderPlus, Lock, Eye, Upload, Download
+  CameraOff, Zap, Hash, ScanLine, FolderPlus, Lock, Eye, Upload, Download,
+  Smartphone, Headphones
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useAuth } from '@/components/AuthProvider';
+import { ElectronicsPhoneForm, ElectronicsAccessoryForm } from '@/components/ElectronicsForms';
+
+interface ElectronicsFieldsRecord {
+  imei?: string | null;
+  brand?: string | null;
+  model?: string | null;
+  condition?: string | null;
+  color?: string | null;
+  storage?: string | null;
+}
 
 interface Product {
   id: string;
@@ -32,6 +43,7 @@ interface Product {
   location?: string;
   variant?: string;
   variantType?: string;
+  electronicsFields?: ElectronicsFieldsRecord | null;
 }
 
 interface Category {
@@ -67,10 +79,13 @@ const VARIANT_TYPES = [
 ];
 
 export default function InventoryPage() {
-  const { user } = useAuth();
+  const { user, shop } = useAuth();
   const isWinger = user?.role === 'WINGER';
   const isCashier = user?.role === 'CASHIER';
   const isReadOnly = isCashier || isWinger;
+  const isPharmacy = shop?.shopType === 'PHARMACY';
+  const isLiquor = shop?.shopType === 'LIQUOR';
+  const isElectronics = shop?.shopType === 'ELECTRONICS';
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -85,6 +100,8 @@ export default function InventoryPage() {
   const [showPriceTags, setShowPriceTags] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [pharmacyFields, setPharmacyFields] = useState({ brandName: '', genericName: '', batchNumber: '', manufacturingDate: '' });
+  const [liquorFields, setLiquorFields] = useState({ brand: '', size: '', notes: '' });
   const [importResult, setImportResult] = useState<{ success: number; failed: number; errors: string[] } | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -92,6 +109,24 @@ export default function InventoryPage() {
   const [newSupplier, setNewSupplier] = useState({ name: '', email: '', phone: '', address: '' });
   const [barcodeInput, setBarcodeInput] = useState('');
   const [scannedCode, setScannedCode] = useState('');
+
+  const [electronicsMode, setElectronicsMode] = useState<string>('');
+  const [phoneCondition, setPhoneCondition] = useState<string>('');
+  const [phoneBrand, setPhoneBrand] = useState('');
+  const [phoneBrandInput, setPhoneBrandInput] = useState('');
+  const [phoneModel, setPhoneModel] = useState('');
+  const [phoneColor, setPhoneColor] = useState('');
+  const [phoneStorage, setPhoneStorage] = useState('');
+  const [phoneImei, setPhoneImei] = useState('');
+  const [phoneQuantity, setPhoneQuantity] = useState(1);
+  const [registeredPhones, setRegisteredPhones] = useState<any[]>([]);
+  const [currentPhoneIndex, setCurrentPhoneIndex] = useState(0);
+  const [accessoryGroup, setAccessoryGroup] = useState('');
+  const [accessoryGroupInput, setAccessoryGroupInput] = useState('');
+  const [accessoryName, setAccessoryName] = useState('');
+  const [accessoryItems, setAccessoryItems] = useState<any[]>([]);
+  const [accessoryGroups, setAccessoryGroups] = useState(['Charging', 'Music', 'Car', 'Camera LCD', 'Protection', 'Storage', 'Other']);
+  const [phoneBrands, setPhoneBrands] = useState(['iPhone', 'Samsung', 'Google Pixel', 'Huawei', 'Xiaomi', 'Oppo', 'Vivo', 'OnePlus', 'Nokia', 'Tecno', 'Infinix', 'Itel']);
   const [tagTemplate, setTagTemplate] = useState<PriceTagTemplate>({
     showBarcode: true,
     showPrice: true,
@@ -109,18 +144,52 @@ export default function InventoryPage() {
     taxRate: '0', location: '', variant: '', variantType: ''
   });
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); resetElectronicsForm(); }, []);
+
+  function resetElectronicsForm() {
+    setElectronicsMode('');
+    setPhoneCondition('');
+    setPhoneBrand('');
+    setPhoneBrandInput('');
+    setPhoneModel('');
+    setPhoneQuantity(1);
+    setPhoneColor('');
+    setPhoneStorage('');
+    setPhoneImei('');
+    setRegisteredPhones([]);
+    setCurrentPhoneIndex(0);
+    setAccessoryGroup('');
+    setAccessoryGroupInput('');
+    setAccessoryName('');
+    setAccessoryItems([]);
+  }
+
+  function resetAccessoryForm() {
+    setAccessoryGroup('');
+    setAccessoryGroupInput('');
+    setAccessoryName('');
+    setAccessoryItems([]);
+  }
 
   async function fetchData() {
+    console.log('Shop ID:', shop?.id, 'Shop Type:', shop?.shopType);
     try {
+      const headers = { 'x-shop-id': shop?.id || '' };
       const [productsRes, categoriesRes, suppliersRes] = await Promise.all([
-        fetch('/api/inventory'),
-        fetch('/api/categories'),
-        fetch('/api/suppliers')
+        fetch('/api/inventory', { headers }),
+        fetch('/api/categories', { headers }),
+        fetch('/api/suppliers', { headers })
       ]);
       const productsData = await productsRes.json();
       const categoriesData = await categoriesRes.json();
       const suppliersData = await suppliersRes.json();
+      
+      console.log('=== FRONTEND RECEIVED ===');
+      console.log('Products count:', productsData.products?.length);
+      if (productsData.products?.length > 0) {
+        console.log('First electronicsFields:', productsData.products[0].electronicsFields);
+      }
+      
       setProducts(productsData.products || []);
       setCategories(categoriesData.categories || []);
       setSuppliers(suppliersData.suppliers || []);
@@ -179,20 +248,30 @@ export default function InventoryPage() {
 
   async function createCategory() {
     if (!newCategoryName.trim()) return;
+    if (!shop?.id) {
+      alert('Shop not loaded. Please refresh the page.');
+      return;
+    }
     try {
       const res = await fetch('/api/categories', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-shop-id': shop.id
+        },
         body: JSON.stringify({ name: newCategoryName.trim() })
       });
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
         setCategories([...categories, data.category]);
         setNewCategoryName('');
         setShowCategoryModal(false);
+      } else {
+        alert(data.error + (data.details ? '\n' + data.details : '') || 'Failed to create category');
       }
     } catch (error) {
       console.error('Failed to create category:', error);
+      alert('Failed to create category: ' + (error as Error).message);
     }
   }
 
@@ -201,25 +280,42 @@ export default function InventoryPage() {
     try {
       const res = await fetch('/api/suppliers', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-shop-id': shop?.id || ''
+        },
         body: JSON.stringify(newSupplier)
       });
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
         setSuppliers([...suppliers, data.supplier]);
         setFormData({ ...formData, supplierId: data.supplier.id });
         setNewSupplier({ name: '', email: '', phone: '', address: '' });
         setShowSupplierModal(false);
+      } else {
+        alert(data.error || 'Failed to create supplier');
       }
     } catch (error) {
       console.error('Failed to create supplier:', error);
+      alert('Failed to create supplier');
     }
   }
 
   const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.sku.toLowerCase().includes(search.toLowerCase()) ||
-      p.barcode?.toLowerCase().includes(search.toLowerCase());
+    const q = search.toLowerCase();
+    const barcodeMatch = (p.barcode ?? '').toLowerCase().includes(q);
+    const ef = p.electronicsFields;
+    const electronicsMatch =
+      isElectronics &&
+      !!ef &&
+      [ef.imei, ef.brand, ef.model, ef.condition, ef.color, ef.storage]
+        .some((v) => v != null && String(v).toLowerCase().includes(q));
+    const matchesSearch =
+      !search.trim() ||
+      p.name.toLowerCase().includes(q) ||
+      p.sku.toLowerCase().includes(q) ||
+      barcodeMatch ||
+      electronicsMatch;
     const matchesCategory = selectedCategory === 'all' || p.categoryId === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -247,6 +343,12 @@ export default function InventoryPage() {
         variant: product.variant || '',
         variantType: product.variantType || ''
       });
+      setPharmacyFields({
+        brandName: (product as any).brandName || '',
+        genericName: (product as any).genericName || '',
+        batchNumber: (product as any).batchNumber || '',
+        manufacturingDate: (product as any).manufacturingDate || ''
+      });
     } else {
       setEditingProduct(null);
       setFormData({
@@ -257,6 +359,7 @@ export default function InventoryPage() {
         hasExpiry: false, expiryDate: '', taxRate: '0', location: '',
         variant: '', variantType: ''
       });
+      setPharmacyFields({ brandName: '', genericName: '', batchNumber: '', manufacturingDate: '' });
     }
     setShowModal(true);
   }
@@ -432,27 +535,40 @@ export default function InventoryPage() {
     try {
       const url = '/api/inventory';
       const method = editingProduct ? 'PUT' : 'POST';
-      const body = editingProduct ? { ...formData, id: editingProduct.id } : formData;
+      const extraFields = isPharmacy ? pharmacyFields : isLiquor ? liquorFields : {};
+      const payload = { ...formData, ...extraFields };
+      const body = editingProduct ? { ...payload, id: editingProduct.id } : payload;
       
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-shop-id': shop?.id || ''
+        },
         body: JSON.stringify(body)
       });
+      
+      const data = await res.json();
       
       if (res.ok) {
         setShowModal(false);
         fetchData();
+      } else {
+        alert(data.error + (data.details ? '\n' + data.details : ''));
       }
     } catch (error) {
       console.error('Save failed:', error);
+      alert('Failed to save product');
     }
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Are you sure you want to delete this product?')) return;
     try {
-      await fetch(`/api/inventory?id=${id}`, { method: 'DELETE' });
+      await fetch(`/api/inventory?id=${id}`, { 
+        method: 'DELETE',
+        headers: { 'x-shop-id': shop?.id || '' }
+      });
       fetchData();
     } catch (error) {
       console.error('Delete failed:', error);
@@ -491,22 +607,30 @@ export default function InventoryPage() {
                     const exportData = products.map(p => ({
                       name: p.name,
                       sku: p.sku,
-                      barcode: p.barcode || '',
-                      description: p.description || '',
-                      category: p.category?.name || '',
-                      supplier: p.supplier?.name || '',
-                      purchaseCost: p.purchaseCost,
-                      sellingPrice: p.sellingPrice,
-                      wholesalePrice: p.wholesalePrice || '',
-                      stockQuantity: p.stockQuantity,
-                      lowStockThreshold: p.lowStockThreshold,
-                      reorderPoint: p.reorderPoint,
-                      taxRate: p.taxRate,
-                      location: p.location || '',
-                      hasExpiry: p.hasExpiry,
-                      expiryDate: p.expiryDate || '',
-                      variant: p.variant || '',
-                      variantType: p.variantType || ''
+                      ...(isPharmacy ? {
+                        brandName: (p as any).brandName || '',
+                        genericName: (p as any).genericName || '',
+                        batchNumber: (p as any).batchNumber || '',
+                        manufacturingDate: (p as any).manufacturingDate || '',
+                        expiryDate: p.expiryDate || '',
+                        buyingPrice: p.purchaseCost,
+                        sellingPrice: p.sellingPrice,
+                        quantity: p.stockQuantity
+                      } : {
+                        barcode: p.barcode || '',
+                        description: p.description || '',
+                        category: p.category?.name || '',
+                        purchaseCost: p.purchaseCost,
+                        sellingPrice: p.sellingPrice,
+                        wholesalePrice: p.wholesalePrice || '',
+                        stockQuantity: p.stockQuantity,
+                        lowStockThreshold: p.lowStockThreshold,
+                        reorderPoint: p.reorderPoint,
+                        taxRate: p.taxRate,
+                        location: p.location || '',
+                        hasExpiry: p.hasExpiry,
+                        expiryDate: p.expiryDate || ''
+                      })
                     }));
                     
                     const worksheet = XLSX.utils.json_to_sheet(exportData);
@@ -536,7 +660,10 @@ export default function InventoryPage() {
                   if (!confirm(`Generate barcodes for ${productsWithoutBarcode.length} products?`)) return;
                   
                   try {
-                    const res = await fetch('/api/inventory?action=generateBarcodes', { method: 'PATCH' });
+                    const res = await fetch('/api/inventory?action=generateBarcodes', { 
+                      method: 'PATCH',
+                      headers: { 'x-shop-id': shop?.id || '' }
+                    });
                     const data = await res.json();
                     if (res.ok) {
                       alert(`Generated ${data.updated} barcodes successfully!`);
@@ -715,7 +842,218 @@ export default function InventoryPage() {
       </div>
 
       <div className="card" style={{ padding: 0, overflow: 'auto' }}>
-        {isWinger ? (
+        {isPharmacy ? (
+          <table className="table" style={{ fontSize: '0.8rem', width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ background: '#1e293b' }}>
+                <th style={{ minWidth: '180px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>PRODUCT</th>
+                <th style={{ width: '100px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>SKU</th>
+                <th style={{ width: '100px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>CATEGORY</th>
+                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>BRAND</th>
+                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>BATCH</th>
+                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>EXPIRY</th>
+                <th style={{ width: '70px', padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>BUYING</th>
+                <th style={{ width: '70px', padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>SELLING</th>
+                <th style={{ width: '60px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>STOCK</th>
+                {!isReadOnly && <th style={{ width: '70px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>ACTIONS</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredProducts.map((product, index) => {
+                const expiryDate = product.expiryDate ? new Date(product.expiryDate).toLocaleDateString() : '-';
+                return (
+                  <tr key={product.id} style={{ background: index % 2 === 0 ? '#1e293b' : '#0f172a' }}>
+                    <td style={{ padding: '0.5rem' }}>
+                      <div style={{ fontWeight: '500', color: '#f1f5f9', fontSize: '0.8rem' }}>{product.name}</div>
+                    </td>
+                    <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>{product.sku}</td>
+                    <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>{product.category?.name || '-'}</td>
+                    <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>{(product as any).brandName || '-'}</td>
+                    <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>{(product as any).batchNumber || '-'}</td>
+                    <td style={{ padding: '0.5rem', color: '#64748b', fontSize: '0.75rem' }}>{expiryDate}</td>
+                    <td style={{ padding: '0.5rem', textAlign: 'right', color: '#94a3b8', fontSize: '0.75rem' }}>{formatCurrency(product.purchaseCost)}</td>
+                    <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: '#22c55e', fontSize: '0.75rem' }}>{formatCurrency(product.sellingPrice)}</td>
+                    <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                      <span style={{ fontWeight: '600', fontSize: '0.75rem', color: product.stockQuantity <= product.lowStockThreshold ? '#f59e0b' : product.stockQuantity === 0 ? '#ef4444' : '#f1f5f9' }}>
+                        {product.stockQuantity}
+                      </span>
+                    </td>
+                    {!isReadOnly && (
+                      <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
+                          <button onClick={() => openModal(product)} style={{ padding: '0.3rem', background: '#3b82f6', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }}><Edit size={12} /></button>
+                          <button onClick={() => handleDelete(product.id)} style={{ padding: '0.3rem', background: '#ef4444', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }}><Trash2 size={12} /></button>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        ) : isLiquor ? (
+          <table className="table" style={{ fontSize: '0.8rem', width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ background: '#1e293b' }}>
+                <th style={{ minWidth: '180px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>PRODUCT</th>
+                <th style={{ width: '100px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>SKU</th>
+                <th style={{ width: '100px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>CATEGORY</th>
+                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>BRAND</th>
+                <th style={{ width: '60px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>SIZE</th>
+                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>EXPIRY</th>
+                <th style={{ width: '70px', padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>COST</th>
+                <th style={{ width: '70px', padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>PRICE</th>
+                <th style={{ width: '60px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>STOCK</th>
+                {!isReadOnly && <th style={{ width: '70px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>ACTIONS</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredProducts.map((product, index) => {
+                const expiryDate = product.expiryDate ? new Date(product.expiryDate).toLocaleDateString() : '-';
+                return (
+                  <tr key={product.id} style={{ background: index % 2 === 0 ? '#1e293b' : '#0f172a' }}>
+                    <td style={{ padding: '0.5rem' }}>
+                      <div style={{ fontWeight: '500', color: '#f1f5f9', fontSize: '0.8rem' }}>{product.name}</div>
+                    </td>
+                    <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>{product.sku}</td>
+                    <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>{product.category?.name || '-'}</td>
+                    <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>{(product as any).brand || '-'}</td>
+                    <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>{(product as any).size ? `${(product as any).size}ml` : '-'}</td>
+                    <td style={{ padding: '0.5rem', color: '#64748b', fontSize: '0.75rem' }}>{expiryDate}</td>
+                    <td style={{ padding: '0.5rem', textAlign: 'right', color: '#94a3b8', fontSize: '0.75rem' }}>{formatCurrency(product.purchaseCost)}</td>
+                    <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: '#22c55e', fontSize: '0.75rem' }}>{formatCurrency(product.sellingPrice)}</td>
+                    <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                      <span style={{ fontWeight: '600', fontSize: '0.75rem', color: product.stockQuantity <= product.lowStockThreshold ? '#f59e0b' : product.stockQuantity === 0 ? '#ef4444' : '#f1f5f9' }}>
+                        {product.stockQuantity}
+                      </span>
+                    </td>
+                    {!isReadOnly && (
+                      <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
+                          <button onClick={() => openModal(product)} style={{ padding: '0.3rem', background: '#3b82f6', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }}><Edit size={12} /></button>
+                          <button onClick={() => handleDelete(product.id)} style={{ padding: '0.3rem', background: '#ef4444', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }}><Trash2 size={12} /></button>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        ) : isElectronics ? (
+          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div style={{ padding: '1rem', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flex: 1 }}>
+                <div style={{ position: 'relative', minWidth: '200px' }}>
+                  <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+                  <input
+                    type="text"
+                    placeholder="Search product, IMEI, brand..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    style={{ paddingLeft: '36px', width: '100%' }}
+                  />
+                </div>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  style={{ padding: '0.5rem', background: '#1e293b', border: '1px solid #334155', borderRadius: '0.375rem', color: '#f1f5f9', fontSize: '0.85rem' }}
+                >
+                  <option value="all">All Categories</option>
+                  {categories.map(cat => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
+                </select>
+              </div>
+              {!isReadOnly && (
+                <button onClick={() => openModal()} className="btn btn-primary">
+                  <Plus size={16} /> Add Product
+                </button>
+              )}
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <thead>
+                <tr style={{ background: '#0f172a' }}>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>#</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>PRODUCT</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>IMEI</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>BRAND</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>MODEL</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>COND</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>COLOR</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>STORAGE</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'right', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>COST</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'right', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>PRICE</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>STOCK</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>STATUS</th>
+                  {!isReadOnly && <th style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>ACTIONS</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {filteredProducts.length === 0 ? (
+                  <tr>
+                    <td colSpan={!isReadOnly ? 13 : 12} style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
+                      <Package size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+                      <div>No products found</div>
+                    </td>
+                  </tr>
+                ) : filteredProducts.map((product, index) => {
+                  const ef = product.electronicsFields;
+                  const stockStatus = product.isFaulty ? 'Faulty' : product.stockQuantity === 0 ? 'Out of Stock' : product.stockQuantity <= product.lowStockThreshold ? 'Low Stock' : 'In Stock';
+                  const stockColor = product.isFaulty ? '#a855f7' : product.stockQuantity === 0 ? '#ef4444' : product.stockQuantity <= product.lowStockThreshold ? '#f59e0b' : '#22c55e';
+                  const condColor = ef?.condition === 'NEW' ? '#22c55e' : ef?.condition === 'USED' ? '#f59e0b' : '#3b82f6';
+                  return (
+                    <tr key={product.id} style={{ background: index % 2 === 0 ? '#1e293b' : '#0f172a', transition: 'background 0.2s' }} className="table-row">
+                      <td style={{ padding: '0.75rem', color: '#64748b', fontFamily: 'monospace' }}>{index + 1}</td>
+                      <td style={{ padding: '0.75rem' }}>
+                        <div style={{ fontWeight: '600', color: '#f1f5f9' }}>{product.name || 'N/A'}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{product.category?.name || ''}</div>
+                      </td>
+                      <td style={{ padding: '0.75rem', fontFamily: 'monospace', fontSize: '0.8rem', color: '#94a3b8' }}>{ef?.imei || ''}</td>
+                      <td style={{ padding: '0.75rem', fontWeight: '500', color: '#f1f5f9' }}>{ef?.brand || ''}</td>
+                      <td style={{ padding: '0.75rem', color: '#94a3b8' }}>{ef?.model || ''}</td>
+                      <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                        {ef?.condition ? (
+                          <span style={{ padding: '0.25rem 0.5rem', borderRadius: '0.25rem', background: `${condColor}20`, color: condColor, fontSize: '0.7rem', fontWeight: '600' }}>
+                            {ef.condition}
+                          </span>
+                        ) : ''}
+                      </td>
+                      <td style={{ padding: '0.75rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          {ef?.color && (
+                            <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: ef.color.toLowerCase(), border: '1px solid #334155' }} />
+                          )}
+                          <span>{ef?.color || ''}</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8' }}>{ef?.storage || ''}</td>
+                      <td style={{ padding: '0.75rem', textAlign: 'right', color: '#94a3b8' }}>{formatCurrency(product.purchaseCost, shop?.currency ?? 'TZS')}</td>
+                      <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#22c55e' }}>{formatCurrency(product.sellingPrice, shop?.currency ?? 'TZS')}</td>
+                      <td style={{ padding: '0.75rem', textAlign: 'center', fontWeight: '600', color: stockColor }}>{product.stockQuantity}</td>
+                      <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                        <span style={{ padding: '0.25rem 0.5rem', borderRadius: '0.25rem', background: `${stockColor}20`, color: stockColor, fontSize: '0.7rem', fontWeight: '500' }}>
+                          {stockStatus}
+                        </span>
+                      </td>
+                      {!isReadOnly && (
+                        <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
+                            <button onClick={() => openModal(product)} style={{ padding: '0.4rem', background: '#3b82f6', border: 'none', borderRadius: '0.375rem', color: 'white', cursor: 'pointer' }} title="Edit"><Edit size={14} /></button>
+                            <button onClick={() => handleDelete(product.id)} style={{ padding: '0.4rem', background: '#ef4444', border: 'none', borderRadius: '0.375rem', color: 'white', cursor: 'pointer' }} title="Delete"><Trash2 size={14} /></button>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            {filteredProducts.length > 0 && (
+              <div style={{ padding: '0.75rem', borderTop: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#64748b' }}>
+                <div>Showing {filteredProducts.length} of {products.length} products</div>
+              </div>
+            )}
+          </div>
+        ) : isWinger ? (
           <table className="table" style={{ fontSize: '0.8rem', width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#1e293b' }}>
@@ -759,22 +1097,29 @@ export default function InventoryPage() {
           </table>
         ) : (
           <table className="table" style={{ fontSize: '0.8rem', width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ background: '#1e293b' }}>
+                <th style={{ minWidth: '180px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>PRODUCT</th>
+                <th style={{ width: '100px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>SKU</th>
+                <th style={{ width: '120px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>BARCODE</th>
+                <th style={{ width: '100px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>CATEGORY</th>
+                <th style={{ width: '70px', padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>COST</th>
+                <th style={{ width: '70px', padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>PRICE</th>
+                <th style={{ width: '60px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>STOCK</th>
+                {!isReadOnly && <th style={{ width: '70px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>ACTIONS</th>}
+              </tr>
+            </thead>
             <tbody>
               {filteredProducts.map((product, index) => (
-                <tr key={product.id} style={{ background: index % 2 === 0 ? '#1e293b' : '#0f172a', transition: 'background 0.2s' }}>
+                <tr key={product.id} style={{ background: index % 2 === 0 ? '#1e293b' : '#0f172a' }}>
                   <td style={{ padding: '0.5rem' }}>
                     <div style={{ fontWeight: '500', color: '#f1f5f9', fontSize: '0.8rem' }}>{product.name}</div>
-                    <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.25rem' }}>
-                      {product.isFaulty && <span style={{ padding: '0.125rem 0.375rem', background: '#ef444420', color: '#ef4444', borderRadius: '0.25rem', fontSize: '0.6rem', fontWeight: '500' }}>Faulty</span>}
-                      {product.hasExpiry && product.expiryDate && new Date(product.expiryDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) && <span style={{ padding: '0.125rem 0.375rem', background: '#f59e0b20', color: '#f59e0b', borderRadius: '0.25rem', fontSize: '0.6rem', fontWeight: '500' }}>Expiring</span>}
-                    </div>
                   </td>
+                  <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>{product.sku}</td>
                   <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem', fontFamily: 'monospace' }}>{product.barcode || '-'}</td>
                   <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>{product.category?.name || '-'}</td>
-                  <td style={{ padding: '0.5rem', color: '#64748b', fontSize: '0.75rem' }}>{product.location || '-'}</td>
-                  <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: '#22c55e', fontSize: '0.75rem' }}>
-                    {formatCurrency(product.wholesalePrice || product.sellingPrice)}
-                  </td>
+                  <td style={{ padding: '0.5rem', textAlign: 'right', color: '#94a3b8', fontSize: '0.75rem' }}>{formatCurrency(product.purchaseCost, shop?.currency ?? 'TZS')}</td>
+                  <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: '#22c55e', fontSize: '0.75rem' }}>{formatCurrency(product.sellingPrice, shop?.currency ?? 'TZS')}</td>
                   <td style={{ padding: '0.5rem', textAlign: 'center' }}>
                     <span style={{ fontWeight: '600', fontSize: '0.75rem', color: product.stockQuantity <= product.lowStockThreshold ? '#f59e0b' : product.stockQuantity === 0 ? '#ef4444' : '#f1f5f9' }}>
                       {product.stockQuantity}
@@ -783,8 +1128,8 @@ export default function InventoryPage() {
                   {!isReadOnly && (
                     <td style={{ padding: '0.5rem', textAlign: 'center' }}>
                       <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
-                        <button onClick={() => openModal(product)} style={{ padding: '0.3rem', background: '#3b82f6', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="Edit"><Edit size={12} /></button>
-                        <button onClick={() => handleDelete(product.id)} style={{ padding: '0.3rem', background: '#ef4444', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="Delete"><Trash2 size={12} /></button>
+                        <button onClick={() => openModal(product)} style={{ padding: '0.3rem', background: '#3b82f6', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }}><Edit size={12} /></button>
+                        <button onClick={() => handleDelete(product.id)} style={{ padding: '0.3rem', background: '#ef4444', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }}><Trash2 size={12} /></button>
                       </div>
                     </td>
                   )}
@@ -803,126 +1148,309 @@ export default function InventoryPage() {
               <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
             </div>
             <form onSubmit={handleSubmit}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                <div>
-                  <label className="label">Product Name *</label>
-                  <input type="text" className="input" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
-                </div>
-                <div>
-                  <label className="label">SKU *</label>
-                  <div style={{ display: 'flex', gap: '0.25rem' }}>
-                    <input type="text" className="input" value={formData.sku} onChange={e => setFormData({ ...formData, sku: e.target.value })} required disabled={!!editingProduct} style={{ flex: 1 }} />
-                    <button type="button" onClick={generateBarcode} className="btn btn-secondary" title="Generate SKU"><Hash size={18} /></button>
+              {isPharmacy ? (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label className="label">Product Name *</label>
+                      <input type="text" className="input" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
+                    </div>
+                    <div>
+                      <label className="label">SKU *</label>
+                      <div style={{ display: 'flex', gap: '0.25rem' }}>
+                        <input type="text" className="input" value={formData.sku} onChange={e => setFormData({ ...formData, sku: e.target.value })} required disabled={!!editingProduct} style={{ flex: 1 }} />
+                        <button type="button" onClick={generateBarcode} className="btn btn-secondary" title="Generate SKU"><Hash size={18} /></button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                <div>
-                  <label className="label">Variant Type</label>
-                  <select 
-                    className="select" 
-                    value={formData.variantType} 
-                    onChange={e => setFormData({ ...formData, variantType: e.target.value, variant: '' })}
-                  >
-                    <option value="">No Variant</option>
-                    {VARIANT_TYPES.map(vt => (
-                      <option key={vt.value} value={vt.value}>{vt.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="label">Variant Value</label>
-                  <input 
-                    type="text" 
-                    className="input" 
-                    value={formData.variant} 
-                    onChange={e => setFormData({ ...formData, variant: e.target.value })} 
-                    placeholder={formData.variantType ? `e.g., ${formData.variantType === 'COLOR' ? 'Red, Blue' : formData.variantType === 'SIZE' ? 'S, M, L' : 'variant'}` : 'Select variant type first'}
-                    disabled={!formData.variantType}
-                  />
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                <div>
-                  <label className="label">Barcode</label>
-                  <input type="text" className="input" value={formData.barcode} onChange={e => setFormData({ ...formData, barcode: e.target.value })} placeholder="Scan or enter barcode" />
-                </div>
-                <div>
-                  <label className="label">Category</label>
-                  <select className="select" value={formData.categoryId} onChange={e => setFormData({ ...formData, categoryId: e.target.value })} required>
-                    <option value="">Select category</option>
-                    {categories.map(cat => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
-                  </select>
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.5rem', marginBottom: '1rem' }}>
-                <div>
-                  <label className="label">Supplier</label>
-                  <select className="select" value={formData.supplierId} onChange={e => setFormData({ ...formData, supplierId: e.target.value })}>
-                    <option value="">Select supplier</option>
-                    {suppliers.map(sup => (<option key={sup.id} value={sup.id}>{sup.name}</option>))}
-                  </select>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-                  <button type="button" onClick={() => setShowSupplierModal(true)} style={{ padding: '0.625rem', background: '#334155', border: 'none', borderRadius: '0.5rem', color: 'white', cursor: 'pointer' }} title="Add New Supplier">
-                    <Plus size={18} />
-                  </button>
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                <div>
-                  <label className="label">Purchase Cost</label>
-                  <input type="number" step="0.01" className="input" value={formData.purchaseCost} onChange={e => setFormData({ ...formData, purchaseCost: e.target.value })} required />
-                </div>
-                <div>
-                  <label className="label">Selling Price *</label>
-                  <input type="number" step="0.01" className="input" value={formData.sellingPrice} onChange={e => setFormData({ ...formData, sellingPrice: e.target.value })} required />
-                </div>
-                <div>
-                  <label className="label">Wholesale Price</label>
-                  <input type="number" step="0.01" className="input" value={formData.wholesalePrice} onChange={e => setFormData({ ...formData, wholesalePrice: e.target.value })} />
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                <div>
-                  <label className="label">Stock Quantity</label>
-                  <input type="number" className="input" value={formData.stockQuantity} onChange={e => setFormData({ ...formData, stockQuantity: e.target.value })} />
-                </div>
-                <div>
-                  <label className="label">Low Stock Alert</label>
-                  <input type="number" className="input" value={formData.lowStockThreshold} onChange={e => setFormData({ ...formData, lowStockThreshold: e.target.value })} />
-                </div>
-                <div>
-                  <label className="label">Reorder Point</label>
-                  <input type="number" className="input" value={formData.reorderPoint} onChange={e => setFormData({ ...formData, reorderPoint: e.target.value })} />
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                <div>
-                  <label className="label">Tax Rate (%)</label>
-                  <input type="number" step="0.01" className="input" value={formData.taxRate} onChange={e => setFormData({ ...formData, taxRate: e.target.value })} />
-                </div>
-                <div>
-                  <label className="label">Location</label>
-                  <input type="text" className="input" value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} placeholder="Aisle-Shelf" />
-                </div>
-              </div>
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={formData.hasExpiry} onChange={e => setFormData({ ...formData, hasExpiry: e.target.checked })} />
-                  <span className="label" style={{ marginBottom: 0 }}>Has Expiry Date</span>
-                </label>
-              </div>
-              {formData.hasExpiry && (
-                <div style={{ marginBottom: '1rem' }}>
-                  <label className="label">Expiry Date</label>
-                  <input type="date" className="input" value={formData.expiryDate} onChange={e => setFormData({ ...formData, expiryDate: e.target.value })} />
-                </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label className="label">Brand Name</label>
+                      <input type="text" className="input" value={pharmacyFields.brandName} onChange={e => setPharmacyFields({ ...pharmacyFields, brandName: e.target.value })} placeholder="e.g., Panadol" />
+                    </div>
+                    <div>
+                      <label className="label">Generic Name</label>
+                      <input type="text" className="input" value={pharmacyFields.genericName} onChange={e => setPharmacyFields({ ...pharmacyFields, genericName: e.target.value })} placeholder="e.g., Paracetamol" />
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label className="label">Category</label>
+                      <select className="select" value={formData.categoryId} onChange={e => setFormData({ ...formData, categoryId: e.target.value })} required>
+                        <option value="">Select category</option>
+                        {categories.map(cat => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label">Batch Number</label>
+                      <input type="text" className="input" value={pharmacyFields.batchNumber} onChange={e => setPharmacyFields({ ...pharmacyFields, batchNumber: e.target.value })} placeholder="Batch number" />
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label className="label">Manufacturing Date</label>
+                      <input type="date" className="input" value={pharmacyFields.manufacturingDate} onChange={e => setPharmacyFields({ ...pharmacyFields, manufacturingDate: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="label">Expiry Date</label>
+                      <input type="date" className="input" value={formData.expiryDate} onChange={e => setFormData({ ...formData, expiryDate: e.target.value })} />
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label className="label">Buying Price *</label>
+                      <input type="number" step="0.01" className="input" value={formData.purchaseCost} onChange={e => setFormData({ ...formData, purchaseCost: e.target.value })} required />
+                    </div>
+                    <div>
+                      <label className="label">Selling Price *</label>
+                      <input type="number" step="0.01" className="input" value={formData.sellingPrice} onChange={e => setFormData({ ...formData, sellingPrice: e.target.value })} required />
+                    </div>
+                  </div>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label className="label">Quantity</label>
+                    <input type="number" className="input" value={formData.stockQuantity} onChange={e => setFormData({ ...formData, stockQuantity: e.target.value })} />
+                  </div>
+                </>
+              ) : isLiquor ? (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label className="label">Product Name *</label>
+                      <input type="text" className="input" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
+                    </div>
+                    <div>
+                      <label className="label">SKU *</label>
+                      <div style={{ display: 'flex', gap: '0.25rem' }}>
+                        <input type="text" className="input" value={formData.sku} onChange={e => setFormData({ ...formData, sku: e.target.value })} required disabled={!!editingProduct} style={{ flex: 1 }} />
+                        <button type="button" onClick={generateBarcode} className="btn btn-secondary" title="Generate SKU"><Hash size={18} /></button>
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label className="label">Brand</label>
+                      <input type="text" className="input" value={liquorFields.brand} onChange={e => setLiquorFields({ ...liquorFields, brand: e.target.value })} placeholder="e.g., Jameson" />
+                    </div>
+                    <div>
+                      <label className="label">Size (ml)</label>
+                      <input type="number" className="input" value={liquorFields.size} onChange={e => setLiquorFields({ ...liquorFields, size: e.target.value })} placeholder="e.g., 750" />
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label className="label">Category</label>
+                      <select className="select" value={formData.categoryId} onChange={e => setFormData({ ...formData, categoryId: e.target.value })} required>
+                        <option value="">Select category</option>
+                        {categories.map(cat => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label">Supplier</label>
+                      <select className="select" value={formData.supplierId} onChange={e => setFormData({ ...formData, supplierId: e.target.value })}>
+                        <option value="">Select supplier</option>
+                        {suppliers.map(sup => (<option key={sup.id} value={sup.id}>{sup.name}</option>))}
+                      </select>
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label className="label">Cost Price *</label>
+                      <input type="number" step="0.01" className="input" value={formData.purchaseCost} onChange={e => setFormData({ ...formData, purchaseCost: e.target.value })} required />
+                    </div>
+                    <div>
+                      <label className="label">Selling Price *</label>
+                      <input type="number" step="0.01" className="input" value={formData.sellingPrice} onChange={e => setFormData({ ...formData, sellingPrice: e.target.value })} required />
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label className="label">Stock Quantity</label>
+                      <input type="number" className="input" value={formData.stockQuantity} onChange={e => setFormData({ ...formData, stockQuantity: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="label">Min Stock Level</label>
+                      <input type="number" className="input" value={formData.lowStockThreshold} onChange={e => setFormData({ ...formData, lowStockThreshold: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="label">Expiry Date</label>
+                      <input type="date" className="input" value={formData.expiryDate} onChange={e => setFormData({ ...formData, expiryDate: e.target.value })} />
+                    </div>
+                  </div>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label className="label">Notes</label>
+                    <textarea className="input" value={liquorFields.notes} onChange={e => setLiquorFields({ ...liquorFields, notes: e.target.value })} placeholder="Additional notes..." rows={2} style={{ resize: 'vertical' }} />
+                  </div>
+                </>
+              ) : isElectronics ? (
+                <>
+                  {electronicsMode === '' ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1rem' }}>
+                      <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                        <h3 style={{ color: '#f1f5f9', marginBottom: '0.5rem' }}>What would you like to add?</h3>
+                        <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Select the category below</p>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <button onClick={() => { setElectronicsMode('PHONES'); setShowModal(true); }} style={{ padding: '1.5rem', background: '#1e293b', border: '2px solid #3b82f6', borderRadius: '0.75rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                          <Smartphone size={40} color="#3b82f6" />
+                          <span style={{ color: '#f1f5f9', fontWeight: '600' }}>Phones</span>
+                          <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>iPhone, Samsung, etc.</span>
+                        </button>
+                        <button onClick={() => { setElectronicsMode('ACCESSORIES'); setShowModal(true); }} style={{ padding: '1.5rem', background: '#1e293b', border: '2px solid #22c55e', borderRadius: '0.75rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                          <Headphones size={40} color="#22c55e" />
+                          <span style={{ color: '#f1f5f9', fontWeight: '600' }}>Accessories</span>
+                          <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>Chargers, Cases, etc.</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : electronicsMode === 'PHONES' ? (
+                    <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                      <ElectronicsPhoneForm
+                        suppliers={suppliers}
+                        shop={shop}
+                        phoneBrands={phoneBrands}
+                        setPhoneBrands={setPhoneBrands}
+                        phoneCondition={phoneCondition}
+                        setPhoneCondition={setPhoneCondition}
+                        phoneBrand={phoneBrand}
+                        setPhoneBrand={setPhoneBrand}
+                        phoneBrandInput={phoneBrandInput}
+                        setPhoneBrandInput={setPhoneBrandInput}
+                        phoneModel={phoneModel}
+                        setPhoneModel={setPhoneModel}
+                        phoneQuantity={phoneQuantity}
+                        setPhoneQuantity={setPhoneQuantity}
+                        phoneColor={phoneColor}
+                        setPhoneColor={setPhoneColor}
+                        phoneStorage={phoneStorage}
+                        setPhoneStorage={setPhoneStorage}
+                        phoneImei={phoneImei}
+                        setPhoneImei={setPhoneImei}
+                        registeredPhones={registeredPhones}
+                        setRegisteredPhones={setRegisteredPhones}
+                        currentPhoneIndex={currentPhoneIndex}
+                        setCurrentPhoneIndex={setCurrentPhoneIndex}
+                        formData={formData}
+                        setFormData={setFormData}
+                        onCancel={() => { setShowModal(false); setElectronicsMode(''); resetElectronicsForm(); }}
+                        onSuccess={() => { fetchData(); setShowModal(false); setElectronicsMode(''); resetElectronicsForm(); }}
+                      />
+                    </div>
+                  ) : electronicsMode === 'ACCESSORIES' ? (
+                    <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                      <ElectronicsAccessoryForm
+                        suppliers={suppliers}
+                        shop={shop}
+                        accessoryGroups={accessoryGroups}
+                        setAccessoryGroups={setAccessoryGroups}
+                        accessoryGroup={accessoryGroup}
+                        setAccessoryGroup={setAccessoryGroup}
+                        accessoryGroupInput={accessoryGroupInput}
+                        setAccessoryGroupInput={setAccessoryGroupInput}
+                        accessoryName={accessoryName}
+                        setAccessoryName={setAccessoryName}
+                        accessoryItems={accessoryItems}
+                        setAccessoryItems={setAccessoryItems}
+                        formData={formData}
+                        setFormData={setFormData}
+                        onCancel={() => { setShowModal(false); setElectronicsMode(''); resetAccessoryForm(); }}
+                        onSuccess={() => { fetchData(); setShowModal(false); setElectronicsMode(''); resetAccessoryForm(); }}
+                      />
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label className="label">Product Name *</label>
+                      <input type="text" className="input" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
+                    </div>
+                    <div>
+                      <label className="label">SKU *</label>
+                      <div style={{ display: 'flex', gap: '0.25rem' }}>
+                        <input type="text" className="input" value={formData.sku} onChange={e => setFormData({ ...formData, sku: e.target.value })} required disabled={!!editingProduct} style={{ flex: 1 }} />
+                        <button type="button" onClick={generateBarcode} className="btn btn-secondary" title="Generate SKU"><Hash size={18} /></button>
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label className="label">Variant Type</label>
+                      <select className="select" value={formData.variantType} onChange={e => setFormData({ ...formData, variantType: e.target.value, variant: '' })}>
+                        <option value="">No Variant</option>
+                        {VARIANT_TYPES.map(vt => (<option key={vt.value} value={vt.value}>{vt.label}</option>))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label">Variant Value</label>
+                      <input type="text" className="input" value={formData.variant} onChange={e => setFormData({ ...formData, variant: e.target.value })} placeholder={formData.variantType ? `e.g., ${formData.variantType === 'COLOR' ? 'Red, Blue' : 'variant'}` : 'Select variant first'} disabled={!formData.variantType} />
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label className="label">Barcode</label>
+                      <input type="text" className="input" value={formData.barcode} onChange={e => setFormData({ ...formData, barcode: e.target.value })} placeholder="Scan or enter barcode" />
+                    </div>
+                    <div>
+                      <label className="label">Category</label>
+                      <select className="select" value={formData.categoryId} onChange={e => setFormData({ ...formData, categoryId: e.target.value })} required>
+                        <option value="">Select category</option>
+                        {categories.map(cat => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
+                      </select>
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label className="label">Purchase Cost</label>
+                      <input type="number" step="0.01" className="input" value={formData.purchaseCost} onChange={e => setFormData({ ...formData, purchaseCost: e.target.value })} required />
+                    </div>
+                    <div>
+                      <label className="label">Selling Price *</label>
+                      <input type="number" step="0.01" className="input" value={formData.sellingPrice} onChange={e => setFormData({ ...formData, sellingPrice: e.target.value })} required />
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label className="label">Stock Quantity</label>
+                      <input type="number" className="input" value={formData.stockQuantity} onChange={e => setFormData({ ...formData, stockQuantity: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="label">Low Stock Alert</label>
+                      <input type="number" className="input" value={formData.lowStockThreshold} onChange={e => setFormData({ ...formData, lowStockThreshold: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="label">Reorder Point</label>
+                      <input type="number" className="input" value={formData.reorderPoint} onChange={e => setFormData({ ...formData, reorderPoint: e.target.value })} />
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label className="label">Tax Rate (%)</label>
+                      <input type="number" step="0.01" className="input" value={formData.taxRate} onChange={e => setFormData({ ...formData, taxRate: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="label">Location</label>
+                      <input type="text" className="input" value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} placeholder="Aisle-Shelf" />
+                    </div>
+                  </div>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={formData.hasExpiry} onChange={e => setFormData({ ...formData, hasExpiry: e.target.checked })} />
+                      <span className="label" style={{ marginBottom: 0 }}>Has Expiry Date</span>
+                    </label>
+                  </div>
+                  {formData.hasExpiry && (
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label className="label">Expiry Date</label>
+                      <input type="date" className="input" value={formData.expiryDate} onChange={e => setFormData({ ...formData, expiryDate: e.target.value })} />
+                    </div>
+                  )}
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label className="label">Description</label>
+                    <input type="text" className="input" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
+                  </div>
+                </>
               )}
-              <div style={{ marginBottom: '1rem' }}>
-                <label className="label">Description</label>
-                <input type="text" className="input" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
-              </div>
               <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setShowModal(false)} className="btn btn-secondary">Cancel</button>
                 <button type="submit" className="btn btn-primary">{editingProduct ? 'Update' : 'Create'}</button>
@@ -1076,6 +1604,7 @@ export default function InventoryPage() {
                 type="text"
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && createCategory()}
                 placeholder="Enter category name"
                 style={{ width: '100%', padding: '0.75rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '0.5rem', color: '#e2e8f0', fontSize: '1rem' }}
               />
@@ -1103,6 +1632,7 @@ export default function InventoryPage() {
                 type="text"
                 value={newSupplier.name}
                 onChange={(e) => setNewSupplier({ ...newSupplier, name: e.target.value })}
+                onKeyDown={(e) => e.key === 'Enter' && createSupplier()}
                 placeholder="Enter supplier name"
                 style={{ width: '100%', padding: '0.75rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '0.5rem', color: '#e2e8f0', fontSize: '1rem' }}
               />
@@ -1194,7 +1724,10 @@ export default function InventoryPage() {
                       
                       const res = await fetch('/api/inventory/import', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 
+                          'Content-Type': 'application/json',
+                          'x-shop-id': shop?.id || ''
+                        },
                         body: JSON.stringify({ products: json })
                       });
                       
@@ -1235,42 +1768,43 @@ export default function InventoryPage() {
                     onClick={async () => {
                       try {
                         const XLSX = await import('xlsx');
-                        const sampleData = [
+                        const sampleData = isPharmacy ? [
+                          {
+                            name: 'Panadol Extra',
+                            sku: 'MED001',
+                            brandName: 'Panadol',
+                            genericName: 'Paracetamol',
+                            batchNumber: 'BATCH001',
+                            manufacturingDate: '2025-01-15',
+                            expiryDate: '2026-12-31',
+                            buyingPrice: 5000,
+                            sellingPrice: 8000,
+                            quantity: 100
+                          },
+                          {
+                            name: 'Amoxicillin Capsules',
+                            sku: 'MED002',
+                            brandName: 'Amoxil',
+                            genericName: 'Amoxicillin',
+                            batchNumber: 'BATCH002',
+                            manufacturingDate: '2024-12-01',
+                            expiryDate: '2026-06-30',
+                            buyingPrice: 15000,
+                            sellingPrice: 25000,
+                            quantity: 50
+                          }
+                        ] : [
                           {
                             name: 'Sample Product 1',
                             sku: 'SKU001',
                             barcode: '1234567890123',
-                            description: 'Sample product description',
+                            description: 'Sample product',
                             category: 'Electronics',
-                            supplier: 'Sample Supplier',
                             purchaseCost: 10000,
                             sellingPrice: 15000,
-                            wholesalePrice: 12000,
                             stockQuantity: 50,
                             lowStockThreshold: 10,
-                            reorderPoint: 20,
-                            taxRate: 0,
-                            location: 'Shelf A1',
-                            hasExpiry: false,
-                            expiryDate: ''
-                          },
-                          {
-                            name: 'Sample Product 2',
-                            sku: 'SKU002',
-                            barcode: '1234567890124',
-                            description: 'Another product',
-                            category: 'Food',
-                            supplier: '',
-                            purchaseCost: 5000,
-                            sellingPrice: 8000,
-                            wholesalePrice: 6500,
-                            stockQuantity: 100,
-                            lowStockThreshold: 15,
-                            reorderPoint: 30,
-                            taxRate: 0,
-                            location: 'Shelf B2',
-                            hasExpiry: true,
-                            expiryDate: '2026-12-31'
+                            reorderPoint: 20
                           }
                         ];
                         
