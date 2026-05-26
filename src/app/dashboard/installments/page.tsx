@@ -371,8 +371,10 @@ export default function InstallmentsPage() {
                   type="number"
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(e.target.value)}
-                  placeholder="Enter amount"
+                  placeholder="0.00"
                   style={styles.input}
+                  min="0"
+                  step="0.01"
                   max={selectedSale.installmentDue || undefined}
                 />
               </div>

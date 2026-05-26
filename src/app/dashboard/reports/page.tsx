@@ -3,12 +3,14 @@
 import { useEffect, useState } from 'react';
 import { Download } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { useAuth } from '@/components/AuthProvider';
 
 export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [reportType, setReportType] = useState<'sales' | 'returns' | 'inventory'>('sales');
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [reportData, setReportData] = useState<any>(null);
+  const { shop } = useAuth();
 
   useEffect(() => { fetchReport(); }, [reportType, dateRange.startDate, dateRange.endDate]);
 
@@ -18,7 +20,7 @@ export default function ReportsPage() {
       const params = new URLSearchParams({ type: reportType });
       if (dateRange.startDate) params.append('startDate', dateRange.startDate);
       if (dateRange.endDate) params.append('endDate', dateRange.endDate);
-      const res = await fetch(`/api/reports?${params}`);
+      const res = await fetch(`/api/reports?${params}`, { headers: { 'x-shop-id': shop?.id || '' } });
       const data = await res.json();
       setReportData(data.report);
     } catch (error) { console.error('Failed to fetch report:', error); }

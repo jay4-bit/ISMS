@@ -37,25 +37,37 @@ export async function PUT(request: NextRequest) {
     
     const settings = await prisma.shopSettings.upsert({
       where: { shopId },
-      update: body,
+      update: {
+        businessName: body.businessName,
+        businessPhone: body.businessPhone,
+        businessEmail: body.businessEmail,
+        businessAddress: body.businessAddress,
+        currency: body.currency,
+        currencySymbol: body.currencySymbol,
+        taxRate: body.taxRate,
+        lowStockAlert: body.lowStockAlert,
+        expiryAlert: body.expiryAlert,
+        expiryAlertDays: body.expiryAlertDays,
+      },
       create: {
         shopId,
         businessName: body.businessName || 'My Shop',
+        businessPhone: body.businessPhone,
+        businessEmail: body.businessEmail,
+        businessAddress: body.businessAddress,
+        currency: body.currency || 'TZS',
+        currencySymbol: body.currencySymbol || 'TSh',
         taxRate: body.taxRate || 0,
         lowStockAlert: body.lowStockAlert ?? true,
         expiryAlert: body.expiryAlert ?? true,
         expiryAlertDays: body.expiryAlertDays || 7,
-        pharmacyLicense: body.pharmacyLicense,
-        liquorLicense: body.liquorLicense,
-        pharmacyName: body.pharmacyName,
-        pharmacistName: body.pharmacistName,
-        pharmacistLicense: body.pharmacistLicense,
       },
     });
 
     return NextResponse.json({ settings });
   } catch (error) {
     console.error('Update settings error:', error);
-    return NextResponse.json({ error: 'Failed to update settings' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to update settings';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

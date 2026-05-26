@@ -6,6 +6,8 @@ export async function POST(request: NextRequest) {
     const shopId = request.headers.get('x-shop-id') || undefined;
     const shop = shopId ? await prisma.shop.findUnique({ where: { id: shopId } }) : null;
     const isPharmacy = shop?.shopType === 'PHARMACY';
+    const isElectronics = shop?.shopType === 'ELECTRONICS';
+    const isClothing = shop?.shopType === 'CLOTHING';
     const isLiquor = shop?.shopType === 'LIQUOR';
     
     if (!shopId) {
@@ -23,15 +25,31 @@ export async function POST(request: NextRequest) {
 
     for (const item of products) {
       try {
-        const { name, sku, barcode, description, category, supplier, purchaseCost, sellingPrice, wholesalePrice, stockQuantity, lowStockThreshold, reorderPoint, taxRate, location, hasExpiry, expiryDate, brandName, genericName, batchNumber, manufacturingDate, buyingPrice, quantity, brand, size, notes } = item;
+        const { name, sku, barcode, description, category, supplier, purchaseCost, sellingPrice, wholesalePrice, stockQuantity, lowStockThreshold, reorderPoint, taxRate, location, hasExpiry, expiryDate, brandName, genericName, batchNumber, manufacturingDate, buyingPrice, quantity, brand, size, notes, imei, model, cond, condition, color, storage, variants } = item;
 
         const productName = name;
         const buyingCost = buyingPrice || purchaseCost;
         const stockQty = quantity || stockQuantity;
 
-        if (!productName || !sku) {
+        let productSku = sku;
+        if (isElectronics && !productSku && imei) {
+          productSku = imei;
+        }
+        if (isClothing && !productSku) {
+          productSku = `CLO-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+        }
+        if (isLiquor && !productSku) {
+          productSku = `LIQ-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+        }
+        if (!isElectronics && !isClothing && !isLiquor && !isPharmacy && !productSku) {
+          productSku = `GEN-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+        }
+
+        const finalBarcode = isElectronics && !barcode && imei ? imei : (barcode || null);
+
+        if (!productName || !productSku) {
           results.failed++;
-          results.errors.push(`Missing name or SKU: ${sku || 'unknown'}`);
+          results.errors.push(`Missing name or SKU/IMEI: ${productSku || 'unknown'}`);
           continue;
         }
 
@@ -66,11 +84,11 @@ export async function POST(request: NextRequest) {
           }
         }
 
-const existingSku = await prisma.product.findUnique({ where: { sku_shopId: { sku, shopId } } });
+const existingSku = await prisma.product.findUnique({ where: { sku_shopId: { sku: productSku, shopId } } });
         
         const productData: any = {
           name: productName,
-          barcode: barcode || null,
+          barcode: finalBarcode,
           description: description || null,
           purchaseCost: parseFloat(buyingCost) || 0,
           sellingPrice: parseFloat(sellingPrice) || 0,
@@ -81,6 +99,7 @@ const existingSku = await prisma.product.findUnique({ where: { sku_shopId: { sku
           location: location || null,
           hasExpiry: hasExpiry === true || hasExpiry === 'true' || !!expiryDate,
           expiryDate: expiryDate ? new Date(expiryDate) : null,
+          brand: brand || null,
           shopId,
           categoryId,
         };
@@ -97,8 +116,8 @@ const existingSku = await prisma.product.findUnique({ where: { sku_shopId: { sku
             data: productData
           });
         } else {
-          productData.sku = sku;
-          productData.stockQuantity = parseInt(stockQty) || 0;
+          productData.sku = productSku;
+          productData.stockQuantity = isElectronics ? (parseInt(stockQty) || 1) : (parseInt(stockQty) || 0);
           product = await prisma.product.create({
             data: productData
           });
@@ -123,7 +142,60 @@ const existingSku = await prisma.product.findUnique({ where: { sku_shopId: { sku
           });
         }
 
-        if (isLiquor && (brand || size || notes)) {
+        if (isElectronics && (imei || model || cond || condition || color || storage || brand)) {
+          await prisma.electronicsProduct.upsert({
+            where: { productId: product.id },
+            update: {
+              brand: brand || null,
+              model: model || null,
+              condition: cond || condition || null,
+              color: color || null,
+              storage: storage || null,
+              imei: imei || null,
+            },
+            create: {
+              productId: product.id,
+              brand: brand || null,
+              model: model || null,
+              condition: cond || condition || null,
+              color: color || null,
+              storage: storage || null,
+              imei: imei || null,
+            }
+          });
+        }
+
+        if (isClothing && brand) {
+          await prisma.clothingProduct.upsert({
+            where: { productId: product.id },
+            update: { brand: brand || null },
+            create: { productId: product.id, brand: brand || null },
+          });
+        }
+
+        if (variants && (isClothing || (!isPharmacy && !isElectronics && !isLiquor && !isClothing))) {
+          const existingVariants = await prisma.productVariant.findMany({ where: { productId: product.id } });
+          if (existingVariants.length === 0) {
+            const variantPairs = variants.split(';').map((v: string) => v.trim()).filter(Boolean);
+            for (const pair of variantPairs) {
+              const [type, value] = pair.split(':').map((s: string) => s.trim());
+              if (value) {
+                await prisma.productVariant.create({
+                  data: {
+                    productId: product.id,
+                    variantValue: type ? `${type}: ${value}` : value,
+                    sku: `${productSku}-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+                    stockQuantity: parseInt(stockQty) || 0,
+                    sellingPrice: parseFloat(sellingPrice) || 0,
+                    purchaseCost: parseFloat(buyingCost) || 0,
+                  },
+                });
+              }
+            }
+          }
+        }
+
+        if (isLiquor && size) {
           await prisma.liquorProduct.upsert({
             where: { productId: product.id },
             update: {
@@ -131,21 +203,21 @@ const existingSku = await prisma.product.findUnique({ where: { sku_shopId: { sku
               size: size ? parseFloat(size) : null,
               volume: size ? parseFloat(size) : null,
               notes: notes || null,
-            } as any,
+            },
             create: {
               productId: product.id,
               brand: brand || null,
               size: size ? parseFloat(size) : null,
               volume: size ? parseFloat(size) : null,
               notes: notes || null,
-            }
+            },
           });
         }
 
         results.success++;
       } catch (err) {
         results.failed++;
-        results.errors.push(`Error processing ${item.sku}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        results.errors.push(`Error processing ${item.sku || item.imei || 'unknown'}: ${err instanceof Error ? err.message : 'Unknown error'}`);
       }
     }
 

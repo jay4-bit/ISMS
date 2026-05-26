@@ -31,9 +31,11 @@ import {
   PackagePlus
 } from 'lucide-react';
 import { SHOP_TYPE_CONFIG } from '@/lib/auth';
+import { useSettings } from '@/context/SettingsContext';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, shop, logout, hasPermission } = useAuth();
+  const { settings } = useSettings();
   const router = useRouter();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
@@ -66,7 +68,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Installments', href: '/dashboard/installments', icon: Calculator, permission: 'installments' },
     { name: 'Suppliers', href: '/dashboard/suppliers', icon: Truck, permission: 'suppliers' },
     { name: 'Purchase Orders', href: '/dashboard/purchase-orders', icon: PackagePlus, permission: 'purchase-orders' },
+    { name: 'Clients', href: '/dashboard/clients', icon: UserPlus, permission: 'clients' },
     { name: 'Expenses', href: '/dashboard/expenses', icon: Receipt, permission: 'expenses' },
+    { name: 'Profit & Loss', href: '/dashboard/profit-loss', icon: PieChart, permission: 'profit-loss' },
     { name: 'Reports', href: '/dashboard/reports', icon: BarChart3, permission: 'reports' },
     { name: 'Users', href: '/dashboard/users', icon: Users, permission: 'users' },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings, permission: 'settings' },
@@ -91,7 +95,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <span style={styles.shopIcon}>{shopIcons[shop.shopType]}</span>
             {!collapsed && (
               <div style={styles.shopInfo}>
-                <span style={styles.shopName}>{shop.name}</span>
+                <span style={styles.shopName}>{settings.businessName || shop.name}</span>
                 <span style={styles.shopType}>{shopConfig.name}</span>
               </div>
             )}

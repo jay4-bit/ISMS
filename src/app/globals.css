@@ -24,6 +24,23 @@
   --warning: #f59e0b;
 }
 
+html[data-theme='light'] {
+  --background: #f8fafc;
+  --foreground: #1e293b;
+  --card: #ffffff;
+  --card-foreground: #1e293b;
+  --popover: #ffffff;
+  --popover-foreground: #1e293b;
+  --secondary: #e2e8f0;
+  --secondary-foreground: #334155;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #f1f5f9;
+  --accent-foreground: #1e293b;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+}
+
 * {
   border-color: var(--border);
 }
@@ -181,7 +198,7 @@ body {
 
 .sidebar {
   width: 16rem;
-  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  background: var(--card);
   border-right: 1px solid var(--border);
   height: 100vh;
   position: fixed;
@@ -194,11 +211,11 @@ body {
   margin-left: 16rem;
   min-height: 100vh;
   padding: 1.5rem;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: var(--background);
 }
 
 .stat-card {
-  background: linear-gradient(145deg, #1e293b, #334155);
+  background: var(--card);
   border-radius: 0.75rem;
   border: 1px solid var(--border);
   padding: 1.25rem;

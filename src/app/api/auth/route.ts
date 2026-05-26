@@ -17,6 +17,16 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
+      // If no shop selected and user not found, try finding across all shops
+      if (!shopId) {
+        const anyUser = await prisma.user.findFirst({
+          where: { email },
+          include: { shop: true }
+        });
+        if (anyUser) {
+          return NextResponse.json({ error: 'Please select the correct shop' }, { status: 401 });
+        }
+      }
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 

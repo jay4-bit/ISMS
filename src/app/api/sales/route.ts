@@ -158,7 +158,7 @@ const saleData: any = {
     const sale = await prisma.sale.create({
       data: saleData,
       include: {
-        items: { include: { product: true } },
+        items: { include: { product: { include: { electronicsFields: true } } } },
         cashier: { select: { name: true, email: true } },
       },
     });
@@ -168,6 +168,13 @@ const saleData: any = {
       await prisma.product.update({
         where: { id: item.product.id },
         data: { stockQuantity: { decrement: item.quantity || 1 } },
+      });
+    }
+
+    if (finalCustomerId) {
+      await prisma.customer.update({
+        where: { id: finalCustomerId },
+        data: { totalPurchases: { increment: total } },
       });
     }
 
@@ -190,7 +197,7 @@ export async function GET(request: NextRequest) {
       const sale = await prisma.sale.findUnique({
         where: { id, shopId },
         include: { 
-          items: { include: { product: true } }, 
+          items: { include: { product: { include: { electronicsFields: true } } } }, 
           cashier: { select: { name: true } },
           installmentPayments: true,
         },
@@ -205,7 +212,7 @@ export async function GET(request: NextRequest) {
           isInstallment: true,
         },
         include: { 
-          items: { include: { product: true } }, 
+          items: { include: { product: { include: { electronicsFields: true } } } }, 
           cashier: { select: { name: true } },
           installmentPayments: { orderBy: { createdAt: 'desc' } },
         },
@@ -217,7 +224,7 @@ export async function GET(request: NextRequest) {
     const sales = await prisma.sale.findMany({
       where: { shopId },
       include: { 
-        items: { include: { product: true } }, 
+        items: { include: { product: { include: { electronicsFields: true } } } }, 
         cashier: { select: { name: true } },
       },
       orderBy: { createdAt: 'desc' },
@@ -254,7 +261,7 @@ export async function PUT(request: NextRequest) {
         amountPaid: { increment: amount },
       },
       include: {
-        items: { include: { product: true } },
+        items: { include: { product: { include: { electronicsFields: true } } } },
         cashier: { select: { name: true } },
       },
     });

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Users, Plus, Search, Edit, Trash2, X, Phone, Mail, MapPin, ShoppingCart, CreditCard } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { useAuth } from '@/components/AuthProvider';
 
 interface Client {
   id: string;
@@ -18,6 +19,7 @@ interface Client {
 }
 
 export default function ClientsPage() {
+  const { shop } = useAuth();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -27,11 +29,11 @@ export default function ClientsPage() {
     name: '', email: '', phone: '', address: ''
   });
 
-  useEffect(() => { fetchClients(); }, []);
+  useEffect(() => { if (shop?.id) fetchClients(); }, [shop?.id]);
 
   async function fetchClients() {
     try {
-      const res = await fetch('/api/clients');
+      const res = await fetch('/api/clients', { headers: { 'x-shop-id': shop?.id || '' } });
       const data = await res.json();
       setClients(data.customers || []);
     } catch (error) {
@@ -64,12 +66,15 @@ export default function ClientsPage() {
       const body = editingClient ? { ...formData, id: editingClient.id } : formData;
       const res = await fetch('/api/clients', {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
         body: JSON.stringify(body)
       });
       if (res.ok) {
         setShowModal(false);
         fetchClients();
+      } else {
+        const text = await res.text();
+        alert(text || 'Failed to save client');
       }
     } catch (error) {
       console.error('Save failed:', error);
@@ -79,7 +84,7 @@ export default function ClientsPage() {
   async function handleDelete(id: string) {
     if (!confirm('Delete this client?')) return;
     try {
-      await fetch(`/api/clients?id=${id}`, { method: 'DELETE' });
+      await fetch(`/api/clients?id=${id}`, { method: 'DELETE', headers: { 'x-shop-id': shop?.id || '' } });
       fetchClients();
     } catch (error) {
       console.error('Delete failed:', error);

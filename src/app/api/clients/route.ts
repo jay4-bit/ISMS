@@ -58,11 +58,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { name, email, phone, address, prescriptionNumber, dateOfBirth, creditLimit } = body;
 
-    const existing = await prisma.customer.findFirst({
-      where: { phone, shopId }
-    });
-    if (existing) {
-      return NextResponse.json({ error: 'Customer with this phone already exists' }, { status: 400 });
+    if (phone) {
+      const existing = await prisma.customer.findFirst({
+        where: { phone, shopId }
+      });
+      if (existing) {
+        return NextResponse.json({ error: 'Customer with this phone already exists' }, { status: 400 });
+      }
     }
 
     const customer = await prisma.customer.create({

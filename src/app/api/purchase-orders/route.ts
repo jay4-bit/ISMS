@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
 
     const orders = await prisma.purchaseOrder.findMany({
       where: { shopId },
-      include: { supplier: true },
+      include: { supplier: true, items: { include: { product: { include: { electronicsFields: true, pharmacyFields: true } } } } },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -23,7 +23,33 @@ export async function GET(request: NextRequest) {
       totalAmount: o.totalAmount,
       paidAmount: o.paidAmount,
       expectedDelivery: o.expectedDelivery,
+      receivedAt: o.receivedAt,
       createdAt: o.createdAt,
+        items: o.items.map(item => ({
+          id: item.id,
+          productId: item.productId,
+          productName: item.product?.name || item.productName || `${item.electronicsBrand || ''} ${item.electronicsModel || ''}`.trim() || [item.pharmacyBrandName, item.pharmacyGenericName].filter(Boolean).join(' ') || 'New Product',
+          productImei: (item.product as any)?.electronicsFields?.imei || item.electronicsImei || null,
+          productBrand: item.electronicsBrand || null,
+          productModel: item.electronicsModel || null,
+          productColor: item.electronicsColor || null,
+          productStorage: item.electronicsStorage || null,
+          productCondition: item.electronicsCondition || null,
+          pharmacyBrandName: item.pharmacyBrandName || null,
+          pharmacyGenericName: item.pharmacyGenericName || null,
+          pharmacyBatchNumber: item.pharmacyBatchNumber || null,
+          pharmacyManufacturingDate: item.pharmacyManufacturingDate || null,
+          pharmacyExpiryDate: item.pharmacyExpiryDate || null,
+          clothingBrand: item.clothingBrand || null,
+          clothingVariants: item.clothingVariants || null,
+          clothingCategoryName: item.clothingCategoryName || null,
+        sellingPrice: item.sellingPrice || null,
+        quantityOrdered: item.quantityOrdered,
+        quantityReceived: item.quantityReceived,
+        unitCost: item.unitCost,
+        totalCost: item.totalCost,
+        isPendingProduct: !item.productId,
+      })),
     }));
 
     return NextResponse.json({ orders: formattedOrders });
@@ -58,10 +84,30 @@ export async function POST(request: NextRequest) {
         shopId,
         items: {
           create: items.map((item: any) => ({
-            productId: item.productId,
-            quantityOrdered: item.quantity,
+            productId: item.productId || null,
+            quantityOrdered: item.quantity || 1,
             unitCost: item.unitCost,
-            totalCost: item.quantity * item.unitCost,
+            totalCost: (item.quantity || 1) * item.unitCost,
+            productName: item.productName || null,
+            productSku: item.productSku || null,
+            productBarcode: item.productBarcode || null,
+            sellingPrice: item.sellingPrice || null,
+            wholesalePrice: item.wholesalePrice || null,
+            electronicsBrand: item.electronicsBrand || null,
+            electronicsModel: item.electronicsModel || null,
+            electronicsImei: item.electronicsImei || null,
+            electronicsColor: item.electronicsColor || null,
+            electronicsStorage: item.electronicsStorage || null,
+            electronicsCondition: item.electronicsCondition || null,
+            pharmacyBrandName: item.pharmacyBrandName || null,
+            pharmacyGenericName: item.pharmacyGenericName || null,
+            pharmacyBatchNumber: item.pharmacyBatchNumber || null,
+            pharmacyManufacturingDate: item.pharmacyManufacturingDate ? new Date(item.pharmacyManufacturingDate) : null,
+            pharmacyExpiryDate: item.pharmacyExpiryDate ? new Date(item.pharmacyExpiryDate) : null,
+            pharmacyCategoryName: item.pharmacyCategoryName || null,
+            clothingBrand: item.clothingBrand || null,
+            clothingVariants: item.clothingVariants || null,
+            clothingCategoryName: item.clothingCategoryName || null,
           })),
         },
       },
@@ -84,11 +130,11 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, status, paidAmount } = body;
+    const { id, status, paidAmount, receivedItems } = body;
 
     const order = await prisma.purchaseOrder.findUnique({
       where: { id, shopId },
-      include: { items: true }
+      include: { items: { include: { product: true } } }
     });
 
     if (!order) {
@@ -97,19 +143,99 @@ export async function PUT(request: NextRequest) {
 
     if (status === 'RECEIVED') {
       for (const item of order.items) {
+        const receivedQty = receivedItems?.find((ri: any) => ri.itemId === item.id)?.quantityReceived ?? item.quantityOrdered;
+        let productId = item.productId;
+
+        if (!productId) {
+          const isPhone = !!item.electronicsImei;
+          const isPharmacyItem = !!item.pharmacyBrandName || !!item.pharmacyGenericName;
+          const isClothingItem = !!item.clothingBrand;
+          const targetCategoryName = isPharmacyItem ? (item.pharmacyCategoryName || 'Medicines') : isClothingItem ? (item.clothingCategoryName || 'Clothing') : (isPhone ? 'Phones & Tablets' : 'Accessories');
+          let cat = await prisma.category.findFirst({ where: { shopId, name: targetCategoryName } });
+          if (!cat) cat = await prisma.category.create({ data: { name: targetCategoryName, shopId } });
+
+          const sku = item.productSku || (isPhone ? 'ELC-' : isPharmacyItem ? 'PHA-' : isClothingItem ? 'CLO-' : 'ACC-') + Date.now().toString(36).toUpperCase();
+          const name: string = item.productName || (isClothingItem ? (item.clothingBrand || 'Clothing Item') : [item.pharmacyBrandName, item.pharmacyGenericName].filter(Boolean).join(' ') || `${item.electronicsBrand || ''} ${item.electronicsModel || ''}`.trim() || 'New Product');
+
+          const created = await prisma.product.create({
+            data: {
+              name,
+              sku,
+              barcode: item.productBarcode || null,
+              categoryId: cat.id,
+              brand: isClothingItem ? item.clothingBrand : null,
+              supplierId: order.supplierId,
+              purchaseCost: item.unitCost,
+              sellingPrice: item.sellingPrice || item.unitCost * 1.2,
+              wholesalePrice: item.wholesalePrice || null,
+              stockQuantity: 0,
+              expiryDate: item.pharmacyExpiryDate ? new Date(item.pharmacyExpiryDate) : null,
+              shopId,
+              ...(isPharmacyItem ? {
+                pharmacyFields: {
+                  create: {
+                    brandName: item.pharmacyBrandName || null,
+                    genericName: item.pharmacyGenericName || null,
+                    batchNumber: item.pharmacyBatchNumber || null,
+                    manufacturingDate: item.pharmacyManufacturingDate ? new Date(item.pharmacyManufacturingDate) : null,
+                    expiryDate: item.pharmacyExpiryDate ? new Date(item.pharmacyExpiryDate) : null,
+                  }
+                }
+              } : (isClothingItem ? {
+                clothingFields: {
+                  create: {
+                    brand: item.clothingBrand || null,
+                  }
+                },
+                variants: item.clothingVariants ? {
+                  create: JSON.parse(item.clothingVariants).map((variantStr: string, idx: number) => ({
+                    variantValue: variantStr,
+                    sku: `${sku}-${idx}`,
+                    sellingPrice: item.sellingPrice || item.unitCost * 1.2,
+                    purchaseCost: item.unitCost,
+                    stockQuantity: 0,
+                  }))
+                } : undefined
+              } : {
+                electronicsFields: {
+                  create: {
+                    brand: item.electronicsBrand || null,
+                    model: item.electronicsModel || null,
+                    imei: item.electronicsImei || null,
+                    color: item.electronicsColor || null,
+                    storage: item.electronicsStorage || null,
+                    condition: item.electronicsCondition || null,
+                  }
+                }
+              }))
+            }
+          });
+
+          await prisma.purchaseOrderItem.update({
+            where: { id: item.id },
+            data: { productId: created.id }
+          });
+          productId = created.id;
+        }
+
         await prisma.product.update({
-          where: { id: item.productId },
-          data: { stockQuantity: { increment: item.quantityReceived } }
+          where: { id: productId },
+          data: { stockQuantity: { increment: receivedQty } }
         });
 
         await prisma.stockMovement.create({
           data: {
-            productId: item.productId,
+            productId: productId,
             type: 'STOCK_IN',
-            quantity: item.quantityReceived,
+            quantity: receivedQty,
             reference: order.orderNumber,
             reason: 'Purchase Order Received'
           }
+        });
+
+        await prisma.purchaseOrderItem.update({
+          where: { id: item.id },
+          data: { quantityReceived: receivedQty }
         });
       }
     }

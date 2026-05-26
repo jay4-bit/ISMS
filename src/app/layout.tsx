@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { SettingsProvider } from "@/context/SettingsContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 
 export const metadata: Metadata = {
   title: "ISMS - Inventory & Sales Management System",
@@ -16,11 +17,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AuthProvider>
-          <SettingsProvider>
-            {children}
-          </SettingsProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <SettingsProvider>
+              {children}
+            </SettingsProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

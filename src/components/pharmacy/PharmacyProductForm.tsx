@@ -394,7 +394,9 @@ export default function PharmacyProductForm({ shopId, onSuccess, onCancel, editP
                   value={formData.purchaseCost}
                   onChange={handleChange}
                   style={styles.input}
-                  placeholder="0"
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
                   required
                 />
               </div>
@@ -407,7 +409,9 @@ export default function PharmacyProductForm({ shopId, onSuccess, onCancel, editP
                   value={formData.sellingPrice}
                   onChange={handleChange}
                   style={styles.input}
-                  placeholder="0"
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
                   required
                 />
               </div>

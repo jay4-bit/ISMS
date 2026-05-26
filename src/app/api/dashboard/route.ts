@@ -16,7 +16,10 @@ export async function GET(request: NextRequest) {
 
     const totalProducts = products.filter(p => !p.isFaulty).length;
     const lowStockCount = products.filter(p => p.stockQuantity <= p.lowStockThreshold && !p.isFaulty).length;
-    const totalInventoryValue = products.reduce((sum, p) => sum + p.sellingPrice * p.stockQuantity, 0);
+    const lowStockItems = products
+      .filter(p => p.stockQuantity <= p.lowStockThreshold && !p.isFaulty)
+      .slice(0, 5);
+    const totalInventoryValue = products.reduce((sum, p) => sum + p.purchaseCost * p.stockQuantity, 0);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -27,12 +30,28 @@ export async function GET(request: NextRequest) {
     });
 
     const todayRevenue = todaySales.reduce((sum, s) => sum + s.total, 0);
+    const salesCount = todaySales.length;
+
     const todayProfit = todaySales.reduce((sum, s) => {
       return sum + s.items.reduce((itemSum, item) => {
-        const profit = item.unitPrice - item.product.purchaseCost;
+        const netPrice = item.unitPrice - item.discount;
+        const profit = netPrice - item.product.purchaseCost;
         return itemSum + profit * item.quantity;
       }, 0);
     }, 0);
+
+    const todayExpenses = await prisma.expense.aggregate({
+      where: { shopId, date: { gte: today } },
+      _sum: { amount: true },
+    });
+    const todayExpensesTotal = todayExpenses._sum.amount || 0;
+
+    const todayReturns = await prisma.returnItem.findMany({
+      where: { return: { shopId, createdAt: { gte: today } } },
+    });
+    const todayReturnsTotal = todayReturns.reduce((sum, r) => sum + r.refundAmount + (r.repairCost || 0), 0);
+
+    const netProfit = todayProfit - todayExpensesTotal - todayReturnsTotal;
 
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -42,23 +61,48 @@ export async function GET(request: NextRequest) {
       where: { sale: { shopId, createdAt: { gte: thirtyDaysAgo } } },
       _sum: { quantity: true },
       orderBy: { _sum: { quantity: 'desc' } },
-      take: 10,
+      take: 5,
     });
 
     const productIdsSold = recentSales.map(s => s.productId);
-    const productsSold = products.filter(p => productIdsSold.includes(p.id));
-    const fastMovingItems = productsSold.slice(0, 5);
-    const slowMovingItems = products.filter(p => !productIdsSold.includes(p.id)).slice(0, 5);
+    const fastMovingItems = products.filter(p => productIdsSold.includes(p.id)).slice(0, 5);
+    const slowMovingItems = products.filter(p => !productIdsSold.includes(p.id) && !p.isFaulty).slice(0, 5);
+
+    // Expiry alerts
+    const now = new Date();
+    const settings = await prisma.shopSettings.findUnique({ where: { shopId } });
+    const expiryAlertDays = settings?.expiryAlertDays || 7;
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + expiryAlertDays);
+
+    const expiringProducts = products
+      .filter(p => p.expiryDate && new Date(p.expiryDate) <= expiryDate && new Date(p.expiryDate) >= now && !p.isFaulty)
+      .slice(0, 5);
+    const expiringCount = products.filter(p => p.expiryDate && new Date(p.expiryDate) <= expiryDate && new Date(p.expiryDate) >= now && !p.isFaulty).length;
+
+    const expiredProducts = products
+      .filter(p => p.expiryDate && new Date(p.expiryDate) < now && !p.isFaulty)
+      .slice(0, 5);
+    const expiredCount = products.filter(p => p.expiryDate && new Date(p.expiryDate) < now && !p.isFaulty).length;
 
     return NextResponse.json({
       stats: {
         totalProducts,
         lowStockCount,
+        lowStockItems,
         totalInventoryValue,
         todaySales: todayRevenue,
         todayProfit,
+        salesCount,
+        todayExpenses: todayExpensesTotal,
+        todayReturns: todayReturnsTotal,
+        netProfit,
         fastMovingItems,
         slowMovingItems,
+        expiringProducts,
+        expiringCount,
+        expiredProducts,
+        expiredCount,
       },
     });
   } catch (error) {

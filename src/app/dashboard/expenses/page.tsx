@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { DollarSign, Plus, Edit, Trash2, X, TrendingUp, Calendar, Filter } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useSettings } from '@/context/SettingsContext';
+import { useAuth } from '@/components/AuthProvider';
 
 interface Expense {
   id: string;
@@ -36,12 +37,13 @@ export default function ExpensesPage() {
     category: 'OTHER', amount: '', description: '', reference: '', date: new Date().toISOString().split('T')[0]
   });
   const { settings } = useSettings();
+  const { shop } = useAuth();
 
   useEffect(() => { fetchExpenses(); }, []);
 
   async function fetchExpenses() {
     try {
-      const res = await fetch('/api/expenses');
+      const res = await fetch('/api/expenses', { headers: { 'x-shop-id': shop?.id || '' } });
       const data = await res.json();
       setExpenses(data.expenses || []);
     } catch (error) {
@@ -75,7 +77,7 @@ export default function ExpensesPage() {
       const body = editingExpense ? { ...formData, id: editingExpense.id } : formData;
       const res = await fetch('/api/expenses', {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
         body: JSON.stringify(body)
       });
       if (res.ok) {
@@ -90,7 +92,7 @@ export default function ExpensesPage() {
   async function handleDelete(id: string) {
     if (!confirm('Delete this expense?')) return;
     try {
-      await fetch(`/api/expenses?id=${id}`, { method: 'DELETE' });
+      await fetch(`/api/expenses?id=${id}`, { method: 'DELETE', headers: { 'x-shop-id': shop?.id || '' } });
       fetchExpenses();
     } catch (error) {
       console.error('Delete failed:', error);
@@ -260,7 +262,7 @@ export default function ExpensesPage() {
                 </div>
                 <div>
                   <label className="label">Amount</label>
-                  <input type="number" step="0.01" className="input" value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} required />
+                  <input type="number" step="0.01" min="0" className="input" value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} required />
                 </div>
               </div>
               <div style={{ marginBottom: '1rem' }}>

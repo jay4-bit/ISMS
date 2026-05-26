@@ -142,6 +142,7 @@ export default function ProductForm({ shopType, categories, onSubmit, initialDat
               onChange={handleChange}
               style={styles.input}
               step="0.01"
+              min="0"
               required
             />
           </div>
@@ -155,6 +156,7 @@ export default function ProductForm({ shopType, categories, onSubmit, initialDat
               onChange={handleChange}
               style={styles.input}
               step="0.01"
+              min="0"
               required
             />
           </div>
@@ -168,6 +170,7 @@ export default function ProductForm({ shopType, categories, onSubmit, initialDat
               onChange={handleChange}
               style={styles.input}
               step="0.01"
+              min="0"
             />
           </div>
         </div>
@@ -250,7 +253,6 @@ export default function ProductForm({ shopType, categories, onSubmit, initialDat
       </div>
 
       {shopType === 'PHARMACY' && <PharmacyFields onChange={handleSpecificChange} values={specificFields} />}
-      {shopType === 'LIQUOR' && <LiquorFields onChange={handleSpecificChange} values={specificFields} />}
       {shopType === 'ELECTRONICS' && <ElectronicsFields onChange={handleSpecificChange} values={specificFields} />}
       {shopType === 'CLOTHING' && <ClothingFields onChange={handleSpecificChange} values={specificFields} />}
 
@@ -365,106 +367,6 @@ function PharmacyFields({ onChange, values }: { onChange: (name: string, value: 
           onChange={(e) => onChange('sideEffects', e.target.value)}
           style={styles.textarea}
           rows={2}
-        />
-      </div>
-    </div>
-  );
-}
-
-function LiquorFields({ onChange, values }: { onChange: (name: string, value: any) => void; values: any }) {
-  return (
-    <div style={styles.section}>
-      <h3 style={styles.sectionTitle}>🍷 Liquor Details</h3>
-      
-      <div style={styles.row}>
-        <div style={styles.field}>
-          <label style={styles.label}>Alcohol Percentage</label>
-          <input
-            type="number"
-            value={values.alcoholPercentage || ''}
-            onChange={(e) => onChange('alcoholPercentage', parseFloat(e.target.value))}
-            style={styles.input}
-            step="0.1"
-            placeholder="e.g., 40"
-          />
-        </div>
-        
-        <div style={styles.field}>
-          <label style={styles.label}>Volume (ml)</label>
-          <input
-            type="number"
-            value={values.volume || ''}
-            onChange={(e) => onChange('volume', parseFloat(e.target.value))}
-            style={styles.input}
-            placeholder="e.g., 750"
-          />
-        </div>
-        
-        <div style={styles.field}>
-          <label style={styles.label}>Vintage/Year</label>
-          <input
-            type="text"
-            value={values.vintage || ''}
-            onChange={(e) => onChange('vintage', e.target.value)}
-            style={styles.input}
-            placeholder="e.g., 2020"
-          />
-        </div>
-      </div>
-
-      <div style={styles.row}>
-        <div style={styles.field}>
-          <label style={styles.label}>Liquor Type</label>
-          <select
-            value={values.liquorType || ''}
-            onChange={(e) => onChange('liquorType', e.target.value)}
-            style={styles.select}
-          >
-            <option value="">Select type</option>
-            <option value="BEER">Beer</option>
-            <option value="WINE">Wine</option>
-            <option value="VODKA">Vodka</option>
-            <option value="WHISKEY">Whiskey</option>
-            <option value="RUM">Rum</option>
-            <option value="GIN">Gin</option>
-            <option value="BRANDY">Brandy</option>
-            <option value="TEQUILA">Tequila</option>
-            <option value="COCKTAIL">Cocktail Mixer</option>
-            <option value="NON_ALCOHOLIC">Non-Alcoholic</option>
-          </select>
-        </div>
-        
-        <div style={styles.field}>
-          <label style={styles.label}>Origin/Country</label>
-          <input
-            type="text"
-            value={values.origin || ''}
-            onChange={(e) => onChange('origin', e.target.value)}
-            style={styles.input}
-            placeholder="e.g., Scotland"
-          />
-        </div>
-      </div>
-
-      <div style={styles.checkboxRow}>
-        <label style={styles.checkbox}>
-          <input
-            type="checkbox"
-            checked={values.requiresLiquorLicense || false}
-            onChange={(e) => onChange('requiresLiquorLicense', e.target.checked)}
-          />
-          <span>Requires Special License</span>
-        </label>
-      </div>
-
-      <div style={styles.field}>
-        <label style={styles.label}>Age Statement</label>
-        <input
-          type="text"
-          value={values.ageStatement || ''}
-          onChange={(e) => onChange('ageStatement', e.target.value)}
-          style={styles.input}
-          placeholder="e.g., 12 Years"
         />
       </div>
     </div>

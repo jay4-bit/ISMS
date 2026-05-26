@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const allowedModules: Record<string, string[]> = {
       PHARMACIST: ['pos', 'inventory', 'returns'],
-      MANAGER: ['dashboard', 'inventory', 'pos', 'returns', 'suppliers', 'expenses', 'reports'],
+      MANAGER: ['dashboard', 'inventory', 'pos', 'returns', 'suppliers', 'clients', 'expenses', 'reports', 'profit-loss'],
       CASHIER: ['pos', 'returns'],
       WINGER: ['pos', 'inventory'],
       ASSISTANT: ['inventory', 'pos']

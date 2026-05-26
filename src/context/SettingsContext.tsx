@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useAuth } from '@/components/AuthProvider';
 
 interface Settings {
   businessName: string;
@@ -43,13 +44,21 @@ const SettingsContext = createContext<SettingsContextType>({
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<Settings>(defaultSettings);
   const [loading, setLoading] = useState(true);
+  const { shop } = useAuth();
 
-  const fetchSettings = async () => {
+  const fetchSettings = async (shopId?: string) => {
     try {
-      const res = await fetch('/api/settings');
+      if (!shopId) { setLoading(false); return; }
+      const res = await fetch('/api/settings', { headers: { 'x-shop-id': shopId } });
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('Settings fetch failed:', res.status, text);
+        setLoading(false);
+        return;
+      }
       const data = await res.json();
       if (data.settings) {
-        setSettings(data.settings);
+        setSettings({ ...defaultSettings, ...data.settings });
       }
     } catch (error) {
       console.error('Failed to fetch settings:', error);
@@ -59,8 +68,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    fetchSettings();
-  }, []);
+    if (shop?.id) fetchSettings(shop.id);
+  }, [shop?.id]);
 
   return (
     <SettingsContext.Provider value={{ settings, loading, refreshSettings: fetchSettings }}>

@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { ShoppingCart, Search, Trash2, CreditCard, DollarSign, Smartphone, Printer, Camera, QrCode, FileText, X, Check, ScanLine, Keyboard, Building2, User } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useAuth } from '@/components/AuthProvider';
+import { useSettings } from '@/context/SettingsContext';
 
 interface Product {
   id: string;
@@ -16,6 +17,7 @@ interface Product {
   stockQuantity: number;
   isFaulty?: boolean;
   category?: { name: string };
+  electronicsFields?: { imei?: string | null; brand?: string | null; model?: string | null } | null;
 }
 
 interface CartItem {
@@ -43,7 +45,7 @@ interface SaleData {
   customerId?: string;
   createdAt: string;
   cashier: { name: string };
-  items: { id: string; product: { name: string }; quantity: number; unitPrice: number; total: number }[];
+  items: { id: string; product: { name: string; electronicsFields?: { imei?: string | null } | null }; quantity: number; unitPrice: number; total: number }[];
 }
 
 interface Client {
@@ -55,6 +57,7 @@ interface Client {
 
 export default function POSPage() {
   const { shop } = useAuth();
+  const { settings } = useSettings();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -77,6 +80,7 @@ export default function POSPage() {
   const [showClientSelect, setShowClientSelect] = useState(false);
   const [showNewClientModal, setShowNewClientModal] = useState(false);
   const [newClientData, setNewClientData] = useState({ name: '', phone: '', email: '', address: '' });
+  const [customerSearch, setCustomerSearch] = useState('');
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const barcodeInputRef = useRef<HTMLInputElement>(null);
@@ -98,9 +102,10 @@ export default function POSPage() {
 
   async function fetchProducts() {
     try {
+      const headers = { 'x-shop-id': shop?.id || '' };
       const [productsRes, clientsRes] = await Promise.all([
-        fetch('/api/inventory'),
-        fetch('/api/clients')
+        fetch('/api/inventory', { headers }),
+        fetch('/api/clients', { headers })
       ]);
       const productsData = await productsRes.json();
       const clientsData = await clientsRes.json();
@@ -126,7 +131,10 @@ export default function POSPage() {
     try {
       const res = await fetch('/api/clients', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-shop-id': shop?.id || ''
+        },
         body: JSON.stringify({
           name: newClientData.name,
           phone: newClientData.phone || null,
@@ -330,21 +338,24 @@ export default function POSPage() {
       </head>
       <body>
         <div class="header">
-          <h1>ISMS PRO</h1>
-          <p>Inventory & Sales Management</p>
+          <h1>${settings.businessName || 'ISMS PRO'}</h1>
+          ${settings.businessPhone ? `<p>Tel: ${settings.businessPhone}</p>` : ''}
+          ${settings.businessEmail ? `<p>Email: ${settings.businessEmail}</p>` : ''}
+          ${settings.businessAddress ? `<p>${settings.businessAddress}</p>` : ''}
         </div>
         <div class="info">
           <div><span>Receipt:</span><span>${lastSale.receiptNumber}</span></div>
           <div><span>Date:</span><span>${formatDate(lastSale.createdAt)}</span></div>
           <div><span>Type:</span><span>${lastSale.saleType}</span></div>
           <div><span>Payment:</span><span>${lastSale.paymentMethod}</span></div>
+          ${lastSale.customerName ? `<div><span>Customer:</span><span>${lastSale.customerName}${lastSale.customerPhone ? ' (' + lastSale.customerPhone + ')' : ''}</span></div>` : ''}
         </div>
         <table>
           <thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
           <tbody>
             ${lastSale.items.map(item => `
               <tr>
-                <td>${item.product.name}</td>
+                <td>${item.product.name}${item.product.electronicsFields?.imei ? ' (IMEI: ' + item.product.electronicsFields.imei + ')' : ''}</td>
                 <td>${item.quantity}</td>
                 <td>${formatCurrency(item.unitPrice)}</td>
                 <td>${formatCurrency(item.total)}</td>
@@ -362,6 +373,89 @@ export default function POSPage() {
         ${lastSale.isInstallment ? `<div style="text-align:center;margin-top:10px;font-weight:bold;">INSTALLMENT SALE<br/>Due: ${formatCurrency(lastSale.installmentDue || 0)}</div>` : ''}
         <div class="footer">
           <p>Thank you for shopping with us!</p>
+        </div>
+        <script>window.print(); window.close();</script>
+      </body>
+      </html>
+    `;
+    printWindow.document.write(html);
+    printWindow.document.close();
+  }
+
+  function printQuote() {
+    if (cart.length === 0) return;
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    const qty = subtotal - total; // discount amount
+    const now = new Date().toLocaleDateString();
+    const itemsHtml = cart.map((item, i) => {
+      const price = getPrice(item.product);
+      return `<tr>
+        <td>${i + 1}</td>
+        <td>${item.product.name}${item.product.electronicsFields?.imei ? ' (IMEI: ' + item.product.electronicsFields.imei + ')' : ''}</td>
+        <td>${item.quantity}</td>
+        <td>${formatCurrency(price)}</td>
+        <td>${formatCurrency(price * item.quantity)}</td>
+      </tr>`;
+    }).join('');
+    const clientName = selectedClient?.name || customerName;
+    const clientPhone = selectedClient?.phone || customerPhone;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Proforma Invoice</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Courier New', monospace; font-size: 12px; padding: 10px; width: 80mm; }
+          .header { text-align: center; margin-bottom: 10px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+          .header h1 { font-size: 16px; margin-bottom: 3px; }
+          .header .business { font-size: 12px; color: #555; margin-bottom: 5px; }
+          .header .subtitle { font-size: 14px; font-weight: bold; }
+          .info { margin-bottom: 10px; }
+          .info div { display: flex; justify-content: space-between; }
+          table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+          table th { text-align: left; padding: 4px 2px; border-bottom: 1px solid #000; font-size: 10px; }
+          table td { text-align: left; padding: 4px 2px; }
+          table th:nth-child(4), table td:nth-child(4),
+          table th:nth-child(5), table td:nth-child(5) { text-align: right; }
+          table th:nth-child(2), table td:nth-child(2) { text-align: left; }
+          .totals { border-top: 2px solid #000; padding-top: 8px; margin-top: 8px; }
+          .totals div { display: flex; justify-content: space-between; padding: 2px 0; }
+          .totals .grand-total { font-size: 16px; font-weight: bold; border-top: 1px dashed #000; padding-top: 4px; margin-top: 4px; }
+          .footer { text-align: center; margin-top: 20px; font-size: 10px; border-top: 1px dashed #000; padding-top: 10px; }
+          .validity { text-align: center; margin-top: 8px; font-size: 10px; color: #666; }
+          @media print { body { width: 80mm; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>${settings.businessName || 'ISMS PRO'}</h1>
+          ${settings.businessPhone ? `<div class="business">Tel: ${settings.businessPhone}</div>` : ''}
+          ${settings.businessEmail ? `<div class="business">Email: ${settings.businessEmail}</div>` : ''}
+          ${settings.businessAddress ? `<div class="business">${settings.businessAddress}</div>` : ''}
+          <p class="subtitle">PROFORMA INVOICE</p>
+        </div>
+        <div class="info">
+          <div><span>Date:</span><span>${now}</span></div>
+          <div><span>Type:</span><span>${saleType}</span></div>
+          ${clientName ? `<div><span>Customer:</span><span>${clientName}${clientPhone ? ' (' + clientPhone + ')' : ''}</span></div>` : ''}
+        </div>
+        <table>
+          <thead><tr><th>#</th><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
+          <tbody>
+            ${itemsHtml}
+          </tbody>
+        </table>
+        <div class="totals">
+          <div><span>Subtotal:</span><span>${formatCurrency(subtotal)}</span></div>
+          ${discount > 0 ? `<div><span>Discount:</span><span>-${formatCurrency(discount)}</span></div>` : ''}
+          <div class="grand-total"><span>TOTAL:</span><span>${formatCurrency(total)}</span></div>
+        </div>
+        <div class="validity">This is a proforma invoice — not a payment receipt.</div>
+        <div class="footer">
+          <p>Thank you for your business!</p>
         </div>
         <script>window.print(); window.close();</script>
       </body>
@@ -420,7 +514,7 @@ export default function POSPage() {
                 type="text"
                 placeholder="Scan barcode or press Enter..."
                 value={barcodeInput}
-                onChange={(e) => setBarcodeInput(e.target.value)}
+                onChange={(e) => { setBarcodeInput(e.target.value); setSearch(e.target.value); }}
                 onKeyDown={handleBarcodeInputKeyDown}
                 style={styles.searchInput}
               />
@@ -452,7 +546,7 @@ export default function POSPage() {
           </div>
 
           <div style={styles.productsGrid}>
-            {products.map(product => (
+            {products.filter(p => !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.sku.toLowerCase().includes(search.toLowerCase()) || (p.barcode && p.barcode.includes(search))).map(product => (
               <div 
                 key={product.id} 
                 style={styles.productCard} 
@@ -461,6 +555,11 @@ export default function POSPage() {
               >
                 <div style={styles.productName}>{product.name}</div>
                 <div style={styles.productSku}>{product.sku}</div>
+                {product.electronicsFields?.imei && (
+                  <div style={{ fontSize: '0.65rem', color: '#f59e0b', marginBottom: '0.5rem', fontFamily: 'monospace' }}>
+                    IMEI: {product.electronicsFields.imei}
+                  </div>
+                )}
                 <div style={styles.productFooter}>
                   <span style={styles.productPrice}>
                     {saleType === 'WHOLESALE' && product.wholesalePrice 
@@ -507,6 +606,11 @@ export default function POSPage() {
                     <div style={styles.itemNumber}>{cart.indexOf(item) + 1}</div>
                     <div style={styles.itemInfo}>
                       <div style={styles.itemName}>{item.product.name}</div>
+                      {item.product.electronicsFields?.imei && (
+                        <div style={{ fontSize: '0.6rem', color: '#f59e0b', fontFamily: 'monospace' }}>
+                          IMEI: {item.product.electronicsFields.imei}
+                        </div>
+                      )}
                       <div style={styles.itemPrice}>
                         {formatCurrency(getPrice(item.product))} × {item.quantity}
                       </div>
@@ -532,6 +636,7 @@ export default function POSPage() {
                   <input
                     type="number"
                     min="0"
+                    step="0.01"
                     max={subtotal}
                     value={discount}
                     onChange={(e) => setDiscount(Math.min(parseFloat(e.target.value) || 0, subtotal))}
@@ -628,10 +733,12 @@ export default function POSPage() {
                       <label style={styles.fieldLabel}>Initial Payment (Down Payment) *</label>
                       <input
                         type="number"
-                        placeholder="Amount paid now"
+                        placeholder="0.00"
                         value={cashReceived}
                         onChange={(e) => setCashReceived(e.target.value)}
                         style={styles.creditInput}
+                        min="0"
+                        step="0.01"
                         required
                       />
                     </div>
@@ -659,6 +766,15 @@ export default function POSPage() {
                   disabled={cart.length === 0}
                 >
                   <Check size={20} /> {isCredit ? 'Record Credit Sale' : 'Complete Sale'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={printQuote}
+                  style={styles.quoteBtn}
+                  disabled={cart.length === 0}
+                >
+                  <FileText size={18} /> Print Quote / Proforma
                 </button>
               </div>
             </div>
@@ -726,16 +842,8 @@ export default function POSPage() {
               <input
                 type="text"
                 placeholder="Search customers..."
-                onChange={(e) => {
-                  const query = e.target.value.toLowerCase();
-                  const filtered = clients.filter(c => 
-                    c.name.toLowerCase().includes(query) || 
-                    (c.phone && c.phone.includes(query))
-                  );
-                  if (query === '') {
-                    fetchProducts();
-                  }
-                }}
+                value={customerSearch}
+                onChange={(e) => setCustomerSearch(e.target.value)}
                 style={{ ...styles.inputField, width: '100%' }}
                 autoFocus
               />
@@ -744,7 +852,7 @@ export default function POSPage() {
               {clients.length === 0 ? (
                 <p style={{ color: '#64748b', textAlign: 'center', padding: '2rem' }}>No customers found</p>
               ) : (
-                clients.slice(0, 10).map(client => (
+                clients.filter(c => !customerSearch || c.name.toLowerCase().includes(customerSearch.toLowerCase()) || (c.phone && c.phone.includes(customerSearch))).slice(0, 10).map(client => (
                   <div
                     key={client.id}
                     onClick={() => {
@@ -853,7 +961,7 @@ export default function POSPage() {
               <div style={styles.receiptItems}>
                 {lastSale.items.map(item => (
                   <div key={item.id} style={styles.receiptItem}>
-                    <span>{item.product.name} x{item.quantity}</span>
+                    <span>{item.product.name} x{item.quantity}{item.product.electronicsFields?.imei ? ` (IMEI: ${item.product.electronicsFields.imei})` : ''}</span>
                     <span>{formatCurrency(item.total)}</span>
                   </div>
                 ))}
@@ -980,6 +1088,7 @@ const styles: Record<string, React.CSSProperties> = {
   changeDisplay: { marginTop: '0.5rem', fontSize: '0.875rem', color: '#22c55e' },
   changeAmount: { fontWeight: '700', fontSize: '1.1rem' },
   completeBtn: { width: '100%', marginTop: '1rem', padding: '1rem', background: 'linear-gradient(135deg, #22c55e, #16a34a)', border: 'none', borderRadius: '0.5rem', color: 'white', fontSize: '1.1rem', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' },
+  quoteBtn: { width: '100%', marginTop: '0.5rem', padding: '0.75rem', background: 'transparent', border: '1px solid #3b82f6', borderRadius: '0.5rem', color: '#3b82f6', fontSize: '0.9rem', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' },
   modalOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 },
   modal: { background: '#1e293b', borderRadius: '1rem', padding: '1.5rem', maxWidth: '400px', width: '90%', border: '1px solid #334155' },
   modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', color: '#f1f5f9' },

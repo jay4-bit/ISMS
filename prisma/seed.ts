@@ -109,6 +109,22 @@ async function main() {
     console.log(`Created categories for ${shop.name}`);
 
     if (shopData.type === ShopType.LIQUOR) {
+      const liquorSuppliers = [
+        { name: 'Tanzania Breweries Ltd', email: 'orders@tbl.co.tz', phone: '+255700444444', address: 'Dar es Salaam' },
+        { name: 'Premium Wines & Spirits', email: 'sales@premiumwines.co.tz', phone: '+255700555555', address: 'Arusha' },
+        { name: 'East African Distillers', email: 'supply@ead.co.tz', phone: '+255700666666', address: 'Mwanza' },
+      ];
+
+      for (const supplier of liquorSuppliers) {
+        const existing = await prisma.supplier.findFirst({ where: { name: supplier.name, shopId: shop.id } });
+        if (!existing) {
+          await prisma.supplier.create({
+            data: { ...supplier, shopId: shop.id }
+          });
+        }
+      }
+      console.log(`Created sample liquor suppliers`);
+
       const whiskey = await prisma.category.findFirst({ where: { name: 'Whisky', shopId: shop.id } });
       const beer = await prisma.category.findFirst({ where: { name: 'Beer', shopId: shop.id } });
       const wine = await prisma.category.findFirst({ where: { name: 'Wine', shopId: shop.id } });
@@ -150,7 +166,6 @@ async function main() {
                   brand: product.brand,
                   size: product.size,
                   volume: product.size,
-                  liquorType: product.categoryId === whiskey?.id ? 'Whisky' : product.categoryId === beer?.id ? 'Beer' : product.categoryId === wine?.id ? 'Wine' : 'Vodka',
                 }
               }
             }

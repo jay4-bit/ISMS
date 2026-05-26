@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, CreditCard, Calendar, ArrowUpRight, ArrowDownRight, PieChart, ChevronDown, ChevronUp, Undo2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useSettings } from '@/context/SettingsContext';
+import { useAuth } from '@/components/AuthProvider';
 
 interface ProductData {
   id: string;
@@ -47,6 +48,7 @@ export default function ProfitLossPage() {
   const [showExpenses, setShowExpenses] = useState(true);
   const [showReturns, setShowReturns] = useState(true);
   const { settings } = useSettings();
+  const { shop } = useAuth();
 
   useEffect(() => {
     fetchData();
@@ -55,7 +57,9 @@ export default function ProfitLossPage() {
   async function fetchData() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/profit-loss?period=${period}`);
+      const res = await fetch(`/api/profit-loss?period=${period}`, {
+        headers: { 'x-shop-id': shop?.id || '' }
+      });
       const json = await res.json();
       setData(json);
     } catch (error) {

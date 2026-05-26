@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, X, Check, Smartphone, Package, Trash2, UserPlus } from 'lucide-react';
 
 interface Supplier {
@@ -43,6 +43,7 @@ interface ElectronicsPhoneFormProps {
   setFormData: (f: any) => void;
   onCancel: () => void;
   onSuccess: () => void;
+  editingProduct?: any;
 }
 
 export function ElectronicsPhoneForm({
@@ -51,7 +52,7 @@ export function ElectronicsPhoneForm({
   phoneModel, setPhoneModel, phoneQuantity, setPhoneQuantity,
   phoneColor, setPhoneColor, phoneStorage, setPhoneStorage, phoneImei, setPhoneImei,
   registeredPhones, setRegisteredPhones, currentPhoneIndex, setCurrentPhoneIndex,
-  formData, setFormData, onCancel, onSuccess
+  formData, setFormData, onCancel, onSuccess, editingProduct
 }: ElectronicsPhoneFormProps) {
   
   const [selectedSupplier, setSelectedSupplier] = useState('');
@@ -60,6 +61,25 @@ export function ElectronicsPhoneForm({
   const [currentModelEntries, setCurrentModelEntries] = useState<{ color: string; storage: string; imei: string }[]>([]);
   const [purchaseCost, setPurchaseCost] = useState('');
   const [sellingPrice, setSellingPrice] = useState('');
+  const [wholesalePrice, setWholesalePrice] = useState('');
+
+  useEffect(() => {
+    if (editingProduct) {
+      setPurchaseCost(editingProduct.purchaseCost?.toString() || '');
+      setSellingPrice(editingProduct.sellingPrice?.toString() || '');
+      setWholesalePrice(editingProduct.wholesalePrice?.toString() || '');
+      setSelectedSupplier(editingProduct.supplierId || '');
+      const ef = editingProduct.electronicsFields;
+      if (ef) {
+        setPhoneBrand(ef.brand || '');
+        setPhoneModel(ef.model || '');
+        setPhoneCondition(ef.condition || '');
+        setPhoneColor(ef.color || '');
+        setPhoneStorage(ef.storage || '');
+        setPhoneImei(ef.imei || '');
+      }
+    }
+  }, [editingProduct]);
 
   const resetForm = () => {
     setPhoneCondition('');
@@ -73,43 +93,86 @@ export function ElectronicsPhoneForm({
     setCurrentModelEntries([]);
     setPurchaseCost('');
     setSellingPrice('');
+    setWholesalePrice('');
+    setSelectedSupplier('');
   };
 
   const handleAddPhone = async () => {
     if (!selectedSupplier) { alert('Please select a supplier'); return; }
     if (!phoneBrand && !phoneBrandInput) { alert('Please select or enter a brand'); return; }
     if (!phoneModel) { alert('Please enter model'); return; }
-    if (phoneQuantity < 1) { alert('Quantity must be at least 1'); return; }
-    if (currentModelEntries.length !== phoneQuantity) { alert(`Please fill in details for all ${phoneQuantity} phones`); return; }
 
     const brandName = phoneBrand || phoneBrandInput;
+
+    if (editingProduct) {
+      try {
+        const res = await fetch('/api/inventory', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
+          body: JSON.stringify({
+            id: editingProduct.id,
+            name: `${brandName} ${phoneModel}`,
+            sku: editingProduct.sku,
+            barcode: phoneImei || editingProduct.barcode,
+            supplierId: selectedSupplier,
+            purchaseCost: parseFloat(purchaseCost) || 0,
+            sellingPrice: parseFloat(sellingPrice) || 0,
+            wholesalePrice: parseFloat(wholesalePrice) || 0,
+            stockQuantity: 1,
+            electronicsFields: {
+              brand: brandName,
+              model: phoneModel,
+              condition: phoneCondition,
+              color: phoneColor,
+              storage: phoneStorage,
+              imei: phoneImei,
+            }
+          })
+        });
+        if (!res.ok) { const data = await res.json(); throw new Error(data.error || data.details || 'Failed to update phone'); }
+        alert('Phone updated successfully!');
+        onSuccess();
+      } catch (error) {
+        alert('Error: ' + (error as Error).message);
+      }
+      return;
+    }
+
+    if (!selectedSupplier) { alert('Please select a supplier'); return; }
+    if (phoneQuantity < 1) { alert('Quantity must be at least 1'); return; }
+    if (currentModelEntries.length !== phoneQuantity) { alert(`Please fill in details for all ${phoneQuantity} phones`); return; }
     
     try {
       for (let i = 0; i < phoneQuantity; i++) {
         const entry = currentModelEntries[i];
         const sku = `ELC-${Date.now()}-${i}`;
+        
         const res = await fetch('/api/inventory', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
           body: JSON.stringify({
             name: `${brandName} ${phoneModel}`,
             sku,
+            barcode: entry.imei,
             supplierId: selectedSupplier,
-            purchaseCost: purchaseCost || 0,
-            sellingPrice: sellingPrice || 0,
+            purchaseCost: parseFloat(purchaseCost) || 0,
+            sellingPrice: parseFloat(sellingPrice) || 0,
+            wholesalePrice: parseFloat(wholesalePrice) || 0,
             stockQuantity: 1,
-            electronicsBrand: brandName,
-            electronicsModel: phoneModel,
-            electronicsCondition: phoneCondition,
-            electronicsColor: entry.color,
-            electronicsStorage: entry.storage,
-            electronicsIMEI: entry.imei,
+            electronicsFields: {
+              brand: brandName,
+              model: phoneModel,
+              condition: phoneCondition,
+              color: entry.color,
+              storage: entry.storage,
+              imei: entry.imei,
+            }
           })
         });
         
         if (!res.ok) {
           const data = await res.json();
-          throw new Error(data.error || 'Failed to save phone');
+          throw new Error(data.details || data.error || 'Failed to save phone');
         }
       }
       
@@ -122,11 +185,15 @@ export function ElectronicsPhoneForm({
   };
 
   const handleNextPhone = () => {
-    if (!phoneColor || !phoneStorage || !phoneImei) { alert('Please fill in color, storage and IMEI'); return; }
+    if (!selectedSupplier) { alert('Please select a supplier first'); return; }
+    if (!phoneBrand && !phoneBrandInput) { alert('Please select or enter a brand first'); return; }
+    if (!phoneModel) { alert('Please enter model first'); return; }
+    if (!phoneColor || !phoneImei) { alert('Please fill in color and IMEI'); return; }
+    if (currentModelEntries.length === 0 && !phoneStorage) { alert('Please fill in storage for the first phone'); return; }
     
-    setCurrentModelEntries([...currentModelEntries, { color: phoneColor, storage: phoneStorage, imei: phoneImei }]);
+    const storage = phoneStorage || currentModelEntries[0]?.storage || '';
+    setCurrentModelEntries([...currentModelEntries, { color: phoneColor, storage, imei: phoneImei }]);
     setPhoneColor('');
-    setPhoneStorage('');
     setPhoneImei('');
     
     if (currentModelEntries.length + 1 >= phoneQuantity) {
@@ -140,6 +207,11 @@ export function ElectronicsPhoneForm({
     setPhoneBrands([...phoneBrands, phoneBrandInput.trim()]);
     setPhoneBrand(phoneBrandInput.trim());
     setPhoneBrandInput('');
+  };
+
+  const handleDeleteBrand = (brand: string) => {
+    if (phoneBrand === brand) setPhoneBrand('');
+    setPhoneBrands(phoneBrands.filter(b => b !== brand));
   };
 
   const handleAddSupplier = async () => {
@@ -163,41 +235,51 @@ export function ElectronicsPhoneForm({
 
   return (
     <div>
-      <div className="grid-cols-2" style={{ marginBottom: '1rem' }}>
+      <div className="grid-cols-2" style={{ marginBottom: '1.25rem' }}>
+        <div>
+          <label className="label">Supplier *</label>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <select value={selectedSupplier} onChange={(e) => setSelectedSupplier(e.target.value)} style={{ flex: 1, padding: '0.6rem', background: '#1e293b', color: '#f1f5f9' }}>
+              <option value="" style={{ background: '#1e293b', color: '#94a3b8' }}>Select Supplier</option>
+              {[...suppliers].sort((a, b) => a.name.localeCompare(b.name)).map(s => <option key={s.id} value={s.id} style={{ background: '#1e293b', color: '#f1f5f9' }}>{s.name}</option>)}
+            </select>
+            <button type="button" onClick={() => setShowAddSupplier(!showAddSupplier)} className="btn btn-secondary" style={{ padding: '0.6rem' }}><UserPlus size={20} /></button>
+          </div>
+          {showAddSupplier && (
+            <div style={{ padding: '1.25rem', marginTop: '0.75rem', background: '#1e293b', borderRadius: '0.5rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem' }}>
+                <input type="text" className="input" style={{ padding: '0.85rem 1rem', fontSize: '1rem' }} placeholder="Supplier Name *" value={newSupplier.name} onChange={(e) => setNewSupplier({...newSupplier, name: e.target.value})} />
+                <input type="email" className="input" style={{ padding: '0.85rem 1rem', fontSize: '1rem' }} placeholder="Email" value={newSupplier.email} onChange={(e) => setNewSupplier({...newSupplier, email: e.target.value})} />
+                <input type="tel" className="input" style={{ padding: '0.85rem 1rem', fontSize: '1rem' }} placeholder="Phone" value={newSupplier.phone} onChange={(e) => setNewSupplier({...newSupplier, phone: e.target.value})} />
+              </div>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button type="button" onClick={handleAddSupplier} className="btn btn-primary" style={{ padding: '0.75rem 1.5rem', fontSize: '0.95rem' }}>Save</button>
+                <button type="button" onClick={() => setShowAddSupplier(false)} className="btn btn-secondary" style={{ padding: '0.75rem 1.5rem', fontSize: '0.95rem' }}>Cancel</button>
+              </div>
+            </div>
+          )}
+        </div>
         <div>
           <label className="label">Brand *</label>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <select 
-              value={phoneBrand} 
-              onChange={(e) => setPhoneBrand(e.target.value)}
-              style={{ flex: 1 }}
-            >
-              <option value="">Select Brand</option>
-              {phoneBrands.map(b => <option key={b} value={b}>{b}</option>)}
+            <select value={phoneBrand} onChange={(e) => setPhoneBrand(e.target.value)} style={{ flex: 1, padding: '0.6rem', background: '#1e293b', color: '#f1f5f9' }}>
+              <option value="" style={{ background: '#1e293b', color: '#94a3b8' }}>Select Brand</option>
+              {[...phoneBrands].sort().map(b => <option key={b} value={b} style={{ background: '#1e293b', color: '#f1f5f9' }}>{b}</option>)}
             </select>
-            <input 
-              type="text" 
-              placeholder="New brand" 
-              value={phoneBrandInput}
-              onChange={(e) => setPhoneBrandInput(e.target.value)}
-              style={{ flex: 1 }}
-            />
-            <button type="button" onClick={handleAddBrand} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>Add</button>
+            {phoneBrand && !currentModelEntries.length && (
+              <button type="button" onClick={() => handleDeleteBrand(phoneBrand)} className="btn btn-danger" style={{ padding: '0.55rem' }} title="Delete selected brand"><Trash2 size={16} /></button>
+            )}
+            <input type="text" placeholder="New brand" value={phoneBrandInput} onChange={(e) => setPhoneBrandInput(e.target.value)} style={{ flex: 1, padding: '0.6rem' }} />
+            <button type="button" onClick={handleAddBrand} className="btn btn-secondary" style={{ padding: '0.6rem 1rem' }}>Add</button>
           </div>
-        </div>
-        <div>
-          <label className="label">Model *</label>
-          <input 
-            type="text" 
-            className="input" 
-            value={phoneModel}
-            onChange={(e) => setPhoneModel(e.target.value)}
-            placeholder="e.g., iPhone 15 Pro"
-          />
         </div>
       </div>
 
-      <div className="grid-cols-2" style={{ marginBottom: '1rem' }}>
+      <div className="grid-cols-2" style={{ marginBottom: '1.25rem' }}>
+        <div>
+          <label className="label">Model *</label>
+          <input type="text" className="input" style={{ padding: '0.6rem' }} value={phoneModel} onChange={(e) => setPhoneModel(e.target.value)} placeholder="e.g., iPhone 15 Pro" />
+        </div>
         <div>
           <label className="label">Condition</label>
           <div style={{ display: 'flex', gap: '0.25rem' }}>
@@ -207,7 +289,7 @@ export function ElectronicsPhoneForm({
                 key={c}
                 onClick={() => setPhoneCondition(c)}
                 style={{
-                  padding: '0.4rem 0.75rem',
+                  padding: '0.5rem 0.85rem',
                   borderRadius: '0.375rem',
                   border: '1px solid',
                   borderColor: phoneCondition === c ? '#3b82f6' : '#334155',
@@ -223,21 +305,39 @@ export function ElectronicsPhoneForm({
             ))}
           </div>
         </div>
+      </div>
+
+      <div className="grid-cols-2" style={{ marginBottom: '1.25rem' }}>
+        {!editingProduct && (
+          <div>
+            <label className="label">Quantity *</label>
+            <input type="number" className="input" style={{ padding: '0.6rem' }} value={phoneQuantity} onChange={(e) => setPhoneQuantity(parseInt(e.target.value) || 1)} min="1" />
+          </div>
+        )}
         <div>
-          <label className="label">Quantity *</label>
-          <input 
-            type="number" 
-            className="input" 
-            value={phoneQuantity}
-            onChange={(e) => setPhoneQuantity(parseInt(e.target.value) || 1)}
-            min="1"
-          />
+          <label className="label">Storage *</label>
+          <input type="text" className="input" style={{ padding: '0.6rem' }} value={phoneStorage} onChange={(e) => setPhoneStorage(e.target.value)} placeholder="e.g., 256GB" />
         </div>
       </div>
 
-      {currentModelEntries.map((entry, idx) => (
-        <div key={idx} style={{ padding: '0.5rem', background: '#1e293b', borderRadius: '0.5rem', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem' }}>
+      <div className="grid-cols-3" style={{ marginBottom: '1.25rem' }}>
+        <div>
+          <label className="label">Purchase Cost (TSh)</label>
+          <input type="number" className="input" style={{ padding: '0.6rem' }} value={purchaseCost} onChange={(e) => setPurchaseCost(e.target.value)} placeholder="0.00" step="0.01" min="0" />
+        </div>
+        <div>
+          <label className="label">Selling Price (TSh) *</label>
+          <input type="number" className="input" style={{ padding: '0.6rem' }} value={sellingPrice} onChange={(e) => setSellingPrice(e.target.value)} placeholder="0.00" step="0.01" min="0" />
+        </div>
+        <div>
+          <label className="label">Wholesale Price (TSh)</label>
+          <input type="number" className="input" style={{ padding: '0.6rem' }} value={wholesalePrice} onChange={(e) => setWholesalePrice(e.target.value)} placeholder="0.00" step="0.01" min="0" />
+        </div>
+      </div>
+
+      {!editingProduct && currentModelEntries.map((entry, idx) => (
+        <div key={idx} style={{ padding: '0.6rem', background: '#1e293b', borderRadius: '0.5rem', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '1rem', fontSize: '0.9rem' }}>
             <span style={{ color: '#94a3b8' }}>#{idx + 1}</span>
             <span style={{ color: '#f1f5f9' }}>{entry.color} / {entry.storage}</span>
             <span style={{ fontFamily: 'monospace', color: '#64748b' }}>{entry.imei}</span>
@@ -245,112 +345,52 @@ export function ElectronicsPhoneForm({
         </div>
       ))}
 
-      <div className="grid-cols-3" style={{ marginBottom: '1rem' }}>
+      {!editingProduct && currentModelEntries.length < phoneQuantity && (
+      <div className="grid-cols-2" style={{ marginBottom: '1.25rem' }}>
         <div>
           <label className="label">Color *</label>
-          <input 
-            type="text" 
-            className="input" 
-            value={phoneColor}
-            onChange={(e) => setPhoneColor(e.target.value)}
-            placeholder="e.g., Black"
-          />
-        </div>
-        <div>
-          <label className="label">Storage *</label>
-          <input 
-            type="text" 
-            className="input" 
-            value={phoneStorage}
-            onChange={(e) => setPhoneStorage(e.target.value)}
-            placeholder="e.g., 256GB"
-          />
+          <input type="text" className="input" style={{ padding: '0.6rem' }} value={phoneColor} onChange={(e) => setPhoneColor(e.target.value)} placeholder="e.g., Black" />
         </div>
         <div>
           <label className="label">IMEI *</label>
-          <input 
-            type="text" 
-            className="input" 
-            value={phoneImei}
-            onChange={(e) => setPhoneImei(e.target.value)}
-            placeholder="15-17 digit number"
-          />
+          <input type="text" className="input" style={{ padding: '0.6rem' }} value={phoneImei} onChange={(e) => setPhoneImei(e.target.value)} placeholder="15-17 digit number" />
         </div>
       </div>
-
-      <div className="grid-cols-2" style={{ marginBottom: '1rem' }}>
-        <div>
-          <label className="label">Purchase Cost (TSh)</label>
-          <input 
-            type="number" 
-            className="input" 
-            value={purchaseCost}
-            onChange={(e) => setPurchaseCost(e.target.value)}
-            placeholder="0"
-          />
-        </div>
-        <div>
-          <label className="label">Selling Price (TSh) *</label>
-          <input 
-            type="number" 
-            className="input" 
-            value={sellingPrice}
-            onChange={(e) => setSellingPrice(e.target.value)}
-            placeholder="0"
-          />
-        </div>
-      </div>
-
-      <div className="grid-cols-2" style={{ marginBottom: '1rem' }}>
-        <div>
-          <label className="label">Supplier *</label>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <select 
-              value={selectedSupplier} 
-              onChange={(e) => setSelectedSupplier(e.target.value)}
-              style={{ flex: 1 }}
-            >
-              <option value="">Select Supplier</option>
-              {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-            <button type="button" onClick={() => setShowAddSupplier(true)} className="btn btn-secondary" style={{ padding: '0.5rem' }}><UserPlus size={16} /></button>
-          </div>
-        </div>
-      </div>
-
-      {showAddSupplier && (
-        <div style={{ padding: '1rem', background: '#1e293b', borderRadius: '0.5rem', marginBottom: '1rem' }}>
-          <h4 style={{ marginBottom: '0.5rem' }}>Add New Supplier</h4>
-          <div className="grid-cols-3" style={{ marginBottom: '0.5rem' }}>
-            <input type="text" className="input" placeholder="Name *" value={newSupplier.name} onChange={(e) => setNewSupplier({...newSupplier, name: e.target.value})} />
-            <input type="email" className="input" placeholder="Email" value={newSupplier.email} onChange={(e) => setNewSupplier({...newSupplier, email: e.target.value})} />
-            <input type="tel" className="input" placeholder="Phone" value={newSupplier.phone} onChange={(e) => setNewSupplier({...newSupplier, phone: e.target.value})} />
-          </div>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button type="button" onClick={handleAddSupplier} className="btn btn-primary" style={{ padding: '0.4rem 0.75rem' }}>Save</button>
-            <button type="button" onClick={() => setShowAddSupplier(false)} className="btn btn-secondary" style={{ padding: '0.4rem 0.75rem' }}>Cancel</button>
-          </div>
-        </div>
       )}
 
-      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-        <button type="button" onClick={onCancel} className="btn btn-secondary">Cancel</button>
-        <button 
-          type="button" 
-          onClick={handleNextPhone}
-          className="btn btn-secondary"
-          disabled={!phoneColor || !phoneStorage || !phoneImei}
-        >
-          <Plus size={16} /> Add Phone Entry ({currentModelEntries.length}/{phoneQuantity})
-        </button>
-        <button 
-          type="button" 
-          onClick={handleAddPhone}
-          className="btn btn-primary"
-          disabled={currentModelEntries.length !== phoneQuantity}
-        >
-          <Check size={16} /> Save {phoneQuantity} Phone(s)
-        </button>
+      <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+        <button type="button" onClick={onCancel} className="btn btn-secondary" style={{ padding: '0.6rem 1.25rem' }}>Cancel</button>
+        {editingProduct ? (
+          <button 
+            type="button" 
+            onClick={handleAddPhone}
+            className="btn btn-primary"
+            style={{ padding: '0.6rem 1.25rem' }}
+          >
+            <Check size={18} /> Update Phone
+          </button>
+        ) : (
+          <>
+            <button 
+              type="button" 
+              onClick={handleNextPhone}
+              className="btn btn-secondary"
+              style={{ padding: '0.6rem 1rem' }}
+              disabled={!phoneColor || !phoneImei || (currentModelEntries.length === 0 && !phoneStorage)}
+            >
+              <Plus size={18} /> Add Phone Entry ({currentModelEntries.length}/{phoneQuantity})
+            </button>
+            <button 
+              type="button" 
+              onClick={handleAddPhone}
+              className="btn btn-primary"
+              style={{ padding: '0.6rem 1.25rem' }}
+              disabled={currentModelEntries.length !== phoneQuantity}
+            >
+              <Check size={18} /> Save {phoneQuantity} Phone(s)
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -375,12 +415,14 @@ interface ElectronicsAccessoryFormProps {
   setFormData: (f: any) => void;
   onCancel: () => void;
   onSuccess: () => void;
+  editingProduct?: any;
 }
 
 export function ElectronicsAccessoryForm({
   suppliers, shop, accessoryGroups, setAccessoryGroups, accessoryGroup, setAccessoryGroup,
   accessoryGroupInput, setAccessoryGroupInput, accessoryName, setAccessoryName,
-  accessoryItems, setAccessoryItems, formData, setFormData, onCancel, onSuccess
+  accessoryItems, setAccessoryItems, formData, setFormData, onCancel, onSuccess,
+  editingProduct
 }: ElectronicsAccessoryFormProps) {
   
   const [selectedSupplier, setSelectedSupplier] = useState('');
@@ -388,6 +430,23 @@ export function ElectronicsAccessoryForm({
   const [newSupplier, setNewSupplier] = useState({ name: '', email: '', phone: '' });
   const [purchaseCost, setPurchaseCost] = useState('');
   const [sellingPrice, setSellingPrice] = useState('');
+  const [wholesalePrice, setWholesalePrice] = useState('');
+  const [accessoryColor, setAccessoryColor] = useState('');
+
+  useEffect(() => {
+    if (editingProduct) {
+      setPurchaseCost(editingProduct.purchaseCost?.toString() || '');
+      setSellingPrice(editingProduct.sellingPrice?.toString() || '');
+      setWholesalePrice(editingProduct.wholesalePrice?.toString() || '');
+      setSelectedSupplier(editingProduct.supplierId || '');
+      const ef = editingProduct.electronicsFields;
+      if (ef) {
+        setAccessoryGroup(ef.brand || '');
+        setAccessoryName(ef.model || '');
+        setAccessoryColor(ef.color || '');
+      }
+    }
+  }, [editingProduct]);
 
   const resetForm = () => {
     setAccessoryGroup('');
@@ -396,20 +455,58 @@ export function ElectronicsAccessoryForm({
     setAccessoryItems([]);
     setPurchaseCost('');
     setSellingPrice('');
+    setWholesalePrice('');
+    setAccessoryColor('');
+    setSelectedSupplier('');
   };
 
   const handleAddAccessory = async () => {
     if (!selectedSupplier) { alert('Please select a supplier'); return; }
     if (!accessoryName) { alert('Please enter accessory name'); return; }
     if (!accessoryGroup && !accessoryGroupInput) { alert('Please select or enter a group'); return; }
-    if (accessoryItems.length === 0) { alert('Please add at least one item'); return; }
 
     const groupName = accessoryGroup || accessoryGroupInput;
+
+    if (editingProduct) {
+      try {
+        const res = await fetch('/api/inventory', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
+          body: JSON.stringify({
+            id: editingProduct.id,
+            name: accessoryName,
+            sku: editingProduct.sku,
+            supplierId: selectedSupplier,
+            purchaseCost: parseFloat(purchaseCost) || 0,
+            sellingPrice: parseFloat(sellingPrice) || 0,
+            wholesalePrice: parseFloat(wholesalePrice) || 0,
+            stockQuantity: 1,
+            electronicsFields: {
+              brand: groupName,
+              model: accessoryName,
+              color: accessoryColor || null,
+              storage: null,
+              imei: null,
+              condition: 'NEW'
+            }
+          })
+        });
+        if (!res.ok) { const data = await res.json(); throw new Error(data.error || 'Failed to update accessory'); }
+        alert('Accessory updated successfully!');
+        onSuccess();
+      } catch (error) {
+        alert('Error: ' + (error as Error).message);
+      }
+      return;
+    }
+
+    if (accessoryItems.length === 0) { alert('Please add at least one item'); return; }
     
     try {
       for (let i = 0; i < accessoryItems.length; i++) {
         const item = accessoryItems[i];
         const sku = `ACC-${Date.now()}-${i}`;
+        
         const res = await fetch('/api/inventory', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
@@ -417,12 +514,18 @@ export function ElectronicsAccessoryForm({
             name: accessoryName,
             sku,
             supplierId: selectedSupplier,
-            purchaseCost: purchaseCost || 0,
-            sellingPrice: sellingPrice || 0,
+            purchaseCost: parseFloat(purchaseCost) || 0,
+            sellingPrice: parseFloat(sellingPrice) || 0,
+            wholesalePrice: parseFloat(wholesalePrice) || 0,
             stockQuantity: item.quantity || 1,
-            electronicsBrand: groupName,
-            electronicsModel: accessoryName,
-            accessoryGroup: groupName,
+            electronicsFields: {
+              brand: groupName,
+              model: accessoryName,
+              color: accessoryColor || null,
+              storage: null,
+              imei: null,
+              condition: 'NEW'
+            }
           })
         });
         
@@ -441,9 +544,13 @@ export function ElectronicsAccessoryForm({
   };
 
   const handleAddItem = () => {
+    if (!selectedSupplier) { alert('Please select a supplier first'); return; }
+    if (!accessoryGroup && !accessoryGroupInput) { alert('Please select or enter an accessory group first'); return; }
+    if (!accessoryName) { alert('Please enter an accessory name first'); return; }
+    if (!sellingPrice) { alert('Please enter a selling price first'); return; }
     const quantity = parseInt(formData.quantity) || 1;
     setAccessoryItems([...accessoryItems, { quantity }]);
-    setFormData({ quantity: '' });
+    setFormData({ ...formData, quantity: '' });
   };
 
   const handleAddGroup = () => {
@@ -473,148 +580,143 @@ export function ElectronicsAccessoryForm({
     }
   };
 
+  const needFieldsFilled = selectedSupplier && (accessoryGroup || accessoryGroupInput) && accessoryName && sellingPrice;
+
   return (
     <div>
-      <div className="grid-cols-2" style={{ marginBottom: '1rem' }}>
+      <div className="grid-cols-2" style={{ marginBottom: '1.25rem' }}>
+        <div>
+          <label className="label">Supplier *</label>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <select value={selectedSupplier} onChange={(e) => setSelectedSupplier(e.target.value)} disabled={editingProduct ? false : accessoryItems.length > 0} style={{ flex: 1, padding: '0.6rem', background: '#1e293b', color: '#f1f5f9', borderRadius: '0.4rem' }}>
+              <option value="" style={{ background: '#1e293b', color: '#94a3b8' }}>Select Supplier</option>
+              {[...suppliers].sort((a, b) => a.name.localeCompare(b.name)).map(s => <option key={s.id} value={s.id} style={{ background: '#1e293b', color: '#f1f5f9' }}>{s.name}</option>)}
+            </select>
+            <button type="button" onClick={() => setShowAddSupplier(!showAddSupplier)} className="btn btn-secondary" disabled={editingProduct ? false : accessoryItems.length > 0} style={{ padding: '0.6rem' }}><UserPlus size={20} /></button>
+          </div>
+          {showAddSupplier && (
+            <div style={{ padding: '1.25rem', marginTop: '0.75rem', background: '#1e293b', borderRadius: '0.5rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem' }}>
+                <input type="text" className="input" style={{ padding: '0.85rem 1rem', fontSize: '1rem' }} placeholder="Supplier Name *" value={newSupplier.name} onChange={(e) => setNewSupplier({...newSupplier, name: e.target.value})} />
+                <input type="email" className="input" style={{ padding: '0.85rem 1rem', fontSize: '1rem' }} placeholder="Email" value={newSupplier.email} onChange={(e) => setNewSupplier({...newSupplier, email: e.target.value})} />
+                <input type="tel" className="input" style={{ padding: '0.85rem 1rem', fontSize: '1rem' }} placeholder="Phone" value={newSupplier.phone} onChange={(e) => setNewSupplier({...newSupplier, phone: e.target.value})} />
+              </div>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button type="button" onClick={handleAddSupplier} className="btn btn-primary" style={{ padding: '0.75rem 1.5rem', fontSize: '0.95rem' }}>Save</button>
+                <button type="button" onClick={() => setShowAddSupplier(false)} className="btn btn-secondary" style={{ padding: '0.75rem 1.5rem', fontSize: '0.95rem' }}>Cancel</button>
+              </div>
+            </div>
+          )}
+        </div>
         <div>
           <label className="label">Accessory Group *</label>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <select 
-              value={accessoryGroup} 
-              onChange={(e) => setAccessoryGroup(e.target.value)}
-              style={{ flex: 1 }}
-            >
-              <option value="">Select Group</option>
-              {accessoryGroups.map(g => <option key={g} value={g}>{g}</option>)}
+            <select value={accessoryGroup} onChange={(e) => setAccessoryGroup(e.target.value)} style={{ flex: 1, padding: '0.6rem', background: '#1e293b', color: '#f1f5f9', borderRadius: '0.4rem' }}>
+              <option value="" style={{ background: '#1e293b', color: '#94a3b8' }}>Select Group</option>
+              {[...accessoryGroups].sort().map(g => <option key={g} value={g} style={{ background: '#1e293b', color: '#f1f5f9' }}>{g}</option>)}
             </select>
-            <input 
-              type="text" 
-              placeholder="New group" 
-              value={accessoryGroupInput}
-              onChange={(e) => setAccessoryGroupInput(e.target.value)}
-              style={{ flex: 1 }}
-            />
-            <button type="button" onClick={handleAddGroup} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>Add</button>
+            <input type="text" placeholder="New group" value={accessoryGroupInput} onChange={(e) => setAccessoryGroupInput(e.target.value)} style={{ flex: 1, padding: '0.6rem', borderRadius: '0.4rem' }} />
+            <button type="button" onClick={handleAddGroup} className="btn btn-secondary" style={{ padding: '0.6rem 1rem' }}>Add</button>
           </div>
         </div>
+      </div>
+
+      <div className="grid-cols-2" style={{ marginBottom: '1.25rem' }}>
         <div>
           <label className="label">Accessory Name *</label>
-          <input 
-            type="text" 
-            className="input" 
-            value={accessoryName}
-            onChange={(e) => setAccessoryName(e.target.value)}
-            placeholder="e.g., Charger, Headphones"
-          />
+          <input type="text" className="input" style={{ padding: '0.6rem' }} value={accessoryName} onChange={(e) => setAccessoryName(e.target.value)} placeholder="e.g., Charger, Headphones" />
         </div>
-      </div>
-
-      <div className="grid-cols-2" style={{ marginBottom: '1rem' }}>
-        <div>
-          <label className="label">Purchase Cost (TSh)</label>
-          <input 
-            type="number" 
-            className="input" 
-            value={purchaseCost}
-            onChange={(e) => setPurchaseCost(e.target.value)}
-            placeholder="0"
-          />
-        </div>
-        <div>
-          <label className="label">Selling Price (TSh) *</label>
-          <input 
-            type="number" 
-            className="input" 
-            value={sellingPrice}
-            onChange={(e) => setSellingPrice(e.target.value)}
-            placeholder="0"
-          />
-        </div>
-      </div>
-
-      {accessoryItems.map((item, idx) => (
-        <div key={idx} style={{ padding: '0.5rem', background: '#1e293b', borderRadius: '0.5rem', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem' }}>
-            <span style={{ color: '#94a3b8' }}>#{idx + 1}</span>
-            <span style={{ color: '#f1f5f9' }}>Qty: {item.quantity}</span>
-          </div>
-          <button 
-            type="button" 
-            onClick={() => setAccessoryItems(accessoryItems.filter((_, i) => i !== idx))}
-            style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}
-          >
-            <Trash2 size={14} />
-          </button>
-        </div>
-      ))}
-
-      <div className="grid-cols-2" style={{ marginBottom: '1rem' }}>
         <div>
           <label className="label">Quantity *</label>
           <input 
             type="number" 
-            className="input" 
+            className="input"
+            style={{ padding: '0.6rem' }}
             value={formData.quantity || ''}
             onChange={(e) => setFormData({...formData, quantity: e.target.value})}
             placeholder="1"
             min="1"
           />
         </div>
-        <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
+        <div>
+          <label className="label">Purchase Cost (TSh)</label>
+          <input type="number" className="input" style={{ padding: '0.6rem' }} value={purchaseCost} onChange={(e) => setPurchaseCost(e.target.value)} placeholder="0.00" step="0.01" min="0" />
+        </div>
+        <div>
+          <label className="label">Selling Price (TSh) *</label>
+          <input type="number" className="input" style={{ padding: '0.6rem' }} value={sellingPrice} onChange={(e) => setSellingPrice(e.target.value)} placeholder="0.00" step="0.01" min="0" />
+        </div>
+        <div>
+          <label className="label">Wholesale Price (TSh)</label>
+          <input type="number" className="input" style={{ padding: '0.6rem' }} value={wholesalePrice} onChange={(e) => setWholesalePrice(e.target.value)} placeholder="0.00" step="0.01" min="0" />
+        </div>
+        <div>
+          <label className="label">Color</label>
+          <input type="text" className="input" style={{ padding: '0.6rem' }} value={accessoryColor} onChange={(e) => setAccessoryColor(e.target.value)} placeholder="e.g., Black, White" />
+        </div>
+      </div>
+
+      {!editingProduct && (
+        <>
+          {accessoryItems.length > 0 && (
+            <div style={{ marginBottom: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '600' }}>ITEMS TO SAVE ({accessoryItems.length})</div>
+              {accessoryItems.map((item, idx) => (
+                <div key={idx} style={{ padding: '0.6rem 0.8rem', background: '#0f172a', borderRadius: '0.4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #334155' }}>
+                  <div style={{ display: 'flex', gap: '1rem', fontSize: '0.9rem' }}>
+                    <span style={{ color: '#64748b' }}>#{idx + 1}</span>
+                    <span style={{ color: '#f1f5f9' }}>Qty: {item.quantity}</span>
+                  </div>
+                  <button 
+                    type="button" 
+                    onClick={() => setAccessoryItems(accessoryItems.filter((_, i) => i !== idx))}
+                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.2rem' }}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.75rem', paddingTop: '1rem', borderTop: '1px solid #334155' }}>
+        <button type="button" onClick={onCancel} className="btn btn-secondary" style={{ padding: '0.6rem 1.25rem' }}>Cancel</button>
+        {!editingProduct && (
           <button 
             type="button" 
             onClick={handleAddItem}
-            className="btn btn-secondary"
-            disabled={!formData.quantity}
-            style={{ padding: '0.5rem 1rem' }}
+            className="btn btn-primary"
+            disabled={!needFieldsFilled}
+            style={{ padding: '0.6rem 1.25rem', opacity: needFieldsFilled ? 1 : 0.5 }}
           >
-            <Plus size={16} /> Add Item
+            <Plus size={18} /> Add Item
           </button>
-        </div>
-      </div>
-
-      <div className="grid-cols-2" style={{ marginBottom: '1rem' }}>
-        <div>
-          <label className="label">Supplier *</label>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <select 
-              value={selectedSupplier} 
-              onChange={(e) => setSelectedSupplier(e.target.value)}
-              style={{ flex: 1 }}
-            >
-              <option value="">Select Supplier</option>
-              {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-            <button type="button" onClick={() => setShowAddSupplier(true)} className="btn btn-secondary" style={{ padding: '0.5rem' }}><UserPlus size={16} /></button>
-          </div>
-        </div>
-      </div>
-
-      {showAddSupplier && (
-        <div style={{ padding: '1rem', background: '#1e293b', borderRadius: '0.5rem', marginBottom: '1rem' }}>
-          <h4 style={{ marginBottom: '0.5rem' }}>Add New Supplier</h4>
-          <div className="grid-cols-3" style={{ marginBottom: '0.5rem' }}>
-            <input type="text" className="input" placeholder="Name *" value={newSupplier.name} onChange={(e) => setNewSupplier({...newSupplier, name: e.target.value})} />
-            <input type="email" className="input" placeholder="Email" value={newSupplier.email} onChange={(e) => setNewSupplier({...newSupplier, email: e.target.value})} />
-            <input type="tel" className="input" placeholder="Phone" value={newSupplier.phone} onChange={(e) => setNewSupplier({...newSupplier, phone: e.target.value})} />
-          </div>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button type="button" onClick={handleAddSupplier} className="btn btn-primary" style={{ padding: '0.4rem 0.75rem' }}>Save</button>
-            <button type="button" onClick={() => setShowAddSupplier(false)} className="btn btn-secondary" style={{ padding: '0.4rem 0.75rem' }}>Cancel</button>
-          </div>
-        </div>
-      )}
-
-      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-        <button type="button" onClick={onCancel} className="btn btn-secondary">Cancel</button>
-        <button 
-          type="button" 
-          onClick={handleAddAccessory}
-          className="btn btn-primary"
-          disabled={accessoryItems.length === 0}
-        >
-          <Check size={16} /> Save {accessoryItems.length} Accessorie(s)
-        </button>
+        )}
+        {editingProduct ? (
+          <button 
+            type="button" 
+            onClick={handleAddAccessory}
+            className="btn btn-primary"
+            style={{ padding: '0.6rem 1.25rem' }}
+          >
+            <Check size={18} /> Update Accessory
+          </button>
+        ) : (
+          <button 
+            type="button" 
+            onClick={handleAddAccessory}
+            className="btn btn-primary"
+            style={{ padding: '0.6rem 1.25rem' }}
+            disabled={accessoryItems.length === 0}
+          >
+            <Check size={18} /> Save {accessoryItems.length} Accessorie(s)
+          </button>
+        )}
       </div>
     </div>
   );

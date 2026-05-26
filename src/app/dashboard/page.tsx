@@ -2,43 +2,68 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Package, AlertTriangle, TrendingUp, TrendingDown, DollarSign, ShoppingCart, ArrowRight } from 'lucide-react';
+import { Package, AlertTriangle, TrendingUp, TrendingDown, DollarSign, ShoppingCart, ArrowRight, Receipt, RotateCcw, BadgeDollarSign } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { useAuth } from '@/components/AuthProvider';
+import { useSettings } from '@/context/SettingsContext';
 
 interface DashboardStats {
   totalProducts: number;
   lowStockCount: number;
+  lowStockItems: any[];
   totalInventoryValue: number;
   todaySales: number;
   todayProfit: number;
+  salesCount: number;
+  todayExpenses: number;
+  todayReturns: number;
+  netProfit: number;
   fastMovingItems: any[];
   slowMovingItems: any[];
+  expiringProducts: any[];
+  expiringCount: number;
+  expiredProducts: any[];
+  expiredCount: number;
 }
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { shop } = useAuth();
+  const { settings } = useSettings();
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (shop?.id) fetchDashboardData();
+  }, [shop?.id]);
 
   async function fetchDashboardData() {
     try {
-      const res = await fetch('/api/dashboard');
+      setError(null);
+      const res = await fetch('/api/dashboard', {
+        headers: { 'x-shop-id': shop?.id || '' }
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to load: ${res.status}`);
+      }
       const data = await res.json();
       setStats(data.stats);
     } catch (error) {
       console.error('Failed to fetch dashboard:', error);
+      setError('Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
   }
 
-  if (loading) {
+  if (error) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '400px' }}>
-        Loading...
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px', gap: '1rem' }}>
+        <AlertTriangle size={48} color="#ef4444" />
+        <p style={{ color: '#ef4444', fontSize: '1.1rem', fontWeight: '600' }}>{error}</p>
+        <button onClick={fetchDashboardData} className="btn btn-primary" style={{ padding: '0.5rem 1.5rem' }}>
+          Retry
+        </button>
       </div>
     );
   }
@@ -47,7 +72,7 @@ export default function DashboardPage() {
     <div>
       <div style={{ marginBottom: '1.5rem' }}>
         <h1 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Dashboard</h1>
-        <p style={{ color: '#64748b' }}>Welcome back, Admin</p>
+        <p style={{ color: '#64748b' }}>Welcome back, {shop?.name || 'Admin'}</p>
       </div>
 
       <div className="grid-cols-4" style={{ marginBottom: '1.5rem' }}>
@@ -64,17 +89,33 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        <div className="stat-card" style={{ border: stats?.lowStockCount ? '1px solid #f59e0b' : undefined }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <div className="stat-value" style={{ color: stats?.lowStockCount ? '#f59e0b' : undefined }}>
-                {stats?.lowStockCount || 0}
+        {settings.lowStockAlert && (
+          <div className="stat-card" style={{ border: (stats?.lowStockCount || 0) > 0 ? '1px solid #f59e0b' : undefined }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div className="stat-value" style={{ color: (stats?.lowStockCount || 0) > 0 ? '#f59e0b' : undefined }}>
+                  {stats?.lowStockCount || 0}
+                </div>
+                <div className="stat-label">Low Stock Alerts</div>
               </div>
-              <div className="stat-label">Low Stock Alerts</div>
+              <AlertTriangle size={24} color={(stats?.lowStockCount || 0) > 0 ? '#f59e0b' : '#22c55e'} />
             </div>
-            <AlertTriangle size={24} color={stats?.lowStockCount ? '#f59e0b' : '#22c55e'} />
           </div>
-        </div>
+        )}
+
+        {settings.expiryAlert && (
+          <div className="stat-card" style={{ border: (stats?.expiringCount || stats?.expiredCount || 0) > 0 ? '1px solid #ef4444' : undefined }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div className="stat-value" style={{ color: (stats?.expiringCount || stats?.expiredCount || 0) > 0 ? '#ef4444' : undefined }}>
+                  {(stats?.expiringCount || 0) + (stats?.expiredCount || 0)}
+                </div>
+                <div className="stat-label">Expiry Alerts</div>
+              </div>
+              <AlertTriangle size={24} color={(stats?.expiringCount || stats?.expiredCount || 0) > 0 ? '#ef4444' : '#22c55e'} />
+            </div>
+          </div>
+        )}
 
         <div className="stat-card">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -92,24 +133,67 @@ export default function DashboardPage() {
         <div className="stat-card">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <div className="stat-value" style={{ color: '#22c55e' }}>{formatCurrency(stats?.todayProfit || 0)}</div>
-              <div className="stat-label">Today's Profit</div>
+              <div className="stat-value" style={{ color: (stats?.netProfit || 0) >= 0 ? '#22c55e' : '#ef4444' }}>
+                {formatCurrency(stats?.netProfit || 0)}
+              </div>
+              <div className="stat-label">Net Profit Today</div>
             </div>
-            <TrendingUp size={24} color="#22c55e" />
+            <TrendingUp size={24} color={(stats?.netProfit || 0) >= 0 ? '#22c55e' : '#ef4444'} />
           </div>
+        </div>
+      </div>
+
+      <div className="grid-cols-3" style={{ marginBottom: '1.5rem' }}>
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+            <Receipt size={20} color="#3b82f6" />
+            <h3 style={{ fontSize: '0.95rem', fontWeight: '600' }}>Today's Transactions</h3>
+          </div>
+          <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#3b82f6' }}>
+            {stats?.salesCount || 0}
+          </div>
+          <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.25rem' }}>
+            Total sales made today
+          </p>
+        </div>
+
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+            <RotateCcw size={20} color="#ef4444" />
+            <h3 style={{ fontSize: '0.95rem', fontWeight: '600' }}>Returns Today</h3>
+          </div>
+          <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#ef4444' }}>
+            {formatCurrency(stats?.todayReturns || 0)}
+          </div>
+          <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.25rem' }}>
+            Refunds + repair costs
+          </p>
+        </div>
+
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+            <BadgeDollarSign size={20} color="#f59e0b" />
+            <h3 style={{ fontSize: '0.95rem', fontWeight: '600' }}>Expenses Today</h3>
+          </div>
+          <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#f59e0b' }}>
+            {formatCurrency(stats?.todayExpenses || 0)}
+          </div>
+          <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.25rem' }}>
+            Operational costs today
+          </p>
         </div>
       </div>
 
       <div className="grid-cols-2" style={{ marginBottom: '1.5rem' }}>
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: '600' }}>Inventory Value</h3>
+            <h3 style={{ fontSize: '1rem', fontWeight: '600' }}>Inventory Value (Cost)</h3>
           </div>
           <div style={{ fontSize: '2rem', fontWeight: '700', color: '#3b82f6' }}>
             {formatCurrency(stats?.totalInventoryValue || 0)}
           </div>
           <p style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.5rem' }}>
-            Total value of all products in stock
+            Total purchase cost of all products in stock
           </p>
         </div>
 
@@ -131,7 +215,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid-cols-2">
+      <div className="grid-cols-3">
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
             <TrendingUp size={20} color="#22c55e" />
@@ -139,7 +223,7 @@ export default function DashboardPage() {
           </div>
           {stats?.fastMovingItems && stats.fastMovingItems.length > 0 ? (
             <div>
-              {stats.fastMovingItems.slice(0, 5).map((item: any) => (
+              {stats.fastMovingItems.map((item: any) => (
                 <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid #e2e8f0' }}>
                   <div>
                     <div style={{ fontWeight: '500' }}>{item.name}</div>
@@ -163,7 +247,7 @@ export default function DashboardPage() {
           </div>
           {stats?.slowMovingItems && stats.slowMovingItems.length > 0 ? (
             <div>
-              {stats.slowMovingItems.slice(0, 5).map((item: any) => (
+              {stats.slowMovingItems.map((item: any) => (
                 <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid #e2e8f0' }}>
                   <div>
                     <div style={{ fontWeight: '500' }}>{item.name}</div>
@@ -179,6 +263,79 @@ export default function DashboardPage() {
             <p style={{ color: '#64748b', fontSize: '0.875rem' }}>No slow moving items</p>
           )}
         </div>
+
+        {settings.lowStockAlert && (
+          <div className="card">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <AlertTriangle size={20} color="#f59e0b" />
+              <h3 style={{ fontSize: '1rem', fontWeight: '600' }}>Low Stock Items</h3>
+            </div>
+            {stats?.lowStockItems && stats.lowStockItems.length > 0 ? (
+              <div>
+                {stats.lowStockItems.map((item: any) => (
+                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid #e2e8f0' }}>
+                    <div>
+                      <div style={{ fontWeight: '500' }}>{item.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{item.sku}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontWeight: '600', color: '#f59e0b' }}>{item.stockQuantity} left</div>
+                    </div>
+                  </div>
+                ))}
+                <Link href="/dashboard/inventory" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.75rem', fontSize: '0.875rem', color: '#3b82f6', textDecoration: 'none' }}>
+                  View all inventory <ArrowRight size={16} />
+                </Link>
+              </div>
+            ) : (
+              <p style={{ color: '#64748b', fontSize: '0.875rem' }}>Stock levels are healthy</p>
+            )}
+          </div>
+        )}
+
+        {settings.expiryAlert && (
+          <div className="card">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <AlertTriangle size={20} color="#ef4444" />
+              <h3 style={{ fontSize: '1rem', fontWeight: '600' }}>Expiring & Expired</h3>
+            </div>
+            {stats?.expiredProducts && stats.expiredProducts.length > 0 ? (
+              <div>
+                {stats.expiredProducts.map((item: any) => (
+                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid #e2e8f0' }}>
+                    <div>
+                      <div style={{ fontWeight: '500' }}>{item.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{item.sku}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontWeight: '600', color: '#ef4444' }}>Expired</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            {stats?.expiringProducts && stats.expiringProducts.length > 0 ? (
+              <div>
+                {stats.expiringProducts.map((item: any) => (
+                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid #e2e8f0' }}>
+                    <div>
+                      <div style={{ fontWeight: '500' }}>{item.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{item.sku}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontWeight: '600', color: '#f59e0b' }}>Expiring soon</div>
+                    </div>
+                  </div>
+                ))}
+                <Link href="/dashboard/inventory" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.75rem', fontSize: '0.875rem', color: '#3b82f6', textDecoration: 'none' }}>
+                  View all inventory <ArrowRight size={16} />
+                </Link>
+              </div>
+            ) : (stats?.expiredProducts?.length || 0) === 0 ? (
+              <p style={{ color: '#64748b', fontSize: '0.875rem' }}>No products expiring soon</p>
+            ) : null}
+          </div>
+        )}
       </div>
     </div>
   );

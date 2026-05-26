@@ -41,6 +41,7 @@ model Shop {
   products    Product[]
   categories  Category[]
   suppliers   Supplier[]
+  brands      Brand[]
   customers   Customer[]
   sales       Sale[]
   expenses    Expense[]
@@ -103,6 +104,17 @@ model Supplier {
   @@unique([name, shopId])
 }
 
+model Brand {
+  id        String    @id @default(cuid())
+  name      String
+  shopId    String
+  shop      Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  @@unique([name, shopId])
+}
+
 model Product {
   id              String   @id @default(cuid())
   name            String
@@ -129,6 +141,7 @@ model Product {
   imageUrl        String?
   variant         String?
   variantType     String?
+  brand           String?
   shopId          String
   shop            Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   createdAt       DateTime @default(now())
@@ -456,12 +469,32 @@ model PurchaseOrderItem {
   id              String   @id @default(cuid())
   purchaseOrderId String
   purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
-  productId       String
-  product         Product  @relation(fields: [productId], references: [id])
+  productId       String?
+  product         Product? @relation(fields: [productId], references: [id])
   quantityOrdered Int
   quantityReceived Int    @default(0)
   unitCost        Float
   totalCost       Float
+  productName     String?
+  productSku      String?
+  productBarcode  String?
+  sellingPrice    Float?
+  wholesalePrice  Float?
+  electronicsBrand     String?
+  electronicsModel     String?
+  electronicsImei      String?
+  electronicsColor     String?
+  electronicsStorage   String?
+  electronicsCondition String?
+  pharmacyBrandName       String?
+  pharmacyGenericName     String?
+  pharmacyBatchNumber     String?
+  pharmacyManufacturingDate DateTime?
+  pharmacyExpiryDate      DateTime?
+  pharmacyCategoryName    String?
+  clothingBrand           String?
+  clothingVariants        String?
+  clothingCategoryName    String?
 }
 
 model PriceTag {
@@ -535,6 +568,11 @@ model ShopSettings {
   shopId          String   @unique
   shop            Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   businessName    String   @default("My Shop")
+  businessPhone   String?
+  businessEmail   String?
+  businessAddress String?
+  currency        String   @default("TZS")
+  currencySymbol  String   @default("TSh")
   taxRate         Float    @default(0)
   receiptFooter   String?
   lowStockAlert   Boolean  @default(true)

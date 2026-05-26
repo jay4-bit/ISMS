@@ -91,11 +91,20 @@ export interface ReturnItem {
 export interface DashboardStats {
   totalProducts: number;
   lowStockCount: number;
+  lowStockItems: Product[];
   totalInventoryValue: number;
   todaySales: number;
   todayProfit: number;
+  salesCount: number;
+  todayExpenses: number;
+  todayReturns: number;
+  netProfit: number;
   fastMovingItems: Product[];
   slowMovingItems: Product[];
+  expiringProducts: Product[];
+  expiringCount: number;
+  expiredProducts: Product[];
+  expiredCount: number;
 }
 
 export interface ReportFilter {

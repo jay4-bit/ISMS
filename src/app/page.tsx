@@ -24,6 +24,7 @@ export default function HomePage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [shops, setShops] = useState<any[]>([]);
+  const [selectedShop, setSelectedShop] = useState<string>('');
   const [registerData, setRegisterData] = useState({
     shopName: '',
     ownerName: '',
@@ -211,11 +212,12 @@ export default function HomePage() {
             )}
 
             {mode === 'login' ? (
-              <form onSubmit={(e) => handleLogin(e, shops[0]?.id)} style={styles.form}>
+              <form onSubmit={(e) => handleLogin(e, selectedShop || shops[0]?.id)} style={styles.form}>
                 {shops.length > 0 && (
                   <div style={styles.inputGroup}>
                     <label style={styles.label}>Select Shop</label>
-                    <select style={styles.select}>
+                    <select value={selectedShop} onChange={(e) => setSelectedShop(e.target.value)} style={styles.select}>
+                      <option value="">-- Select a shop --</option>
                       {shops.map(shop => (
                         <option key={shop.id} value={shop.id}>{shop.name}</option>
                       ))}
