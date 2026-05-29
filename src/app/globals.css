@@ -400,14 +400,23 @@ body {
     top: 0;
     height: 100vh;
     height: 100dvh !important;
-    z-index: 200;
+    z-index: 200 !important;
     transform: translateX(-100%);
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4) !important;
     width: 280px !important;
     border-right: none !important;
     background: #1e293b !important;
-    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  }
+  .dash-sidebar.open {
+    transform: translateX(0);
+  }
+  .dash-sidebar a, .dash-sidebar button {
+    color: #cbd5e1 !important;
+  }
+  .dash-sidebar .nav-item-active {
+    color: #3b82f6 !important;
+    background: rgba(59, 130, 246, 0.15) !important;
   }
   .dash-sidebar.open {
     transform: translateX(0);
