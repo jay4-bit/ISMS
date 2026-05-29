@@ -612,6 +612,18 @@ body {
   }
 }
 
+/* Mobile product forms - single column */
+@media (max-width: 540px) {
+  .modal form div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+  .modal {
+    max-width: 100% !important;
+    margin: 0.5rem !important;
+    padding: 1rem !important;
+  }
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
