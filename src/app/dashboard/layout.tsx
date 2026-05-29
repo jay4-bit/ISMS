@@ -108,6 +108,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <button onClick={() => setCollapsed(!collapsed)} className="dash-collapse-btn" style={styles.collapseBtn}>
             {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
           </button>
+          <button className="dash-close-btn" onClick={() => setMobileOpen(false)} style={styles.collapseBtn}>
+            <X size={20} />
+          </button>
         </div>
 
         <nav style={styles.nav}>

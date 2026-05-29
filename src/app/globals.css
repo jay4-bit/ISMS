@@ -358,6 +358,27 @@ body {
   display: none;
 }
 
+.dash-close-btn {
+  display: none;
+}
+
+.dash-sidebar nav {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+}
+
+.dash-sidebar nav::-webkit-scrollbar {
+  width: 4px;
+}
+.dash-sidebar nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dash-sidebar nav::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+}
+
 @media (max-width: 768px) {
   .dash-backdrop {
     display: block;
@@ -385,6 +406,8 @@ body {
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4) !important;
     width: 280px !important;
     border-right: none !important;
+    background: #1e293b !important;
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
   }
   .dash-sidebar.open {
     transform: translateX(0);
@@ -396,6 +419,9 @@ body {
 
   .dash-collapse-btn {
     display: none !important;
+  }
+  .dash-close-btn {
+    display: flex !important;
   }
 
   .dash-sidebar .sidebar-footer-btn span {
