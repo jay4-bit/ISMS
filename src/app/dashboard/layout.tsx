@@ -86,10 +86,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div style={styles.layout}>
-      <aside className={`dash-sidebar ${mobileOpen ? 'open' : ''}`} style={{
-        ...styles.sidebar,
-        width: collapsed ? '80px' : '260px',
-      }}>
+      {mobileOpen && <div className="dash-backdrop" onClick={() => setMobileOpen(false)} />}
+
+      <aside
+        className={`dash-sidebar ${mobileOpen ? 'open' : ''}`}
+        style={{
+          ...styles.sidebar,
+          width: collapsed ? '80px' : '260px',
+        }}
+      >
         <div style={styles.sidebarHeader}>
           <div style={styles.shopBadge}>
             <span style={styles.shopIcon}>{shopIcons[shop.shopType]}</span>
@@ -100,7 +105,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             )}
           </div>
-          <button onClick={() => setCollapsed(!collapsed)} style={styles.collapseBtn}>
+          <button onClick={() => setCollapsed(!collapsed)} className="dash-collapse-btn" style={styles.collapseBtn}>
             {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
           </button>
         </div>
@@ -112,6 +117,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link
                 key={item.name}
                 href={item.href}
+                onClick={() => setMobileOpen(false)}
                 style={{
                   ...styles.navItem,
                   ...(isActive ? styles.navItemActive : {}),
@@ -163,37 +169,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {children}
         </main>
       </div>
-
-      {mobileOpen && (
-        <div style={styles.mobileOverlay} onClick={() => setMobileOpen(false)}>
-          <div style={styles.mobileMenu} onClick={e => e.stopPropagation()}>
-            <div style={styles.mobileHeader}>
-              <span style={styles.shopIcon}>{shopIcons[shop.shopType]}</span>
-              <span style={styles.shopName}>{shop.name}</span>
-              <button onClick={() => setMobileOpen(false)}><X size={24} /></button>
-            </div>
-            <nav style={styles.mobileNav}>
-              {navigation.map((item) => {
-                const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    onClick={() => setMobileOpen(false)}
-                    style={{
-                      ...styles.mobileNavItem,
-                      ...(isActive ? styles.navItemActive : {}),
-                    }}
-                  >
-                    <item.icon size={20} />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -386,43 +361,5 @@ const styles: Record<string, React.CSSProperties> = {
     borderTopColor: '#3b82f6',
     borderRadius: '50%',
     animation: 'spin 1s linear infinite',
-  },
-  mobileOverlay: {
-    display: 'none',
-    position: 'fixed',
-    inset: 0,
-    background: 'rgba(0, 0, 0, 0.5)',
-    zIndex: 200,
-  },
-  mobileMenu: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: '280px',
-    background: '#1e293b',
-    padding: '1rem',
-  },
-  mobileHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.75rem',
-    padding: '0.5rem 0 1rem',
-    borderBottom: '1px solid #334155',
-    marginBottom: '1rem',
-  },
-  mobileNav: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.25rem',
-  },
-  mobileNavItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.75rem',
-    padding: '0.75rem 1rem',
-    color: '#94a3b8',
-    textDecoration: 'none',
-    borderRadius: '0.5rem',
   },
 };

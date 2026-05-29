@@ -282,6 +282,21 @@ body {
     margin: 0 auto;
     border-radius: 0.75rem;
   }
+  /* reduce main content padding on mobile */
+  .dash-main main {
+    padding: 1rem !important;
+  }
+  /* reduce header padding on mobile */
+  .dash-main header {
+    padding: 0 1rem !important;
+    height: 56px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .dash-main main {
+    padding: 0.75rem !important;
+  }
 }
 
 @media (max-width: 480px) {
@@ -338,27 +353,56 @@ body {
   }
 }
 
-/* Dashboard mobile */
+/* Dashboard mobile - beautiful slide-in drawer */
+.dash-backdrop {
+  display: none;
+}
+
 @media (max-width: 768px) {
+  .dash-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 150;
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease;
+  }
+
   .dash-main {
     margin-left: 0 !important;
     width: 100% !important;
   }
+
   .dash-sidebar {
     position: fixed !important;
     left: 0;
     top: 0;
     height: 100vh;
-    z-index: 1000;
+    height: 100dvh !important;
+    z-index: 200;
     transform: translateX(-100%);
-    transition: transform 0.2s ease;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4) !important;
+    width: 280px !important;
+    border-right: none !important;
   }
   .dash-sidebar.open {
     transform: translateX(0);
   }
+
   .dash-menu-btn {
     display: flex !important;
   }
+
+  .dash-collapse-btn {
+    display: none !important;
+  }
+
+  .dash-sidebar .sidebar-footer-btn span {
+    display: inline !important;
+  }
+
   .table-responsive {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -366,6 +410,7 @@ body {
   .table-responsive table {
     min-width: 600px;
   }
+
   .pos-split {
     display: flex !important;
     flex-direction: column !important;
@@ -395,14 +440,26 @@ body {
   }
 }
 
+@media (max-width: 480px) {
+  .dash-sidebar {
+    width: 100% !important;
+    max-width: 300px !important;
+  }
+}
+
 /* Better touch targets on mobile */
 @media (max-width: 768px) {
-  button, .btn, a, select, input {
+  button:not(.btn), .btn, a, select, input, textarea {
     min-height: 44px;
   }
-  input, select {
+  input, select, textarea {
     font-size: 16px !important;
   }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal-overlay {
