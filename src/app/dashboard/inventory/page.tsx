@@ -1069,9 +1069,9 @@ export default function InventoryPage() {
         )}
       </div>
 
-      <div className="card table-responsive" style={{ padding: 0, overflow: 'auto' }}>
+      <div className="card" style={{ padding: 0, overflowX: 'auto', overflowY: 'hidden' }}>
         {isPharmacy ? (
-          <table className="table" style={{ fontSize: '0.8rem', width: '100%', borderCollapse: 'collapse' }}>
+          <table className="table" style={{ fontSize: '0.8rem', minWidth: '900px', borderCollapse: 'collapse', whiteSpace: 'nowrap' }}>
             <thead>
               <tr style={{ background: '#1e293b' }}>
                 <th style={{ minWidth: '160px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>PRODUCT</th>
@@ -1124,7 +1124,7 @@ export default function InventoryPage() {
             </tbody>
           </table>
         ) : isLiquor ? (
-          <table className="table" style={{ fontSize: '0.8rem', width: '100%', borderCollapse: 'collapse' }}>
+          <table className="table" style={{ fontSize: '0.8rem', minWidth: '800px', borderCollapse: 'collapse', whiteSpace: 'nowrap' }}>
             <thead>
               <tr style={{ background: '#1e293b' }}>
                 <th style={{ minWidth: '180px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>PRODUCT</th>
@@ -1167,7 +1167,7 @@ export default function InventoryPage() {
             </tbody>
           </table>
         ) : isElectronics ? (
-          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div className="card" style={{ padding: 0, overflowX: 'auto', overflowY: 'hidden' }}>
             <div style={{ padding: '1rem', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flex: 1 }}>
                 <div style={{ position: 'relative', minWidth: '200px' }}>
@@ -1195,7 +1195,7 @@ export default function InventoryPage() {
                 </button>
               )}
             </div>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <table style={{ minWidth: '1100px', borderCollapse: 'collapse', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
               <thead>
                 <tr style={{ background: '#0f172a' }}>
                   <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>#</th>
