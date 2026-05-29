@@ -123,8 +123,8 @@ export default function ExpensesPage() {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+    <div className="page-container">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }} className="page-header">
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Expenses Tracking</h1>
           <p style={{ color: '#64748b' }}>Track and categorize business expenses</p>
@@ -173,7 +173,7 @@ export default function ExpensesPage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '1.5rem', marginBottom: '1.5rem' }} className="page-grid-sidebar">
         <div className="card">
           <h3 style={{ fontWeight: '600', marginBottom: '1rem' }}>By Category</h3>
           {byCategory.map(cat => (
@@ -187,7 +187,7 @@ export default function ExpensesPage() {
           ))}
         </div>
 
-        <div className="card" style={{ padding: '1rem' }}>
+        <div className="card table-responsive" style={{ padding: '1rem' }}>
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
             <select className="select" style={{ width: 'auto' }} value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
               <option value="">All Categories</option>

@@ -298,7 +298,7 @@ export default function SettingsPage() {
   if (loading) return <div style={styles.loading}>Loading...</div>;
 
   return (
-    <div style={styles.container}>
+    <div style={styles.container} className="settings-container">
       {notification && (
         <div style={{ ...styles.notification, background: notification.type === 'success' ? '#22c55e' : '#ef4444' }}>
           {notification.message}
@@ -312,11 +312,12 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div style={styles.tabs}>
+      <div style={styles.tabs} className="settings-tabs">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as typeof activeTab)}
+            className="settings-tab"
             style={{
               ...styles.tab,
               ...(activeTab === tab.id ? styles.tabActive : {}),
@@ -328,14 +329,14 @@ export default function SettingsPage() {
         ))}
       </div>
 
-      <div style={styles.content}>
+      <div style={styles.content} className="settings-content">
         {activeTab === 'business' && (
           <div style={styles.section}>
-            <div style={styles.sectionHeader}>
+            <div style={styles.sectionHeader} className="settings-section-header">
               <Building2 size={20} />
               <h2>Business Information</h2>
             </div>
-            <div style={styles.grid}>
+            <div style={styles.grid} className="settings-grid">
               <div style={styles.field}>
                 <label style={styles.label}>Business Name</label>
                 <input
@@ -378,7 +379,7 @@ export default function SettingsPage() {
               <DollarSign size={20} />
               <h2>Currency & Tax</h2>
             </div>
-              <div style={styles.grid}>
+              <div style={styles.grid} className="settings-grid">
               <div style={styles.field}>
                 <label style={styles.label}>Currency</label>
                 <select
@@ -419,7 +420,7 @@ export default function SettingsPage() {
 
         {activeTab === 'users' && (
           <div style={styles.section}>
-            <div style={styles.sectionHeader}>
+            <div style={styles.sectionHeader} className="settings-section-header">
               <Users size={20} />
               <h2>User Management</h2>
               <button onClick={() => setShowUserModal(true)} style={styles.addBtn}>
@@ -429,7 +430,7 @@ export default function SettingsPage() {
 
             <div style={styles.usersList}>
               {users.map(user => (
-                <div key={user.id} style={styles.userCard}>
+                <div key={user.id} style={styles.userCard} className="settings-user-card">
                   <div style={styles.userAvatar}>
                     {user.name.charAt(0).toUpperCase()}
                   </div>
@@ -487,7 +488,7 @@ export default function SettingsPage() {
 
         {activeTab === 'permissions' && (
           <div style={styles.section}>
-            <div style={styles.sectionHeader}>
+            <div style={styles.sectionHeader} className="settings-section-header">
               <Shield size={20} />
               <h2>Role Permissions</h2>
               <button 
@@ -519,12 +520,12 @@ export default function SettingsPage() {
 
         {activeTab === 'alerts' && (
           <div style={styles.section}>
-            <div style={styles.sectionHeader}>
+            <div style={styles.sectionHeader} className="settings-section-header">
               <Bell size={20} />
               <h2>Alert Settings</h2>
             </div>
 
-            <div style={styles.alertCard}>
+            <div style={styles.alertCard} className="settings-alert-card">
               <div style={styles.alertInfo}>
                 <div style={styles.alertTitle}>Low Stock Alert</div>
                 <div style={styles.alertDesc}>Get notified when products are running low</div>
@@ -541,7 +542,7 @@ export default function SettingsPage() {
               </label>
             </div>
 
-            <div style={styles.alertCard}>
+            <div style={styles.alertCard} className="settings-alert-card">
               <div style={styles.alertInfo}>
                 <div style={styles.alertTitle}>Expiry Alert</div>
                 <div style={styles.alertDesc}>Get notified before products expire</div>
@@ -578,12 +579,12 @@ export default function SettingsPage() {
 
         {activeTab === 'profile' && (
           <div style={styles.section}>
-            <div style={styles.sectionHeader}>
+            <div style={styles.sectionHeader} className="settings-section-header">
               <User size={20} />
               <h2>My Profile</h2>
             </div>
 
-            <div style={styles.profileCard}>
+            <div style={styles.profileCard} className="settings-profile-card">
               <div style={styles.avatarLarge}>
                 {authUser?.name?.charAt(0).toUpperCase() || '?'}
               </div>
@@ -595,10 +596,10 @@ export default function SettingsPage() {
 
             <div style={styles.sectionDivider} />
 
-            <div style={styles.sectionHeader}>
+            <div style={styles.sectionHeader} className="settings-section-header">
               <h3 style={{ fontSize: '1.1rem', fontWeight: '600' }}>Edit Information</h3>
             </div>
-            <div style={styles.grid}>
+            <div style={styles.grid} className="settings-grid">
               <div style={styles.field}>
                 <label style={styles.label}>Full Name</label>
                 <input
@@ -630,13 +631,13 @@ export default function SettingsPage() {
 
             <div style={styles.sectionDivider} />
 
-            <div style={styles.sectionHeader}>
+            <div style={styles.sectionHeader} className="settings-section-header">
               <h3 style={{ fontSize: '1.1rem', fontWeight: '600' }}>Change Password</h3>
             </div>
             <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem', marginBottom: '1rem' }}>
               Update your password regularly to keep your account secure.
             </p>
-            <div style={styles.grid}>
+            <div style={styles.grid} className="settings-grid">
               <div style={styles.field}>
                 <label style={styles.label}>Current Password</label>
                 <input
@@ -676,7 +677,7 @@ export default function SettingsPage() {
 
         {activeTab === 'theme' && (
           <div style={styles.section}>
-            <div style={styles.sectionHeader}>
+            <div style={styles.sectionHeader} className="settings-section-header">
               {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
               <h2>Appearance</h2>
             </div>
@@ -979,7 +980,7 @@ function BusinessTypesSection() {
 
   return (
     <div style={styles.section}>
-      <div style={styles.sectionHeader}>
+      <div style={styles.sectionHeader} className="settings-section-header">
         <Palette size={20} />
         <h2>Business Types</h2>
       </div>

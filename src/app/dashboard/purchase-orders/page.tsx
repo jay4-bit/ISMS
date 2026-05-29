@@ -524,8 +524,8 @@ export default function PurchaseOrdersPage() {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+    <div className="page-container">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }} className="page-header">
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Purchase Orders</h1>
           <p style={{ color: '#64748b' }}>Manage supplier orders and restocking</p>
@@ -588,7 +588,7 @@ export default function PurchaseOrdersPage() {
         </div>
       </div>
 
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+      <div className="card table-responsive" style={{ padding: 0 }}>
         <table className="table">
           <thead>
             <tr>

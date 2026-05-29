@@ -186,7 +186,7 @@ export default function InstallmentsPage() {
   if (loading) return <div style={styles.loading}>Loading...</div>;
 
   return (
-    <div style={styles.container}>
+    <div style={styles.container} className="page-container">
       {notification && (
         <div style={{ ...styles.notification, background: notification.type === 'success' ? '#22c55e' : '#ef4444' }}>
           {notification.message}
@@ -200,7 +200,7 @@ export default function InstallmentsPage() {
         </div>
       </div>
 
-      <div style={styles.statsGrid}>
+      <div style={styles.statsGrid} className="stats-grid">
         <div style={styles.statCard}>
           <div style={styles.statIcon}><FileText size={24} /></div>
           <div>
@@ -258,7 +258,7 @@ export default function InstallmentsPage() {
         </div>
       </div>
 
-      <div style={styles.tableCard}>
+      <div style={styles.tableCard} className="table-responsive">
         <table style={styles.table}>
           <thead>
             <tr>
