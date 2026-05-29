@@ -86,7 +86,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div style={styles.layout}>
-      <aside style={{
+      <aside className={`dash-sidebar ${mobileOpen ? 'open' : ''}`} style={{
         ...styles.sidebar,
         width: collapsed ? '80px' : '260px',
       }}>
@@ -144,9 +144,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
 
-      <div style={styles.main}>
+      <div className="dash-main" style={styles.main}>
         <header style={styles.header}>
-          <button onClick={() => setMobileOpen(!mobileOpen)} style={styles.menuBtn}>
+          <button className="dash-menu-btn" onClick={() => setMobileOpen(!mobileOpen)} style={styles.menuBtn}>
             {mobileOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
           <div style={styles.headerTitle}>
@@ -341,6 +341,7 @@ const styles: Record<string, React.CSSProperties> = {
     border: 'none',
     color: '#f1f5f9',
     cursor: 'pointer',
+    padding: '0.5rem',
   },
   headerTitle: {
     flex: 1,

@@ -792,7 +792,7 @@ export default function InventoryPage() {
           <h1 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Inventory</h1>
           <p style={{ color: '#64748b', fontSize: '0.85rem' }}>Manage products</p>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           {!isReadOnly && (
             <>
               <button onClick={() => setShowScanner(true)} className="btn btn-secondary" title="Scan Barcode" style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}>
@@ -1069,7 +1069,7 @@ export default function InventoryPage() {
         )}
       </div>
 
-      <div className="card" style={{ padding: 0, overflow: 'auto' }}>
+      <div className="card table-responsive" style={{ padding: 0, overflow: 'auto' }}>
         {isPharmacy ? (
           <table className="table" style={{ fontSize: '0.8rem', width: '100%', borderCollapse: 'collapse' }}>
             <thead>

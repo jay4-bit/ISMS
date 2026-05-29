@@ -492,7 +492,7 @@ export default function POSPage() {
         </div>
       )}
 
-      <div style={styles.header}>
+      <div className="pos-header" style={styles.header}>
         <div>
           <h1 style={styles.title}><ShoppingCart size={28} /> POS / Sales</h1>
           <p style={styles.subtitle}>Point of Sale - Scan or search products</p>
@@ -504,9 +504,9 @@ export default function POSPage() {
         </div>
       </div>
 
-      <div style={styles.mainGrid}>
+      <div className="pos-split" style={styles.mainGrid}>
         <div style={styles.productsSection}>
-          <div style={styles.searchBar}>
+          <div className="pos-searchbar" style={styles.searchBar}>
             <div style={styles.searchWrapper}>
               <ScanLine size={18} style={styles.searchIcon} />
               <input
@@ -524,7 +524,7 @@ export default function POSPage() {
             </button>
           </div>
 
-          <div style={styles.saleTypeToggle}>
+          <div className="pos-saletype" style={styles.saleTypeToggle}>
             <button
               onClick={() => setSaleType('RETAIL')}
               style={{

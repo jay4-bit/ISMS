@@ -175,7 +175,7 @@ export default function UsersPage() {
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Users size={28} /> User Management
@@ -201,10 +201,10 @@ export default function UsersPage() {
         </button>
       </div>
 
-      <div style={{
+      <div className="table-responsive" style={{
         background: '#1e293b',
         borderRadius: '0.75rem',
-        overflow: 'hidden',
+        overflow: 'auto',
       }}>
         {users.length === 0 ? (
           <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
@@ -212,7 +212,7 @@ export default function UsersPage() {
             <p>No users found</p>
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '500px' }}>
             <thead>
               <tr style={{ background: '#0f172a' }}>
                 <th style={{ padding: '0.75rem 1rem', textAlign: 'left', color: '#94a3b8', fontWeight: '600', fontSize: '0.8rem' }}>USER</th>

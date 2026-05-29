@@ -143,7 +143,7 @@ export default function HomePage() {
     <div style={styles.container}>
       <div style={styles.backgroundPattern}></div>
 
-      <div style={styles.content}>
+      <div className="responsive-container" style={styles.content}>
         <div style={styles.header}>
           <div style={styles.logoIcon}>
             <Package size={32} color="white" />
@@ -157,7 +157,7 @@ export default function HomePage() {
             <h2 style={styles.sectionTitle}>Select Your Business Type</h2>
             <p style={styles.sectionSubtitle}>Choose the type of shop you want to manage</p>
             
-            <div style={styles.typeGrid}>
+            <div className="type-grid" style={styles.typeGrid}>
               {SHOP_TYPES.map((st) => (
                 <button
                   key={st.type}
