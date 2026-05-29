@@ -438,11 +438,16 @@ body {
   }
 
   .table-responsive {
-    overflow-x: auto;
+    overflow-x: auto !important;
     -webkit-overflow-scrolling: touch;
   }
   .table-responsive table {
-    min-width: 600px;
+    width: auto !important;
+    min-width: 800px;
+  }
+  .table-responsive table th,
+  .table-responsive table td {
+    white-space: nowrap;
   }
 
   .pos-split {
