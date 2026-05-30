@@ -442,6 +442,7 @@ export default function POSPage() {
     if (e.key === 'Enter' && barcodeInput) {
       handleBarcodeScan(barcodeInput);
       setBarcodeInput('');
+      setSearch('');
     }
   }
 
