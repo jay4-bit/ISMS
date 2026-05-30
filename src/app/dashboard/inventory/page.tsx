@@ -266,7 +266,7 @@ export default function InventoryPage() {
     if (scannerRef.current) return;
     try {
       const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import('html5-qrcode');
-      scannerRef.current = new Html5Qrcode('scanner-container', { verbose: false, useBarCodeDetectorIfSupported: true, formatsToSupport: [
+      scannerRef.current = new Html5Qrcode('scanner-container', { verbose: false, useBarCodeDetectorIfSupported: true,         formatsToSupport: [
           Html5QrcodeSupportedFormats.EAN_13,
           Html5QrcodeSupportedFormats.EAN_8,
           Html5QrcodeSupportedFormats.UPC_A,
@@ -275,17 +275,12 @@ export default function InventoryPage() {
           Html5QrcodeSupportedFormats.CODE_39,
           Html5QrcodeSupportedFormats.CODE_93,
           Html5QrcodeSupportedFormats.ITF,
-          Html5QrcodeSupportedFormats.CODABAR,
-          Html5QrcodeSupportedFormats.QR_CODE,
-          Html5QrcodeSupportedFormats.DATA_MATRIX,
-          Html5QrcodeSupportedFormats.AZTEC,
-          Html5QrcodeSupportedFormats.MAXICODE,
         ],
       });
       
       await scannerRef.current.start(
         { facingMode: 'environment' },
-        { fps: 15, qrbox: { width: 380, height: 180 } },
+        { fps: 30, qrbox: { width: 360, height: 120 } },
         (decodedText: string) => {
           const product = products.find(p => p.barcode === decodedText || p.sku === decodedText);
           if (product) {
