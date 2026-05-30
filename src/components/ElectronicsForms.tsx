@@ -354,7 +354,7 @@ export function ElectronicsPhoneForm({
         </div>
       ))}
 
-      {!editingProduct && currentModelEntries.length < phoneQuantity && (
+      {(editingProduct || currentModelEntries.length < phoneQuantity) && (
       <div className="grid-cols-2" style={{ marginBottom: '1.25rem' }}>
         <div>
           <label className="label">Color *</label>
