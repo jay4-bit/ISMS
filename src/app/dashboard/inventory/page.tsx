@@ -1041,17 +1041,22 @@ export default function InventoryPage() {
               style={{ paddingLeft: '34px', padding: '0.5rem', fontSize: '0.85rem' }}
             />
           </div>
-          <div style={{ position: 'relative', width: '150px' }}>
-            <ScanLine size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
-            <input
-              type="text"
-              className="input"
-              placeholder="Scan..."
-              value={barcodeInput}
-              onChange={(e) => setBarcodeInput(e.target.value)}
-              onKeyDown={handleBarcodeScan}
-              style={{ paddingLeft: '34px', padding: '0.5rem', fontSize: '0.85rem' }}
-            />
+          <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+            <div style={{ position: 'relative', width: '150px' }}>
+              <ScanLine size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+              <input
+                type="text"
+                className="input"
+                placeholder="Scan..."
+                value={barcodeInput}
+                onChange={(e) => setBarcodeInput(e.target.value)}
+                onKeyDown={handleBarcodeScan}
+                style={{ paddingLeft: '34px', padding: '0.5rem', fontSize: '0.85rem' }}
+              />
+            </div>
+            <button onClick={() => setShowScanner(true)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.4rem', background: '#334155', border: '1px solid #475569', borderRadius: '0.4rem', color: '#f1f5f9', cursor: 'pointer' }} title="Scan with camera">
+              <Camera size={16} />
+            </button>
           </div>
         </div>
         {selectedProducts.length > 0 && !isReadOnly && (
@@ -1777,29 +1782,21 @@ export default function InventoryPage() {
               <button onClick={() => { setShowScanner(false); stopScanner(); }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
             </div>
             
-            <div style={{ marginBottom: '1rem' }}>
-              {!scannerActive ? (
+            <div style={{ marginBottom: '1rem', position: 'relative' }}>
+              <div id="scanner-container" style={{ width: '100%', minHeight: '200px', borderRadius: '0.5rem', overflow: 'hidden', background: '#000' }} />
+              {!scannerActive && (
                 <button 
                   onClick={startScanner}
                   style={{
-                    width: '100%',
-                    padding: '1rem',
+                    position: 'absolute', inset: 0,
                     background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-                    border: 'none',
-                    borderRadius: '0.5rem',
-                    color: 'white',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.5rem'
+                    border: 'none', borderRadius: '0.5rem',
+                    color: 'white', fontWeight: '600', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'
                   }}
                 >
                   <Camera size={20} /> Start Camera Scanner
                 </button>
-              ) : (
-                <div id="scanner-container" style={{ width: '100%', minHeight: '200px', borderRadius: '0.5rem', overflow: 'hidden', background: '#000' }} />
               )}
             </div>
             

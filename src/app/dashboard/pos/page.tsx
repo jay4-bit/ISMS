@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { ShoppingCart, Search, Trash2, CreditCard, DollarSign, Smartphone, Printer, Camera, QrCode, FileText, X, Check, ScanLine, Keyboard, Building2, User } from 'lucide-react';
+import { ShoppingCart, Search, Trash2, CreditCard, DollarSign, Smartphone, Printer, Camera, FileText, X, Check, ScanLine, Keyboard, Building2, User } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import BarcodeScanner from '@/components/BarcodeScanner';
 import { useAuth } from '@/components/AuthProvider';
 import { useSettings } from '@/context/SettingsContext';
 
@@ -82,19 +83,9 @@ export default function POSPage() {
   const [newClientData, setNewClientData] = useState({ name: '', phone: '', email: '', address: '' });
   const [customerSearch, setCustomerSearch] = useState('');
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const barcodeInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { fetchProducts(); }, []);
-
-  useEffect(() => {
-    if (showScanner) {
-      startScanner();
-    } else {
-      stopScanner();
-    }
-    return () => stopScanner();
-  }, [showScanner]);
 
   useEffect(() => {
     barcodeInputRef.current?.focus();
@@ -155,25 +146,6 @@ export default function POSPage() {
       showNotification('Client created successfully', 'success');
     } catch (error) {
       showNotification('Failed to create client', 'error');
-    }
-  }
-
-  async function startScanner() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-    } catch (err) {
-      console.error('Camera error:', err);
-      showNotification('Camera not available', 'error');
-    }
-  }
-
-  function stopScanner() {
-    if (videoRef.current?.srcObject) {
-      const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
-      tracks.forEach(track => track.stop());
     }
   }
 
@@ -782,21 +754,7 @@ export default function POSPage() {
         </div>
       </div>
 
-      {showScanner && (
-        <div style={styles.modalOverlay} onClick={() => setShowScanner(false)}>
-          <div style={styles.modal} onClick={e => e.stopPropagation()}>
-            <div style={styles.modalHeader}>
-              <h2><QrCode size={20} /> Scan Barcode</h2>
-              <button onClick={() => setShowScanner(false)} style={styles.closeBtn}><X size={20} /></button>
-            </div>
-            <div style={styles.scannerBox}>
-              <video ref={videoRef} autoPlay playsInline style={styles.video} />
-            </div>
-            <p style={styles.scanHint}>Point camera at barcode</p>
-            <button onClick={() => setShowScanner(false)} style={styles.cancelBtn}>Cancel</button>
-          </div>
-        </div>
-      )}
+      {showScanner && <BarcodeScanner onScan={handleBarcodeScan} onClose={() => setShowScanner(false)} />}
 
       {showManualEntry && (
         <div style={styles.modalOverlay} onClick={() => setShowManualEntry(false)}>
@@ -1093,9 +1051,7 @@ const styles: Record<string, React.CSSProperties> = {
   modal: { background: '#1e293b', borderRadius: '1rem', padding: '1.5rem', maxWidth: '400px', width: '90%', border: '1px solid #334155' },
   modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', color: '#f1f5f9' },
   closeBtn: { background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0.25rem' },
-  scannerBox: { position: 'relative', width: '100%', aspectRatio: '4/3', background: '#000', borderRadius: '0.5rem', overflow: 'hidden', marginBottom: '1rem' },
-  video: { width: '100%', height: '100%', objectFit: 'cover' },
-  scanHint: { textAlign: 'center', color: '#94a3b8', marginBottom: '1rem' },
+
   cancelBtn: { width: '100%', padding: '0.75rem', background: '#334155', border: 'none', borderRadius: '0.5rem', color: '#e2e8f0', fontWeight: '600', cursor: 'pointer' },
   manualForm: { display: 'flex', flexDirection: 'column', gap: '1rem' },
   inputLabel: { fontSize: '0.875rem', color: '#94a3b8' },

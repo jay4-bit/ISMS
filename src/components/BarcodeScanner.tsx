@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { X, Camera, CameraOff } from 'lucide-react';
+import { X, Camera, Loader2 } from 'lucide-react';
 
 interface BarcodeScannerProps {
   onScan: (code: string) => void;
@@ -9,12 +9,12 @@ interface BarcodeScannerProps {
 }
 
 export default function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
-  const [active, setActive] = useState(false);
-  const [error, setError] = useState('');
+  const [status, setStatus] = useState<'starting' | 'active' | 'error'>('starting');
+  const [errorMsg, setErrorMsg] = useState('');
   const scannerRef = useRef<any>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    startScanner();
     return () => {
       stopScanner();
     };
@@ -34,11 +34,22 @@ export default function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps)
         },
         () => {}
       );
-      setActive(true);
-      setError('');
-    } catch (err) {
+      setStatus('active');
+    } catch (err: any) {
+      const msg = err?.message || '';
+      if (msg.includes('NotAllowedError') || msg.includes('Permission denied')) {
+        setErrorMsg('Camera permission denied. Please allow camera access in your browser settings.');
+      } else if (msg.includes('NotFoundError')) {
+        setErrorMsg('No camera found on this device.');
+      } else if (msg.includes('NotReadableError')) {
+        setErrorMsg('Camera is being used by another application.');
+      } else if (msg.includes('Secure context')) {
+        setErrorMsg('Camera requires HTTPS (secure context). The app must be served over HTTPS or localhost.');
+      } else {
+        setErrorMsg(`Camera error: ${err?.message || 'Unknown error'}`);
+      }
+      setStatus('error');
       console.error('Scanner error:', err);
-      setError('Camera not available or permission denied');
     }
   }
 
@@ -50,7 +61,7 @@ export default function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps)
       } catch {}
       scannerRef.current = null;
     }
-    setActive(false);
+    setStatus('starting');
   }
 
   return (
@@ -62,24 +73,26 @@ export default function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps)
           <button onClick={onClose} style={styles.closeBtn}><X size={20} /></button>
         </div>
         <div style={styles.body}>
-          <div id="barcode-scanner-container" ref={containerRef} style={styles.viewfinder} />
-          {error && <div style={styles.error}>{error}</div>}
-          {!active && !error && (
-            <div style={styles.startPrompt}>
-              <CameraOff size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
-              <p style={{ color: '#94a3b8', margin: 0 }}>Click Start to open camera</p>
+          <div id="barcode-scanner-container" style={styles.viewfinder} />
+          {status !== 'active' && (
+            <div style={styles.overlayBox}>
+              {status === 'starting' && (
+                <>
+                  <Loader2 size={32} className="spin" style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
+                  <p style={{ color: '#94a3b8', margin: 0 }}>Starting camera...</p>
+                </>
+              )}
+              {status === 'error' && (
+                <p style={{ color: '#ef4444', textAlign: 'center', margin: 0 }}>{errorMsg}</p>
+              )}
             </div>
           )}
         </div>
         <div style={styles.footer}>
-          {!active ? (
-            <button onClick={startScanner} style={styles.startBtn}><Camera size={18} /> Start Camera</button>
-          ) : (
-            <button onClick={() => { stopScanner(); onClose(); }} style={styles.cancelBtn}>Cancel</button>
+          {status === 'error' && (
+            <button onClick={startScanner} style={styles.retryBtn}>Retry</button>
           )}
-          {!active && (
-            <button onClick={onClose} style={styles.cancelBtn}>Close</button>
-          )}
+          <button onClick={onClose} style={styles.cancelBtn}>Close</button>
         </div>
       </div>
     </div>
@@ -88,8 +101,8 @@ export default function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps)
 
 const styles: Record<string, React.CSSProperties> = {
   overlay: {
-    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem',
+    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem',
   },
   modal: {
     background: '#1e293b', borderRadius: '1rem', border: '1px solid #334155',
@@ -100,18 +113,17 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '1rem 1.5rem', borderBottom: '1px solid #334155', color: '#f1f5f9',
   },
   closeBtn: { marginLeft: 'auto', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' },
-  body: { padding: '1.5rem', minHeight: '200px' },
-  viewfinder: { width: '100%', height: '250px', borderRadius: '0.75rem', overflow: 'hidden', background: '#0f172a' },
-  error: { marginTop: '0.75rem', color: '#ef4444', fontSize: '0.875rem', textAlign: 'center' },
-  startPrompt: {
-    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-    height: '250px', textAlign: 'center',
+  body: { padding: '1.5rem', position: 'relative' },
+  viewfinder: { width: '100%', height: '280px', borderRadius: '0.75rem', overflow: 'hidden', background: '#0f172a' },
+  overlayBox: {
+    position: 'absolute', inset: '1.5rem', display: 'flex', flexDirection: 'column',
+    alignItems: 'center', justifyContent: 'center', textAlign: 'center',
   },
   footer: {
     display: 'flex', gap: '0.75rem', padding: '1rem 1.5rem',
     borderTop: '1px solid #334155', justifyContent: 'center',
   },
-  startBtn: {
+  retryBtn: {
     display: 'flex', alignItems: 'center', gap: '0.5rem',
     padding: '0.75rem 1.5rem', background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
     border: 'none', borderRadius: '0.5rem', color: 'white', fontWeight: '600', cursor: 'pointer',
