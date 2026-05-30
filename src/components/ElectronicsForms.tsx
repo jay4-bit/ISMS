@@ -243,7 +243,7 @@ export function ElectronicsPhoneForm({
   };
 
   return (
-    <div>
+    <div className="electronics-form">
       <div className="grid-cols-2" style={{ marginBottom: '1.25rem' }}>
         <div>
           <label className="label">Supplier *</label>
@@ -601,7 +601,7 @@ export function ElectronicsAccessoryForm({
   const needFieldsFilled = selectedSupplier && (accessoryGroup || accessoryGroupInput) && accessoryName && sellingPrice;
 
   return (
-    <div>
+    <div className="electronics-form">
       <div className="grid-cols-2" style={{ marginBottom: '1.25rem' }}>
         <div>
           <label className="label">Supplier *</label>

@@ -663,6 +663,31 @@ body {
   }
 }
 
+.electronics-form .input,
+.electronics-form select,
+.electronics-form .btn {
+  font-size: 0.85rem !important;
+}
+
+@media (max-width: 540px) {
+  .electronics-form .input,
+  .electronics-form select {
+    padding: 0.4rem 0.55rem !important;
+    font-size: 0.8rem !important;
+  }
+  .electronics-form .label {
+    font-size: 0.75rem !important;
+    margin-bottom: 0.2rem !important;
+  }
+  .electronics-form .btn {
+    padding: 0.4rem 0.75rem !important;
+    font-size: 0.75rem !important;
+  }
+  .electronics-form div[style*="marginBottom"] {
+    margin-bottom: 0.75rem !important;
+  }
+}
+
 .spin {
   animation: spin 1s linear infinite;
 }
