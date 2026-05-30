@@ -37,7 +37,7 @@ export default function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps)
       });
       await scannerRef.current.start(
         { facingMode: 'environment' },
-        { fps: 30, qrbox: { width: 360, height: 120 } },
+        { fps: 30 },
         (decodedText: string) => {
           onScan(decodedText);
           stopScanner();

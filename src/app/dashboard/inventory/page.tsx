@@ -280,7 +280,7 @@ export default function InventoryPage() {
       
       await scannerRef.current.start(
         { facingMode: 'environment' },
-        { fps: 30, qrbox: { width: 360, height: 120 } },
+        { fps: 30 },
         (decodedText: string) => {
           const product = products.find(p => p.barcode === decodedText || p.sku === decodedText);
           if (product) {
