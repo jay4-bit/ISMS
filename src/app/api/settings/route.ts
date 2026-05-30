@@ -24,8 +24,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ settings });
   } catch (error) {
-    console.error('Get settings error:', error);
-    return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 });
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Get settings error:', msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
 
