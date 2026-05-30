@@ -266,7 +266,7 @@ export default function InventoryPage() {
     if (scannerRef.current) return;
     try {
       const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import('html5-qrcode');
-      scannerRef.current = new Html5Qrcode('scanner-container', { verbose: false, formatsToSupport: [
+      scannerRef.current = new Html5Qrcode('scanner-container', { verbose: false, useBarCodeDetectorIfSupported: true, formatsToSupport: [
           Html5QrcodeSupportedFormats.EAN_13,
           Html5QrcodeSupportedFormats.EAN_8,
           Html5QrcodeSupportedFormats.UPC_A,
@@ -291,7 +291,7 @@ export default function InventoryPage() {
           if (product) {
             openModal(product);
           } else {
-            alert(`Product not found for code: ${decodedText}`);
+            alert(`Product not found for barcode: "${decodedText.trim()}"`);
           }
           stopScanner();
           setShowScanner(false);

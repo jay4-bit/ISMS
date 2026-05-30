@@ -24,7 +24,7 @@ export default function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps)
     if (scannerRef.current) return;
     try {
       const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import('html5-qrcode');
-      scannerRef.current = new Html5Qrcode('barcode-scanner-container', { verbose: false, formatsToSupport: [
+      scannerRef.current = new Html5Qrcode('barcode-scanner-container', { verbose: false, useBarCodeDetectorIfSupported: true, formatsToSupport: [
           Html5QrcodeSupportedFormats.EAN_13,
           Html5QrcodeSupportedFormats.EAN_8,
           Html5QrcodeSupportedFormats.UPC_A,

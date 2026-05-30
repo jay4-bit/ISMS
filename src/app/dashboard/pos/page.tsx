@@ -150,12 +150,13 @@ export default function POSPage() {
   }
 
   function handleBarcodeScan(code: string) {
-    const product = products.find(p => p.barcode === code || p.sku === code);
+    const trimmed = code.trim();
+    const product = products.find(p => p.barcode === trimmed || p.sku === trimmed);
     if (product) {
       addToCart(product);
       showNotification(`Added: ${product.name}`, 'success');
     } else {
-      showNotification('Product not found', 'error');
+      showNotification(`Product not found for barcode: "${trimmed}"`, 'error');
     }
     setShowScanner(false);
   }
