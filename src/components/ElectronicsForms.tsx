@@ -1,7 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, X, Check, Smartphone, Package, Trash2, UserPlus } from 'lucide-react';
+import { Plus, X, Check, Smartphone, Package, Trash2, UserPlus, Camera } from 'lucide-react';
+import BarcodeScanner from './BarcodeScanner';
+
+const scanBtnStyle: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  padding: '0.5rem', background: '#334155',
+  border: '1px solid #475569', borderRadius: '0.4rem',
+  color: '#f1f5f9', cursor: 'pointer',
+};
 
 interface Supplier {
   id: string;
@@ -62,6 +70,7 @@ export function ElectronicsPhoneForm({
   const [purchaseCost, setPurchaseCost] = useState('');
   const [sellingPrice, setSellingPrice] = useState('');
   const [wholesalePrice, setWholesalePrice] = useState('');
+  const [showScanner, setShowScanner] = useState(false);
 
   useEffect(() => {
     if (editingProduct) {
@@ -353,11 +362,15 @@ export function ElectronicsPhoneForm({
         </div>
         <div>
           <label className="label">IMEI *</label>
-          <input type="text" className="input" style={{ padding: '0.6rem' }} value={phoneImei} onChange={(e) => setPhoneImei(e.target.value)} placeholder="15-17 digit number" />
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <input type="text" className="input" style={{ flex: 1, padding: '0.6rem' }} value={phoneImei} onChange={(e) => setPhoneImei(e.target.value)} placeholder="15-17 digit number" />
+            <button type="button" onClick={() => setShowScanner(true)} style={scanBtnStyle} title="Scan barcode with camera"><Camera size={18} /></button>
+          </div>
         </div>
       </div>
       )}
 
+      {showScanner && <BarcodeScanner onScan={(code) => { setPhoneImei(code); setShowScanner(false); }} onClose={() => setShowScanner(false)} />}
       <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
         <button type="button" onClick={onCancel} className="btn btn-secondary" style={{ padding: '0.6rem 1.25rem' }}>Cancel</button>
         {editingProduct ? (
@@ -432,6 +445,8 @@ export function ElectronicsAccessoryForm({
   const [sellingPrice, setSellingPrice] = useState('');
   const [wholesalePrice, setWholesalePrice] = useState('');
   const [accessoryColor, setAccessoryColor] = useState('');
+  const [accessoryBarcode, setAccessoryBarcode] = useState('');
+  const [showScanner, setShowScanner] = useState(false);
 
   useEffect(() => {
     if (editingProduct) {
@@ -453,6 +468,7 @@ export function ElectronicsAccessoryForm({
     setAccessoryGroupInput('');
     setAccessoryName('');
     setAccessoryItems([]);
+    setAccessoryBarcode('');
     setPurchaseCost('');
     setSellingPrice('');
     setWholesalePrice('');
@@ -476,6 +492,7 @@ export function ElectronicsAccessoryForm({
             id: editingProduct.id,
             name: accessoryName,
             sku: editingProduct.sku,
+            barcode: accessoryBarcode || null,
             supplierId: selectedSupplier,
             purchaseCost: parseFloat(purchaseCost) || 0,
             sellingPrice: parseFloat(sellingPrice) || 0,
@@ -513,6 +530,7 @@ export function ElectronicsAccessoryForm({
           body: JSON.stringify({
             name: accessoryName,
             sku,
+            barcode: accessoryBarcode || null,
             supplierId: selectedSupplier,
             purchaseCost: parseFloat(purchaseCost) || 0,
             sellingPrice: parseFloat(sellingPrice) || 0,
@@ -640,6 +658,17 @@ export function ElectronicsAccessoryForm({
         </div>
       </div>
 
+      <div className="grid-cols-2" style={{ marginBottom: '1.25rem' }}>
+        <div>
+          <label className="label">Barcode</label>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <input type="text" className="input" style={{ flex: 1, padding: '0.6rem' }} value={accessoryBarcode} onChange={(e) => setAccessoryBarcode(e.target.value)} placeholder="Scan or enter barcode" />
+            <button type="button" onClick={() => setShowScanner(true)} style={scanBtnStyle} title="Scan barcode with camera"><Camera size={18} /></button>
+          </div>
+        </div>
+        <div></div>
+      </div>
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
         <div>
           <label className="label">Purchase Cost (TSh)</label>
@@ -684,6 +713,7 @@ export function ElectronicsAccessoryForm({
         </>
       )}
 
+      {showScanner && <BarcodeScanner onScan={(code) => { setAccessoryBarcode(code); setShowScanner(false); }} onClose={() => setShowScanner(false)} />}
       <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.75rem', paddingTop: '1rem', borderTop: '1px solid #334155' }}>
         <button type="button" onClick={onCancel} className="btn btn-secondary" style={{ padding: '0.6rem 1.25rem' }}>Cancel</button>
         {!editingProduct && (
