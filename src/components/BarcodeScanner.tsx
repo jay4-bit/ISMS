@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { X, Camera, Loader2 } from 'lucide-react';
+import { X, Camera, Loader2, Flashlight, FlashlightOff } from 'lucide-react';
 
 interface BarcodeScannerProps {
   onScan: (code: string) => void;
@@ -11,6 +11,8 @@ interface BarcodeScannerProps {
 export default function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const [status, setStatus] = useState<'starting' | 'active' | 'error'>('starting');
   const [errorMsg, setErrorMsg] = useState('');
+  const [torchOn, setTorchOn] = useState(false);
+  const [torchSupported, setTorchSupported] = useState(false);
   const scannerRef = useRef<any>(null);
 
   useEffect(() => {
@@ -24,7 +26,7 @@ export default function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps)
     if (scannerRef.current) return;
     try {
       const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import('html5-qrcode');
-      scannerRef.current = new Html5Qrcode('barcode-scanner-container', { verbose: false, useBarCodeDetectorIfSupported: true,         formatsToSupport: [
+      scannerRef.current = new Html5Qrcode('barcode-scanner-container', { verbose: false, useBarCodeDetectorIfSupported: true, formatsToSupport: [
           Html5QrcodeSupportedFormats.EAN_13,
           Html5QrcodeSupportedFormats.EAN_8,
           Html5QrcodeSupportedFormats.UPC_A,
@@ -50,6 +52,7 @@ export default function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps)
         () => {}
       );
       setStatus('active');
+      checkTorch();
     } catch (err: any) {
       const msg = err?.message || '';
       if (msg.includes('NotAllowedError') || msg.includes('Permission denied')) {
@@ -64,8 +67,27 @@ export default function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps)
         setErrorMsg(`Camera error: ${err?.message || 'Unknown error'}`);
       }
       setStatus('error');
-      console.error('Scanner error:', err);
     }
+  }
+
+  function checkTorch() {
+    try {
+      const caps = scannerRef.current?.getRunningTrackCameraCapabilities?.();
+      if (caps?.torchFeature?.().isSupported?.()) {
+        setTorchSupported(true);
+      }
+    } catch {}
+  }
+
+  async function toggleTorch() {
+    try {
+      const caps = scannerRef.current?.getRunningTrackCameraCapabilities?.();
+      if (caps?.torchFeature?.().isSupported?.()) {
+        const newState = !torchOn;
+        await caps.torchFeature().apply(newState);
+        setTorchOn(newState);
+      }
+    } catch {}
   }
 
   function stopScanner() {
@@ -104,6 +126,12 @@ export default function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps)
           )}
         </div>
         <div style={styles.footer}>
+          {status === 'active' && torchSupported && (
+            <button onClick={toggleTorch} style={{ ...styles.flashBtn, background: torchOn ? '#f59e0b' : '#334155' }}>
+              {torchOn ? <FlashlightOff size={18} /> : <Flashlight size={18} />}
+              {torchOn ? 'Flash Off' : 'Flash On'}
+            </button>
+          )}
           {status === 'error' && (
             <button onClick={startScanner} style={styles.retryBtn}>Retry</button>
           )}
@@ -137,6 +165,11 @@ const styles: Record<string, React.CSSProperties> = {
   footer: {
     display: 'flex', gap: '0.75rem', padding: '1rem 1.5rem',
     borderTop: '1px solid #334155', justifyContent: 'center',
+  },
+  flashBtn: {
+    display: 'flex', alignItems: 'center', gap: '0.4rem',
+    padding: '0.7rem 1.2rem', border: '1px solid #475569',
+    borderRadius: '0.5rem', color: '#f1f5f9', fontWeight: '600', cursor: 'pointer',
   },
   retryBtn: {
     display: 'flex', alignItems: 'center', gap: '0.5rem',
