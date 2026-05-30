@@ -674,6 +674,8 @@ body {
   .electronics-form select {
     padding: 0.4rem 0.55rem !important;
     font-size: 0.8rem !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
   .electronics-form .label {
     font-size: 0.75rem !important;
@@ -685,6 +687,16 @@ body {
   }
   .electronics-form div[style*="marginBottom"] {
     margin-bottom: 0.75rem !important;
+  }
+  .electronics-form div[style*="display: flex"],
+  .electronics-form div[style*="display:flex"] {
+    flex-wrap: wrap !important;
+  }
+  .electronics-form div[style*="display: flex"] > *,
+  .electronics-form div[style*="display:flex"] > * {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
   }
 }
 
