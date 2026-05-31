@@ -58,7 +58,7 @@ export default function HomePage() {
         localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem('shop', JSON.stringify(data.shop));
         localStorage.setItem('token', data.token);
-        router.push('/dashboard');
+        window.location.href = '/dashboard';
       } else {
         setError(data.error || 'Login failed');
       }
@@ -97,7 +97,7 @@ export default function HomePage() {
         localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem('shop', JSON.stringify(data.shop));
         localStorage.setItem('token', data.token);
-        router.push('/dashboard');
+        window.location.href = '/dashboard';
       } else {
         setError(data.error || 'Registration failed');
       }
