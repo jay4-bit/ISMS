@@ -37,6 +37,11 @@ export default function SalesPage() {
 
   useEffect(() => { fetchSales(); }, [shop]);
 
+  useEffect(() => {
+    const interval = setInterval(fetchSales, 15000);
+    return () => clearInterval(interval);
+  }, [shop]);
+
   function isInPeriod(dateStr: string, period: string): boolean {
     const d = new Date(dateStr);
     const now = new Date();
@@ -119,7 +124,7 @@ export default function SalesPage() {
               style={{
                 padding: '0.35rem 0.65rem', borderRadius: '0.375rem', border: '1px solid',
                 borderColor: timeFilter === opt.key ? 'var(--primary)' : 'var(--border)',
-                background: timeFilter === opt.key ? '#3b82f6' : 'transparent',
+                background: timeFilter === opt.key ? 'var(--primary)' : 'transparent',
                 color: timeFilter === opt.key ? 'white' : 'var(--muted-foreground)',
                 cursor: 'pointer', fontWeight: timeFilter === opt.key ? '600' : '400',
                 fontSize: '0.78rem', whiteSpace: 'nowrap',
@@ -141,7 +146,7 @@ export default function SalesPage() {
               style={{ paddingLeft: '34px', padding: '0.5rem', fontSize: '0.85rem' }}
             />
           </div>
-          <div style={{ padding: '0.5rem 1rem', background: '#22c55e20', borderRadius: '0.5rem' }}>
+          <div style={{ padding: '0.5rem 1rem', background: 'color-mix(in srgb, var(--success) 12.5%, transparent)', borderRadius: '0.5rem' }}>
             <span style={{ color: 'var(--success)', fontWeight: '600' }}>Total: {formatCurrency(totalSales)}</span>
           </div>
         </div>
@@ -170,22 +175,16 @@ export default function SalesPage() {
             </div>
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
-                <defs>
-                  <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#22c55e" stopOpacity={0.4} />
-                    <stop offset="100%" stopColor="#22c55e" stopOpacity={0.05} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="date" tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }} axisLine={{ stroke: 'var(--border)' }} tickLine={false} interval="preserveStartEnd" />
                 <YAxis tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : `${v}`} width={50} />
                 <Tooltip
-                  contentStyle={{ background: 'var(--card)', border: '1px solid #334155', borderRadius: '8px', fontSize: '0.8rem' }}
+                  contentStyle={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '0.8rem' }}
                   labelStyle={{ color: 'var(--muted-foreground)', fontWeight: '600', marginBottom: '4px' }}
                   formatter={(value: any) => [formatCurrency(value as number), 'Sales']}
                   labelFormatter={(label: any) => String(label)}
                 />
-                <Area type="monotone" dataKey="total" stroke="#22c55e" strokeWidth={2.5} fill="url(#salesGradient)" dot={{ fill: '#22c55e', stroke: 'var(--background)', strokeWidth: 2, r: 3.5 }} activeDot={{ fill: '#22c55e', stroke: 'var(--background)', strokeWidth: 2, r: 5 }} />
+                <Area type="monotone" dataKey="total" stroke="#22c55e" strokeWidth={2.5} fill="#22c55e" fillOpacity={0.15} dot={{ fill: '#22c55e', stroke: 'var(--background)', strokeWidth: 2, r: 3.5 }} activeDot={{ fill: '#22c55e', stroke: 'var(--background)', strokeWidth: 2, r: 5 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -222,7 +221,7 @@ export default function SalesPage() {
                   <div>{sale.items.length} item(s)</div>
                   {sale.items.map((item, i) => (
                     <div key={i} style={{ fontSize: '0.65rem', color: 'var(--foreground)', marginTop: '0.15rem' }}>
-                      {item.product.name}{item.product.electronicsFields?.imei ? <span style={{ color: '#f59e0b', fontFamily: 'monospace', marginLeft: '0.25rem' }}>IMEI: {item.product.electronicsFields.imei}</span> : null}
+                      {item.product.name}{item.product.electronicsFields?.imei ? <span style={{ color: 'var(--warning)', fontFamily: 'monospace', marginLeft: '0.25rem' }}>IMEI: {item.product.electronicsFields.imei}</span> : null}
                     </div>
                   ))}
                 </td>
@@ -232,8 +231,8 @@ export default function SalesPage() {
                 <td style={{ padding: '0.5rem', textAlign: 'center' }}>
                   <span style={{ 
                     padding: '0.2rem 0.5rem', 
-                    background: sale.saleStatus === 'COMPLETE' ? '#22c55e20' : '#f59e0b20', 
-                    color: sale.saleStatus === 'COMPLETE' ? '#22c55e' : '#f59e0b', 
+                    background: sale.saleStatus === 'COMPLETE' ? 'color-mix(in srgb, var(--success) 12.5%, transparent)' : 'color-mix(in srgb, var(--warning) 12.5%, transparent)', 
+                    color: sale.saleStatus === 'COMPLETE' ? 'var(--success)' : 'var(--warning)', 
                     borderRadius: '0.25rem', 
                     fontSize: '0.65rem', 
                     fontWeight: '600' 
@@ -305,7 +304,7 @@ export default function SalesPage() {
                   <div>
                     <div style={{ fontSize: '0.85rem' }}>{item.product.name}</div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>{item.quantity} x {formatCurrency(item.unitPrice)}</div>
-                    {item.product.electronicsFields?.imei && <div style={{ fontSize: '0.7rem', color: '#f59e0b', fontFamily: 'monospace' }}>IMEI: {item.product.electronicsFields.imei}</div>}
+                    {item.product.electronicsFields?.imei && <div style={{ fontSize: '0.7rem', color: 'var(--warning)', fontFamily: 'monospace' }}>IMEI: {item.product.electronicsFields.imei}</div>}
                   </div>
                   <div style={{ fontWeight: '600' }}>{formatCurrency(item.total)}</div>
                 </div>
@@ -327,11 +326,11 @@ export default function SalesPage() {
               </div>
               {selectedSale.isInstallment && (
                 <>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', color: '#f59e0b' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', color: 'var(--warning)' }}>
                     <span>Paid:</span>
                     <span>{formatCurrency(selectedSale.installmentPaid || 0)}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#ef4444' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--destructive)' }}>
                     <span>Due:</span>
                     <span>{formatCurrency(selectedSale.installmentDue || 0)}</span>
                   </div>

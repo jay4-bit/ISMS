@@ -28,14 +28,18 @@ import {
   PieChart,
   Calculator,
   RefreshCw,
-  PackagePlus
+  PackagePlus,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { SHOP_TYPE_CONFIG } from '@/lib/auth';
 import { useSettings } from '@/context/SettingsContext';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, shop, logout, hasPermission } = useAuth();
   const { settings } = useSettings();
+  const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
@@ -164,6 +168,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </h1>
           </div>
           <div style={styles.headerRight}>
+            <button onClick={toggleTheme} style={styles.themeBtn} title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
             <span style={styles.currencyBadge}>{shop.currencySymbol}</span>
           </div>
         </header>
@@ -343,6 +350,18 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: '0.5rem',
     fontSize: '0.75rem',
     fontWeight: '600',
+  },
+  themeBtn: {
+    background: 'transparent',
+    border: '1px solid var(--border)',
+    color: 'var(--foreground)',
+    padding: '0.4rem',
+    borderRadius: '0.5rem',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    lineHeight: 1,
   },
   content: {
     flex: 1,
