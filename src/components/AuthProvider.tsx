@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
+import { useEffect, useState, createContext, useContext, ReactNode, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { SHOP_TYPE_CONFIG } from '@/lib/auth';
+import { getDefaultPermissions } from '@/lib/permissions';
 
 interface Shop {
   id: string;
@@ -17,6 +18,14 @@ interface User {
   email: string;
   name: string;
   role: string;
+}
+
+interface RolePermission {
+  role: string;
+  module: string;
+  canRead: boolean;
+  canWrite: boolean;
+  canDelete: boolean;
 }
 
 interface AuthContextType {
@@ -41,6 +50,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [shop, setShop] = useState<Shop | null>(null);
   const [loading, setLoading] = useState(true);
+  const [permissions, setPermissions] = useState<RolePermission[]>([]);
+  const permissionsLoaded = useRef(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -66,23 +77,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
+  useEffect(() => {
+    if (!shop?.id || permissionsLoaded.current) return;
+    permissionsLoaded.current = true;
+
+    fetch(`/api/permissions?role=${user?.role || ''}`, {
+      headers: { 'x-shop-id': shop.id },
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.permissions?.length > 0) {
+          setPermissions(data.permissions);
+        }
+      })
+      .catch(() => {});
+  }, [shop?.id, user?.role]);
+
   const hasPermission = (module: string, action: 'read' | 'write' | 'delete'): boolean => {
     if (!user) return false;
     if (user.role === 'OWNER') return true;
 
-    const shopConfig = SHOP_TYPE_CONFIG[shop?.shopType || ''];
-    if (!shopConfig) return false;
+    const dynamicPerm = permissions.find(p => p.role === user.role && p.module === module);
+    if (dynamicPerm) {
+      if (action === 'read') return dynamicPerm.canRead;
+      if (action === 'write') return dynamicPerm.canWrite;
+      if (action === 'delete') return dynamicPerm.canDelete;
+    }
 
-    const allowedModules: Record<string, string[]> = {
-      PHARMACIST: ['pos', 'inventory', 'returns'],
-      MANAGER: ['dashboard', 'inventory', 'pos', 'returns', 'suppliers', 'clients', 'expenses', 'reports', 'profit-loss'],
-      CASHIER: ['pos', 'returns'],
-      WINGER: ['pos', 'inventory'],
-      ASSISTANT: ['inventory', 'pos']
-    };
+    const defaults = getDefaultPermissions(user.role);
+    const defaultPerm = defaults.find(p => p.module === module);
+    if (defaultPerm) {
+      if (action === 'read') return defaultPerm.canRead;
+      if (action === 'write') return defaultPerm.canWrite;
+      if (action === 'delete') return defaultPerm.canDelete;
+    }
 
-    const userModules = allowedModules[user.role] || [];
-    return userModules.includes(module);
+    return false;
   };
 
   const login = async (email: string, password: string, shopId?: string): Promise<{ success: boolean; error?: string }> => {
@@ -106,6 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('token', data.token);
         setUser(data.user);
         setShop(data.shop);
+        permissionsLoaded.current = false;
         return { success: true };
       }
 
@@ -122,6 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('token');
     setUser(null);
     setShop(null);
+    permissionsLoaded.current = false;
     router.push('/');
   };
 

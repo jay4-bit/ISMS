@@ -50,6 +50,7 @@ model Shop {
   purchaseOrders PurchaseOrder[]
   stockCounts StockCount[]
   settings    ShopSettings?
+  permissions Permission[]
   
   @@unique([name, shopType])
 }
@@ -586,4 +587,19 @@ model ShopSettings {
   pharmacistLicense String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+model Permission {
+  id        String   @id @default(cuid())
+  role      String
+  module    String
+  canRead   Boolean  @default(false)
+  canWrite  Boolean  @default(false)
+  canDelete Boolean  @default(false)
+  shopId    String
+  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([role, module, shopId])
 }

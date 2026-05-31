@@ -4,12 +4,14 @@ import { useEffect, useState } from 'react';
 import { 
   Settings as SettingsIcon, Building2, Phone, Mail, MapPin, DollarSign, 
   Users, UserPlus, Edit, Trash2, X, Save, Bell, Shield, Palette,
-  Check, AlertTriangle, Key, Plus, User, Sun, Moon
+  Check, AlertTriangle, Key, Plus, User, Sun, Moon, RotateCcw,
+  Eye, Lock
 } from 'lucide-react';
 import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
 import { CURRENCIES, useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/components/AuthProvider';
 import { useTheme } from '@/context/ThemeContext';
+import { MODULES } from '@/lib/permissions';
 
 interface User {
   id: string;
@@ -72,6 +74,10 @@ export default function SettingsPage() {
   const [resetUser, setResetUser] = useState<{id: string; name: string; email: string} | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  const [permSelectedRole, setPermSelectedRole] = useState('CASHIER');
+  const [permissions, setPermissions] = useState<any[]>([]);
+  const [permSaving, setPermSaving] = useState(false);
 
   useEffect(() => { if (shop?.id) fetchData(); }, [shop?.id]);
 
@@ -287,13 +293,102 @@ export default function SettingsPage() {
   ];
 
   const roles = [
-    { value: 'ADMIN', label: 'Administrator', desc: 'Full access to all features' },
-    { value: 'MANAGER', label: 'Manager', desc: 'Can manage inventory and reports' },
-    { value: 'CASHIER', label: 'Cashier', desc: 'Can process sales and returns' },
-    { value: 'ACCOUNTANT', label: 'Accountant', desc: 'Can view reports and expenses' },
-    { value: 'WINGER', label: 'Winger', desc: 'Can assist sales and inventory' },
-    { value: 'SHOP_ASSISTANT', label: 'Shop Assistant', desc: 'Can process sales and manage stock' },
+    { value: 'OWNER', label: 'Owner', desc: 'Full control of the shop', color: '#ef4444' },
+    { value: 'MANAGER', label: 'Manager', desc: 'Can manage inventory and reports', color: '#f59e0b' },
+    { value: 'CASHIER', label: 'Cashier', desc: 'Can process sales and returns', color: '#3b82f6' },
+    { value: 'PHARMACIST', label: 'Pharmacist', desc: 'For pharmacy shop type', color: '#8b5cf6' },
+    { value: 'WINGER', label: 'Winger', desc: 'Can assist sales and inventory', color: '#22c55e' },
+    { value: 'ASSISTANT', label: 'Assistant', desc: 'Can process sales and manage stock', color: '#ec4899' },
   ];
+
+  useEffect(() => {
+    if (shop?.id && permSelectedRole) fetchPermissions();
+  }, [shop?.id, permSelectedRole]);
+
+  async function fetchPermissions() {
+    try {
+      const res = await fetch(`/api/permissions?role=${permSelectedRole}`, {
+        headers: { 'x-shop-id': shop?.id || '' },
+      });
+      const data = await res.json();
+      if (data.permissions?.length > 0) {
+        setPermissions(data.permissions);
+      } else {
+        setPermissions([]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch permissions:', error);
+    }
+  }
+
+  function getPermission(moduleId: string): any {
+    return permissions.find((p: any) => p.role === permSelectedRole && p.module === moduleId) || {
+      role: permSelectedRole,
+      module: moduleId,
+      canRead: false,
+      canWrite: false,
+      canDelete: false,
+    };
+  }
+
+  function updatePermission(moduleId: string, field: string, value: boolean) {
+    setPermissions((prev: any[]) => {
+      const existing = prev.findIndex((p: any) => p.role === permSelectedRole && p.module === moduleId);
+      if (existing >= 0) {
+        const updated = [...prev];
+        updated[existing] = { ...updated[existing], [field]: value };
+        return updated;
+      } else {
+        return [...prev, { role: permSelectedRole, module: moduleId, canRead: false, canWrite: false, canDelete: false, [field]: value }];
+      }
+    });
+  }
+
+  async function savePermissions() {
+    setPermSaving(true);
+    try {
+      const rolePermissions = permissions.filter((p: any) => p.role === permSelectedRole);
+      console.log('Saving permissions:', { role: permSelectedRole, count: rolePermissions.length, data: rolePermissions });
+      const res = await fetch('/api/permissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
+        body: JSON.stringify({ role: permSelectedRole, permissions: rolePermissions }),
+      });
+      let errorMsg = 'Failed to save permissions';
+      try {
+        const data = await res.json();
+        if (data.error) errorMsg = data.error;
+      } catch {
+        const text = await res.text();
+        errorMsg = `Server error (${res.status}): ${text.substring(0, 200)}`;
+      }
+      if (res.ok) {
+        showNotification('Permissions saved successfully!', 'success');
+      } else {
+        showNotification(errorMsg, 'error');
+      }
+    } catch (error) {
+      showNotification('Failed to save permissions', 'error');
+    } finally {
+      setPermSaving(false);
+    }
+  }
+
+  async function resetRolePermissions() {
+    if (!confirm(`Reset permissions for ${roles.find(r => r.value === permSelectedRole)?.label} to defaults?`)) return;
+    try {
+      const res = await fetch(`/api/permissions?role=${permSelectedRole}`, {
+        method: 'PUT',
+        headers: { 'x-shop-id': shop?.id || '' },
+      });
+      if (res.ok) {
+        showNotification('Permissions reset to defaults', 'success');
+        setPermissions([]);
+      }
+    } catch (error) {
+      showNotification('Failed to reset permissions', 'error');
+    }
+  }
 
   if (loading) return <div style={styles.loading}>Loading...</div>;
 
@@ -491,25 +586,107 @@ export default function SettingsPage() {
             <div style={styles.sectionHeader} className="settings-section-header">
               <Shield size={20} />
               <h2>Role Permissions</h2>
-              <button 
-                onClick={() => window.location.href = '/dashboard/permissions'}
-                style={styles.addBtn}
-              >
-                <SettingsIcon size={18} /> Open Full Permissions
-              </button>
+              <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem', margin: 0 }}>
+                Configure what each role can access
+              </p>
             </div>
-            <p style={{ color: 'var(--muted-foreground)', marginBottom: '1.5rem' }}>
-              Configure what each role can access in the system. Click "Open Full Permissions" to access the full permissions management interface.
-            </p>
-            <div style={styles.rolesGrid}>
+
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
               {roles.map(role => (
-                <div key={role.value} style={{ ...styles.roleCard, border: '1px solid #475569' }}>
-                  <div style={{ ...styles.roleName, color: role.value === 'ADMIN' ? '#ef4444' : role.value === 'MANAGER' ? '#f59e0b' : '#3b82f6' }}>
-                    {role.label}
+                <button
+                  key={role.value}
+                  onClick={() => setPermSelectedRole(role.value)}
+                  style={{
+                    ...permStyles.roleBtn,
+                    borderColor: permSelectedRole === role.value ? role.color : 'var(--border)',
+                    background: permSelectedRole === role.value ? `${role.color}15` : 'transparent',
+                  }}
+                >
+                  <div style={{ ...permStyles.roleBadge, background: role.color }}>{role.label.charAt(0)}</div>
+                  <div style={permStyles.roleInfo}>
+                    <div style={permStyles.roleName}>{role.label}</div>
+                    <div style={permStyles.roleDesc}>{role.desc}</div>
                   </div>
-                  <div style={{ ...styles.roleDesc, marginTop: '0.5rem' }}>{role.desc}</div>
-                </div>
+                  {permSelectedRole === role.value && <Check size={16} color={role.color} />}
+                </button>
               ))}
+            </div>
+
+            <div style={{ border: '1px solid var(--border)', borderRadius: '0.75rem', overflow: 'hidden' }}>
+              <div style={{
+                display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '0.5rem',
+                padding: '0.75rem 1rem', background: 'var(--background)',
+                borderBottom: '1px solid var(--border)', fontWeight: '600',
+                color: 'var(--muted-foreground)', fontSize: '0.8rem'
+              }}>
+                <div>Module</div>
+                <div style={{ textAlign: 'center' }}>Read</div>
+                <div style={{ textAlign: 'center' }}>Write</div>
+                <div style={{ textAlign: 'center' }}>Delete</div>
+              </div>
+              {MODULES.map(module => {
+                const perm = getPermission(module.id);
+                return (
+                  <div key={module.id} style={{
+                    display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '0.5rem',
+                    padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)',
+                    alignItems: 'center',
+                  }}>
+                    <div>
+                      <div style={{ fontWeight: '600', color: 'var(--foreground)', fontSize: '0.9rem' }}>{module.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>{module.description}</div>
+                    </div>
+                    {(['canRead', 'canWrite', 'canDelete'] as const).map(field => (
+                      <div key={field} style={{ display: 'flex', justifyContent: 'center' }}>
+                        <label style={permStyles.checkbox}>
+                          <input
+                            type="checkbox"
+                            checked={perm[field]}
+                            onChange={(e) => updatePermission(module.id, field, e.target.checked)}
+                            style={permStyles.checkboxInput}
+                          />
+                          <span style={{
+                            ...permStyles.checkboxMark,
+                            ...(perm[field] ? permStyles.checkboxChecked : {}),
+                          }}>
+                            {perm[field] && <Check size={14} color="white" />}
+                          </span>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+              <button onClick={savePermissions} disabled={permSaving} style={permStyles.saveBtn}>
+                <Save size={18} /> {permSaving ? 'Saving...' : 'Save Permissions'}
+              </button>
+              <button onClick={resetRolePermissions} style={permStyles.resetBtn}>
+                <RotateCcw size={16} /> Reset to Defaults
+              </button>
+              <button onClick={() => {
+                MODULES.forEach(m => updatePermission(m.id, 'canRead', true));
+                MODULES.forEach(m => updatePermission(m.id, 'canWrite', true));
+                MODULES.forEach(m => updatePermission(m.id, 'canDelete', false));
+              }} style={permStyles.quickBtn}>
+                <Eye size={16} /> Read & Write
+              </button>
+              <button onClick={() => {
+                MODULES.forEach(m => updatePermission(m.id, 'canRead', true));
+                MODULES.forEach(m => updatePermission(m.id, 'canWrite', false));
+                MODULES.forEach(m => updatePermission(m.id, 'canDelete', false));
+              }} style={permStyles.quickBtn}>
+                <Eye size={16} /> Read Only
+              </button>
+              <button onClick={() => {
+                MODULES.forEach(m => updatePermission(m.id, 'canRead', false));
+                MODULES.forEach(m => updatePermission(m.id, 'canWrite', false));
+                MODULES.forEach(m => updatePermission(m.id, 'canDelete', false));
+              }} style={permStyles.quickBtn}>
+                <Lock size={16} /> No Access
+              </button>
             </div>
           </div>
         )}
@@ -912,6 +1089,21 @@ const styles: Record<string, React.CSSProperties> = {
   closeBtn: { background: 'none', border: 'none', color: 'var(--muted-foreground)', cursor: 'pointer' },
   modalBody: { display: 'flex', flexDirection: 'column', gap: '1rem' },
   submitBtn: { marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.875rem', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', border: 'none', borderRadius: '0.5rem', color: 'white', fontWeight: '600', cursor: 'pointer' },
+};
+
+const permStyles: Record<string, React.CSSProperties> = {
+  roleBtn: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1rem', borderRadius: '0.75rem', border: '2px solid', cursor: 'pointer', transition: 'all 0.2s', textAlign: 'left', flex: '1', minWidth: '180px', background: 'transparent' },
+  roleBadge: { width: '32px', height: '32px', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '700', fontSize: '1rem', flexShrink: 0 },
+  roleInfo: { flex: 1 },
+  roleName: { fontWeight: '600', color: 'var(--foreground)', fontSize: '0.9rem' },
+  roleDesc: { fontSize: '0.7rem', color: 'var(--muted-foreground)', marginTop: '0.1rem' },
+  checkbox: { position: 'relative', display: 'inline-block', width: '22px', height: '22px', cursor: 'pointer' },
+  checkboxInput: { opacity: 0, width: '22px', height: '22px', cursor: 'pointer', position: 'absolute', margin: 0 },
+  checkboxMark: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--background)', border: '2px solid var(--border)', borderRadius: '0.25rem', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  checkboxChecked: { background: 'var(--success)', border: '2px solid var(--success)' },
+  saveBtn: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.625rem 1rem', background: 'linear-gradient(135deg, #22c55e, #16a34a)', border: 'none', borderRadius: '0.5rem', color: 'white', cursor: 'pointer', fontWeight: '600' },
+  resetBtn: { display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.5rem 0.75rem', background: 'var(--secondary)', border: '1px solid #475569', borderRadius: '0.5rem', color: 'var(--foreground)', cursor: 'pointer', fontWeight: '500', fontSize: '0.85rem' },
+  quickBtn: { display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.5rem 0.75rem', background: 'var(--secondary)', border: 'none', borderRadius: '0.5rem', color: 'var(--muted-foreground)', cursor: 'pointer', fontSize: '0.8rem' },
 };
 
 function BusinessTypesSection() {
