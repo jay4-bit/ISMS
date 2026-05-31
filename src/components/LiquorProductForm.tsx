@@ -185,13 +185,13 @@ export default function LiquorProductForm({ categories, suppliers, onSubmit, ini
 
 const styles: Record<string, React.CSSProperties> = {
   form: { display: 'flex', flexDirection: 'column', gap: '1.5rem' },
-  section: { background: '#1e293b', borderRadius: '0.75rem', padding: '1.5rem', border: '1px solid #334155' },
+  section: { background: 'var(--card)', borderRadius: '0.75rem', padding: '1.5rem', border: '1px solid var(--border)' },
   sectionTitle: { fontSize: '1rem', fontWeight: '600', color: '#f1f5f9', marginBottom: '1rem' },
   row: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' },
   field: { display: 'flex', flexDirection: 'column', gap: '0.5rem' },
   label: { fontSize: '0.8rem', fontWeight: '500', color: '#94a3b8' },
-  input: { padding: '0.625rem 0.875rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '0.5rem', color: '#f1f5f9', fontSize: '0.875rem', outline: 'none', width: '100%', boxSizing: 'border-box' },
-  select: { padding: '0.625rem 0.875rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '0.5rem', color: '#f1f5f9', fontSize: '0.875rem', outline: 'none', width: '100%', boxSizing: 'border-box' },
+  input: { padding: '0.625rem 0.875rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--foreground)', fontSize: '0.875rem', outline: 'none', width: '100%', boxSizing: 'border-box' },
+  select: { padding: '0.625rem 0.875rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--foreground)', fontSize: '0.875rem', outline: 'none', width: '100%', boxSizing: 'border-box' },
   checkboxRow: { display: 'flex', flexWrap: 'wrap', gap: '1.5rem', marginTop: '0.5rem' },
   checkbox: { display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#e2e8f0', cursor: 'pointer' },
   submitButton: { padding: '0.875rem 1.5rem', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', border: 'none', borderRadius: '0.5rem', color: 'white', fontSize: '1rem', fontWeight: '600', cursor: 'pointer', marginTop: '0.5rem' },

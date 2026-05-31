@@ -17,13 +17,13 @@ interface Expense {
 
 const EXPENSE_CATEGORIES = [
   { value: 'RENT', label: 'Rent', color: '#8b5cf6' },
-  { value: 'UTILITIES', label: 'Utilities', color: '#3b82f6' },
-  { value: 'SALARIES', label: 'Salaries', color: '#22c55e' },
-  { value: 'SUPPLIES', label: 'Supplies', color: '#f59e0b' },
-  { value: 'MAINTENANCE', label: 'Maintenance', color: '#ef4444' },
+  { value: 'UTILITIES', label: 'Utilities', color: 'var(--primary)' },
+  { value: 'SALARIES', label: 'Salaries', color: 'var(--success)' },
+  { value: 'SUPPLIES', label: 'Supplies', color: 'var(--warning)' },
+  { value: 'MAINTENANCE', label: 'Maintenance', color: 'var(--destructive)' },
   { value: 'MARKETING', label: 'Marketing', color: '#ec4899' },
   { value: 'TRANSPORT', label: 'Transport', color: '#06b6d4' },
-  { value: 'OTHER', label: 'Other', color: '#64748b' },
+  { value: 'OTHER', label: 'Other', color: 'var(--muted-foreground)' },
 ];
 
 export default function ExpensesPage() {
@@ -127,7 +127,7 @@ export default function ExpensesPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }} className="page-header">
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Expenses Tracking</h1>
-          <p style={{ color: '#64748b' }}>Track and categorize business expenses</p>
+          <p style={{ color: 'var(--muted-foreground)' }}>Track and categorize business expenses</p>
         </div>
         <button onClick={() => openModal()} className="btn btn-primary">
           <Plus size={18} /> Add Expense
@@ -223,7 +223,7 @@ export default function ExpensesPage() {
                     </td>
                     <td>{expense.description}</td>
                     <td>{expense.reference || '-'}</td>
-                    <td style={{ fontWeight: '600', color: '#ef4444' }}>{formatCurr(expense.amount)}</td>
+                    <td style={{ fontWeight: '600', color: 'var(--destructive)' }}>{formatCurr(expense.amount)}</td>
                     <td>
                       <div style={{ display: 'flex', gap: '0.25rem' }}>
                         <button onClick={() => openModal(expense)} className="btn btn-secondary" style={{ padding: '0.25rem' }}><Edit size={14} /></button>
@@ -239,7 +239,7 @@ export default function ExpensesPage() {
       </div>
 
       {filteredExpenses.length === 0 && (
-        <div className="card" style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+        <div className="card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--muted-foreground)' }}>
           <DollarSign size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
           <p>No expenses recorded yet.</p>
         </div>

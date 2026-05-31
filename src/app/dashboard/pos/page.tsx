@@ -452,16 +452,16 @@ export default function POSPage() {
     <div style={styles.container}>
       <style>{`
         .cart-scroll::-webkit-scrollbar { width: 8px; }
-        .cart-scroll::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
-        .cart-scroll::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-        .cart-scroll::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        .cart-scroll::-webkit-scrollbar-track { background: var(--card); border-radius: 4px; }
+        .cart-scroll::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 4px; }
+        .cart-scroll::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
         .cart-items-scroll::-webkit-scrollbar { width: 8px; }
-        .cart-items-scroll::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
-        .cart-items-scroll::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-        .cart-items-scroll::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        .cart-items-scroll::-webkit-scrollbar-track { background: var(--card); border-radius: 4px; }
+        .cart-items-scroll::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 4px; }
+        .cart-items-scroll::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
       `}</style>
       {notification && (
-        <div style={{ ...styles.notification, background: notification.type === 'success' ? '#22c55e' : '#ef4444' }}>
+        <div style={{ ...styles.notification, background: notification.type === 'success' ? 'var(--success)' : 'var(--destructive)' }}>
           {notification.message}
         </div>
       )}
@@ -530,7 +530,7 @@ export default function POSPage() {
                 <div style={styles.productName}>{product.name}</div>
                 <div style={styles.productSku}>{product.sku}</div>
                 {product.electronicsFields?.imei && (
-                  <div style={{ fontSize: '0.65rem', color: '#f59e0b', marginBottom: '0.5rem', fontFamily: 'monospace' }}>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--warning)', marginBottom: '0.5rem', fontFamily: 'monospace' }}>
                     IMEI: {product.electronicsFields.imei}
                   </div>
                 )}
@@ -581,7 +581,7 @@ export default function POSPage() {
                     <div style={styles.itemInfo}>
                       <div style={styles.itemName}>{item.product.name}</div>
                       {item.product.electronicsFields?.imei && (
-                        <div style={{ fontSize: '0.6rem', color: '#f59e0b', fontFamily: 'monospace' }}>
+                        <div style={{ fontSize: '0.6rem', color: 'var(--warning)', fontFamily: 'monospace' }}>
                           IMEI: {item.product.electronicsFields.imei}
                         </div>
                       )}
@@ -662,10 +662,10 @@ export default function POSPage() {
                       justifyContent: 'center',
                       gap: '0.5rem',
                       padding: '0.75rem',
-                      background: selectedClient ? '#22c55e' : '#1e293b',
-                      border: `1px solid ${selectedClient ? '#22c55e' : '#334155'}`,
+                      background: selectedClient ? 'var(--success)' : 'var(--card)',
+                      border: `1px solid ${selectedClient ? 'var(--success)' : 'var(--border)'}`,
                       borderRadius: '0.5rem',
-                      color: selectedClient ? 'white' : '#94a3b8',
+                      color: selectedClient ? 'white' : 'var(--muted-foreground)',
                       cursor: 'pointer',
                       fontWeight: '600'
                     }}
@@ -721,11 +721,11 @@ export default function POSPage() {
                         <span>Total:</span>
                         <span style={{ fontWeight: '700' }}>{formatCurrency(total)}</span>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#22c55e' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--success)' }}>
                         <span>Paid:</span>
                         <span style={{ fontWeight: '700' }}>{formatCurrency(parseFloat(cashReceived) || 0)}</span>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #f59e0b', paddingTop: '0.5rem', color: '#f59e0b' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #f59e0b', paddingTop: '0.5rem', color: 'var(--warning)' }}>
                         <span style={{ fontWeight: '700' }}>Balance Due:</span>
                         <span style={{ fontWeight: '700', fontSize: '1.1rem' }}>{formatCurrency(total - (parseFloat(cashReceived) || 0))}</span>
                       </div>
@@ -810,7 +810,7 @@ export default function POSPage() {
             </div>
             <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem' }}>
               {clients.length === 0 ? (
-                <p style={{ color: '#64748b', textAlign: 'center', padding: '2rem' }}>No customers found</p>
+                <p style={{ color: 'var(--muted-foreground)', textAlign: 'center', padding: '2rem' }}>No customers found</p>
               ) : (
                 clients.filter(c => !customerSearch || c.name.toLowerCase().includes(customerSearch.toLowerCase()) || (c.phone && c.phone.includes(customerSearch))).slice(0, 10).map(client => (
                   <div
@@ -823,15 +823,15 @@ export default function POSPage() {
                     }}
                     style={{
                       padding: '0.75rem',
-                      background: selectedClient?.id === client.id ? '#3b82f6' : '#1e293b',
+                      background: selectedClient?.id === client.id ? 'var(--primary)' : 'var(--card)',
                       borderRadius: '0.5rem',
                       marginBottom: '0.5rem',
                       cursor: 'pointer',
-                      border: '1px solid #334155'
+                      border: '1px solid var(--border)'
                     }}
                   >
-                    <div style={{ fontWeight: '600', color: '#f1f5f9' }}>{client.name}</div>
-                    {client.phone && <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{client.phone}</div>}
+                    <div style={{ fontWeight: '600', color: 'var(--foreground)' }}>{client.name}</div>
+                    {client.phone && <div style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>{client.phone}</div>}
                   </div>
                 ))
               )}
@@ -906,15 +906,15 @@ export default function POSPage() {
               <p style={styles.receiptNum}>#{lastSale.receiptNumber}</p>
             </div>
             
-            <div style={{ background: '#0f172a', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
+            <div style={{ background: 'var(--background)', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1rem' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
-                <div style={{ padding: '0.75rem', background: '#1e293b', borderRadius: '0.5rem', textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Sale Type</div>
+                <div style={{ padding: '0.75rem', background: 'var(--card)', borderRadius: '0.5rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>Sale Type</div>
                   <div style={{ fontWeight: '700', color: lastSale.saleType === 'WHOLESALE' ? '#8b5cf6' : '#3b82f6' }}>{lastSale.saleType}</div>
                 </div>
-                <div style={{ padding: '0.75rem', background: '#1e293b', borderRadius: '0.5rem', textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Payment</div>
-                  <div style={{ fontWeight: '700', color: '#22c55e' }}>{lastSale.paymentMethod}</div>
+                <div style={{ padding: '0.75rem', background: 'var(--card)', borderRadius: '0.5rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>Payment</div>
+                  <div style={{ fontWeight: '700', color: 'var(--success)' }}>{lastSale.paymentMethod}</div>
                 </div>
               </div>
               
@@ -938,17 +938,17 @@ export default function POSPage() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                     <div>
-                      <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Paid Now</div>
-                      <div style={{ fontWeight: '700', color: '#22c55e' }}>{formatCurrency(lastSale.installmentPaid || 0)}</div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--muted-foreground)' }}>Paid Now</div>
+                      <div style={{ fontWeight: '700', color: 'var(--success)' }}>{formatCurrency(lastSale.installmentPaid || 0)}</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Remaining</div>
-                      <div style={{ fontWeight: '700', color: '#f59e0b' }}>{formatCurrency(lastSale.installmentDue || 0)}</div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--muted-foreground)' }}>Remaining</div>
+                      <div style={{ fontWeight: '700', color: 'var(--warning)' }}>{formatCurrency(lastSale.installmentDue || 0)}</div>
                     </div>
                   </div>
                   {lastSale.customerName && (
                     <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #334155' }}>
-                      <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Customer: {lastSale.customerName} {lastSale.customerPhone && `(${lastSale.customerPhone})`}</div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--muted-foreground)' }}>Customer: {lastSale.customerName} {lastSale.customerPhone && `(${lastSale.customerPhone})`}</div>
                     </div>
                   )}
                 </div>
@@ -969,8 +969,8 @@ export default function POSPage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container: { minHeight: '100vh', background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', padding: '1.5rem', color: '#e2e8f0' },
-  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontSize: '1.25rem', color: '#64748b' },
+  container: { minHeight: '100vh', background: 'var(--background)', padding: '1.5rem', color: 'var(--foreground)' },
+  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontSize: '1.25rem', color: 'var(--muted-foreground)' },
   notification: { 
     position: 'fixed', 
     top: '1rem', 
@@ -986,87 +986,87 @@ const styles: Record<string, React.CSSProperties> = {
     maxWidth: '400px',
   },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' },
-  title: { fontSize: '1.75rem', fontWeight: '700', color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: '0.75rem' },
-  subtitle: { color: '#94a3b8', fontSize: '0.875rem' },
+  title: { fontSize: '1.75rem', fontWeight: '700', color: 'var(--foreground)', display: 'flex', alignItems: 'center', gap: '0.75rem' },
+  subtitle: { color: 'var(--muted-foreground)', fontSize: '0.875rem' },
   headerActions: { display: 'flex', gap: '0.75rem' },
   scanBtn: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', border: 'none', borderRadius: '0.5rem', color: 'white', fontWeight: '600', cursor: 'pointer' },
   mainGrid: { display: 'grid', gridTemplateColumns: '1fr 420px', gap: '1.5rem' },
   productsSection: { display: 'flex', flexDirection: 'column', gap: '1rem' },
   searchBar: { display: 'flex', gap: '0.75rem' },
   searchWrapper: { flex: 1, position: 'relative' },
-  searchIcon: { position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' },
-  searchInput: { width: '100%', padding: '0.875rem 1rem 0.875rem 44px', background: '#1e293b', border: '1px solid #334155', borderRadius: '0.5rem', color: '#e2e8f0', fontSize: '1rem' },
-  manualBtn: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.875rem 1.25rem', background: '#334155', border: 'none', borderRadius: '0.5rem', color: '#e2e8f0', fontWeight: '600', cursor: 'pointer' },
+  searchIcon: { position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-foreground)' },
+  searchInput: { width: '100%', padding: '0.875rem 1rem 0.875rem 44px', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--foreground)', fontSize: '1rem' },
+  manualBtn: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.875rem 1.25rem', background: 'var(--secondary)', border: 'none', borderRadius: '0.5rem', color: 'var(--foreground)', fontWeight: '600', cursor: 'pointer' },
   saleTypeToggle: { display: 'flex', gap: '0.5rem' },
-  typeBtn: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.75rem', background: '#1e293b', border: '1px solid #334155', borderRadius: '0.5rem', color: '#94a3b8', fontWeight: '600', cursor: 'pointer' },
+  typeBtn: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.75rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--muted-foreground)', fontWeight: '600', cursor: 'pointer' },
   typeBtnActive: { background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)', border: '1px solid #8b5cf6', color: 'white' },
   productsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem' },
-  productCard: { background: 'linear-gradient(145deg, #1e293b, #334155)', border: '1px solid #475569', borderRadius: '0.75rem', padding: '1rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 6px rgba(0,0,0,0.3)', position: 'relative' },
-  productName: { fontWeight: '600', fontSize: '0.95rem', marginBottom: '0.25rem', color: '#f1f5f9' },
-  productSku: { fontSize: '0.75rem', color: '#64748b', marginBottom: '0.75rem' },
+  productCard: { background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.75rem', padding: '1rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', position: 'relative' },
+  productName: { fontWeight: '600', fontSize: '0.95rem', marginBottom: '0.25rem', color: 'var(--foreground)' },
+  productSku: { fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '0.75rem' },
   productFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  productPrice: { fontWeight: '700', fontSize: '1.1rem', color: '#22c55e' },
-  productStock: { fontSize: '0.75rem', color: '#94a3b8' },
-  wholesaleBadge: { position: 'absolute', top: '0.5rem', right: '0.5rem', background: '#8b5cf6', color: 'white', fontSize: '0.65rem', padding: '0.125rem 0.5rem', borderRadius: '1rem', fontWeight: '600' },
-  wsLabel: { fontSize: '0.7rem', color: '#8b5cf6', marginLeft: '0.25rem' },
-  cartSection: { background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)', borderRadius: '1rem', border: '1px solid #334155', padding: '1.25rem', minHeight: '600px', display: 'flex', flexDirection: 'column', position: 'sticky', top: '1.5rem' },
-  cartHeader: { display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid #334155' },
+  productPrice: { fontWeight: '700', fontSize: '1.1rem', color: 'var(--success)' },
+  productStock: { fontSize: '0.75rem', color: 'var(--muted-foreground)' },
+  wholesaleBadge: { position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'var(--primary)', color: 'white', fontSize: '0.65rem', padding: '0.125rem 0.5rem', borderRadius: '1rem', fontWeight: '600' },
+  wsLabel: { fontSize: '0.7rem', color: 'var(--primary)', marginLeft: '0.25rem' },
+  cartSection: { background: 'var(--card)', borderRadius: '1rem', border: '1px solid var(--border)', padding: '1.25rem', minHeight: '600px', display: 'flex', flexDirection: 'column', position: 'sticky', top: '1.5rem' },
+  cartHeader: { display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border)' },
   cartTitle: { fontSize: '1.125rem', fontWeight: '600', flex: 1 },
   cartBadge: { background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: '600' },
-  emptyCart: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3rem', color: '#64748b', textAlign: 'center' },
-  cartListHeader: { display: 'grid', gridTemplateColumns: '30px 1fr 70px 70px 30px', gap: '0.5rem', padding: '0.5rem', background: '#0f172a', borderRadius: '0.5rem', marginBottom: '0.5rem', fontSize: '0.7rem', fontWeight: '600', color: '#64748b', textTransform: 'uppercase' },
+  emptyCart: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3rem', color: 'var(--muted-foreground)', textAlign: 'center' },
+  cartListHeader: { display: 'grid', gridTemplateColumns: '30px 1fr 70px 70px 30px', gap: '0.5rem', padding: '0.5rem', background: 'var(--background)', borderRadius: '0.5rem', marginBottom: '0.5rem', fontSize: '0.7rem', fontWeight: '600', color: 'var(--muted-foreground)', textTransform: 'uppercase' },
   cartItemsContainer: { flex: 1, minHeight: '100px', maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' },
-  cartItemBox: { display: 'grid', gridTemplateColumns: '30px 1fr 70px 70px 30px', gap: '0.5rem', alignItems: 'center', padding: '0.6rem', background: '#1e293b', borderRadius: '0.5rem', border: '1px solid #334155' },
-  itemNumber: { width: '24px', height: '24px', background: '#334155', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: '600', color: '#94a3b8' },
+  cartItemBox: { display: 'grid', gridTemplateColumns: '30px 1fr 70px 70px 30px', gap: '0.5rem', alignItems: 'center', padding: '0.6rem', background: 'var(--card)', borderRadius: '0.5rem', border: '1px solid var(--border)' },
+  itemNumber: { width: '24px', height: '24px', background: 'var(--secondary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: '600', color: 'var(--muted-foreground)' },
   itemInfo: { minWidth: 0 },
-  itemName: { fontWeight: '600', fontSize: '0.85rem', color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-  itemPrice: { fontSize: '0.7rem', color: '#94a3b8', marginTop: '0.2rem' },
+  itemName: { fontWeight: '600', fontSize: '0.85rem', color: 'var(--foreground)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  itemPrice: { fontSize: '0.7rem', color: 'var(--muted-foreground)', marginTop: '0.2rem' },
   itemQty: { display: 'flex', alignItems: 'center', gap: '0.25rem' },
-  btnMinus: { width: '22px', height: '22px', background: '#ef4444', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer', fontWeight: 'bold' },
+  btnMinus: { width: '22px', height: '22px', background: 'var(--destructive)', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer', fontWeight: 'bold' },
   qtyNum: { width: '20px', textAlign: 'center', fontWeight: '600', fontSize: '0.85rem' },
-  btnPlus: { width: '22px', height: '22px', background: '#22c55e', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer', fontWeight: 'bold' },
-  itemTotal: { fontWeight: '700', color: '#22c55e', fontSize: '0.85rem', textAlign: 'right' },
-  btnRemove: { width: '22px', height: '22px', background: 'transparent', border: '1px solid #ef4444', borderRadius: '0.25rem', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem' },
-  cartSummary: { borderTop: '2px solid #334155', paddingTop: '1rem', flexShrink: 0 },
-  summaryRow: { display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: '#94a3b8' },
-  discountInput: { width: '80px', padding: '0.25rem 0.5rem', background: '#1e293b', border: '1px solid #334155', borderRadius: '0.25rem', color: '#e2e8f0', textAlign: 'right' },
-  totalRow: { display: 'flex', justifyContent: 'space-between', fontSize: '1.25rem', fontWeight: '700', marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #334155' },
-  totalAmount: { color: '#22c55e', fontWeight: '700' },
+  btnPlus: { width: '22px', height: '22px', background: 'var(--success)', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer', fontWeight: 'bold' },
+  itemTotal: { fontWeight: '700', color: 'var(--success)', fontSize: '0.85rem', textAlign: 'right' },
+  btnRemove: { width: '22px', height: '22px', background: 'transparent', border: '1px solid #ef4444', borderRadius: '0.25rem', color: 'var(--destructive)', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem' },
+  cartSummary: { borderTop: '2px solid var(--border)', paddingTop: '1rem', flexShrink: 0 },
+  summaryRow: { display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: 'var(--muted-foreground)' },
+  discountInput: { width: '80px', padding: '0.25rem 0.5rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.25rem', color: 'var(--foreground)', textAlign: 'right' },
+  totalRow: { display: 'flex', justifyContent: 'space-between', fontSize: '1.25rem', fontWeight: '700', marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)' },
+  totalAmount: { color: 'var(--success)', fontWeight: '700' },
   paymentMethods: { marginTop: '1rem' },
-  paymentLabel: { display: 'block', fontSize: '0.875rem', color: '#94a3b8', marginBottom: '0.5rem' },
+  paymentLabel: { display: 'block', fontSize: '0.875rem', color: 'var(--muted-foreground)', marginBottom: '0.5rem' },
   paymentBtns: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' },
-  paymentBtn: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem', padding: '0.625rem', background: '#1e293b', border: '1px solid #334155', borderRadius: '0.5rem', color: '#94a3b8', cursor: 'pointer', fontSize: '0.8rem' },
+  paymentBtn: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem', padding: '0.625rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--muted-foreground)', cursor: 'pointer', fontSize: '0.8rem' },
   paymentBtnActive: { background: 'linear-gradient(135deg, #3b82f6, #2563eb)', border: '1px solid #3b82f6', color: 'white' },
-  creditSection: { marginTop: '1rem', padding: '1rem', background: 'linear-gradient(135deg, #1e1b4b, #312e81)', borderRadius: '0.75rem', border: '2px solid #8b5cf6' },
-  creditTitle: { fontWeight: '700', color: '#a78bfa', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' },
-  creditInput: { width: '100%', padding: '0.75rem', background: '#1e293b', border: '1px solid #475569', borderRadius: '0.5rem', color: '#e2e8f0', fontSize: '0.9rem' },
-  fieldLabel: { display: 'block', fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.35rem', fontWeight: '500' },
+  creditSection: { marginTop: '1rem', padding: '1rem', background: 'var(--card)', borderRadius: '0.75rem', border: '2px solid var(--primary)' },
+  creditTitle: { fontWeight: '700', color: 'var(--primary)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' },
+  creditInput: { width: '100%', padding: '0.75rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--foreground)', fontSize: '0.9rem' },
+  fieldLabel: { display: 'block', fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '0.35rem', fontWeight: '500' },
   creditDue: { marginTop: '0.75rem', padding: '0.75rem', background: 'rgba(245, 158, 11, 0.15)', borderRadius: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' },
-  cashInput: { marginTop: '1rem', padding: '1rem', background: '#0f172a', borderRadius: '0.5rem' },
-  cashLabel: { display: 'block', fontSize: '0.875rem', color: '#94a3b8', marginBottom: '0.5rem' },
-  cashField: { width: '100%', padding: '0.75rem', background: '#1e293b', border: '1px solid #334155', borderRadius: '0.5rem', color: '#e2e8f0', fontSize: '1.1rem', fontWeight: '600' },
-  changeDisplay: { marginTop: '0.5rem', fontSize: '0.875rem', color: '#22c55e' },
+  cashInput: { marginTop: '1rem', padding: '1rem', background: 'var(--background)', borderRadius: '0.5rem' },
+  cashLabel: { display: 'block', fontSize: '0.875rem', color: 'var(--muted-foreground)', marginBottom: '0.5rem' },
+  cashField: { width: '100%', padding: '0.75rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--foreground)', fontSize: '1.1rem', fontWeight: '600' },
+  changeDisplay: { marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--success)' },
   changeAmount: { fontWeight: '700', fontSize: '1.1rem' },
   completeBtn: { width: '100%', marginTop: '1rem', padding: '1rem', background: 'linear-gradient(135deg, #22c55e, #16a34a)', border: 'none', borderRadius: '0.5rem', color: 'white', fontSize: '1.1rem', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' },
-  quoteBtn: { width: '100%', marginTop: '0.5rem', padding: '0.75rem', background: 'transparent', border: '1px solid #3b82f6', borderRadius: '0.5rem', color: '#3b82f6', fontSize: '0.9rem', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' },
+  quoteBtn: { width: '100%', marginTop: '0.5rem', padding: '0.75rem', background: 'transparent', border: '1px solid var(--primary)', borderRadius: '0.5rem', color: 'var(--primary)', fontSize: '0.9rem', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' },
   modalOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 },
-  modal: { background: '#1e293b', borderRadius: '1rem', padding: '1.5rem', maxWidth: '400px', width: '90%', border: '1px solid #334155' },
-  modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', color: '#f1f5f9' },
-  closeBtn: { background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0.25rem' },
+  modal: { background: 'var(--card)', borderRadius: '1rem', padding: '1.5rem', maxWidth: '400px', width: '90%', border: '1px solid var(--border)' },
+  modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', color: 'var(--foreground)' },
+  closeBtn: { background: 'none', border: 'none', color: 'var(--muted-foreground)', cursor: 'pointer', padding: '0.25rem' },
 
-  cancelBtn: { width: '100%', padding: '0.75rem', background: '#334155', border: 'none', borderRadius: '0.5rem', color: '#e2e8f0', fontWeight: '600', cursor: 'pointer' },
+  cancelBtn: { width: '100%', padding: '0.75rem', background: 'var(--secondary)', border: 'none', borderRadius: '0.5rem', color: 'var(--foreground)', fontWeight: '600', cursor: 'pointer' },
   manualForm: { display: 'flex', flexDirection: 'column', gap: '1rem' },
-  inputLabel: { fontSize: '0.875rem', color: '#94a3b8' },
-  inputField: { padding: '0.75rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '0.5rem', color: '#e2e8f0', fontSize: '1rem' },
+  inputLabel: { fontSize: '0.875rem', color: 'var(--muted-foreground)' },
+  inputField: { padding: '0.75rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--foreground)', fontSize: '1rem' },
   submitBtn: { padding: '0.875rem', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', border: 'none', borderRadius: '0.5rem', color: 'white', fontWeight: '600', cursor: 'pointer' },
-  receiptModal: { background: '#1e293b', borderRadius: '1rem', padding: '2rem', maxWidth: '450px', width: '90%', border: '1px solid #334155', textAlign: 'center' },
+  receiptModal: { background: 'var(--card)', borderRadius: '1rem', padding: '2rem', maxWidth: '450px', width: '90%', border: '1px solid var(--border)', textAlign: 'center' },
   receiptSuccess: { marginBottom: '1.5rem' },
-  receiptNum: { color: '#94a3b8', marginTop: '0.5rem' },
-  receiptItems: { background: '#0f172a', borderRadius: '0.5rem', padding: '1rem', marginBottom: '1.5rem', textAlign: 'left' },
-  receiptItem: { display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid #334155', fontSize: '0.9rem' },
+  receiptNum: { color: 'var(--muted-foreground)', marginTop: '0.5rem' },
+  receiptItems: { background: 'var(--background)', borderRadius: '0.5rem', padding: '1rem', marginBottom: '1.5rem', textAlign: 'left' },
+  receiptItem: { display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--border)', fontSize: '0.9rem' },
   receiptTotal: { display: 'flex', justifyContent: 'space-between', paddingTop: '0.75rem', fontWeight: '700', fontSize: '1.1rem' },
-  receiptInstallment: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', paddingTop: '0.75rem', fontSize: '0.875rem', color: '#f59e0b' },
+  receiptInstallment: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', paddingTop: '0.75rem', fontSize: '0.875rem', color: 'var(--warning)' },
   receiptActions: { display: 'flex', flexDirection: 'column', gap: '0.75rem' },
   printBtn: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.875rem', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', border: 'none', borderRadius: '0.5rem', color: 'white', fontWeight: '600', cursor: 'pointer' },
-  doneBtn: { padding: '0.875rem', background: '#334155', border: 'none', borderRadius: '0.5rem', color: '#e2e8f0', fontWeight: '600', cursor: 'pointer' },
+  doneBtn: { padding: '0.875rem', background: 'var(--secondary)', border: 'none', borderRadius: '0.5rem', color: 'var(--foreground)', fontWeight: '600', cursor: 'pointer' },
 };

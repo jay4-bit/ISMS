@@ -122,7 +122,7 @@ export default function OrdersPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Order Management</h1>
-          <p style={{ color: '#64748b', fontSize: '0.85rem' }}>Track and manage orders</p>
+          <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>Track and manage orders</p>
         </div>
         <button onClick={fetchSales} className="btn btn-secondary" style={{ padding: '0.4rem 0.75rem' }}>
           <RefreshCw size={16} /> Refresh
@@ -132,7 +132,7 @@ export default function OrdersPage() {
       <div className="card" style={{ marginBottom: '1rem', padding: '0.75rem' }}>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
-            <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+            <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-foreground)' }} />
             <input
               type="text"
               className="input"
@@ -166,14 +166,14 @@ export default function OrdersPage() {
       <div className="card" style={{ padding: 0, overflow: 'auto' }}>
         <table className="table" style={{ fontSize: '0.8rem', width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ background: '#1e293b' }}>
-              <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>RECEIPT</th>
-              <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>DATE</th>
-              <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>CUSTOMER</th>
-              <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>TOTAL</th>
-              <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>ORDER STATUS</th>
-              <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>SHIPPING</th>
-              <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>ACTIONS</th>
+            <tr style={{ background: 'var(--card)' }}>
+              <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>RECEIPT</th>
+              <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>DATE</th>
+              <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>CUSTOMER</th>
+              <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>TOTAL</th>
+              <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>ORDER STATUS</th>
+              <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>SHIPPING</th>
+              <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>ACTIONS</th>
             </tr>
           </thead>
           <tbody>
@@ -182,16 +182,16 @@ export default function OrdersPage() {
               const shippingStatus = getStatusInfo(sale.shippingStatus, SHIPPING_STATUSES);
               
               return (
-                <tr key={sale.id} style={{ background: index % 2 === 0 ? '#1e293b' : '#0f172a' }}>
+                <tr key={sale.id} style={{ background: index % 2 === 0 ? 'var(--card)' : 'var(--background)' }}>
                   <td style={{ padding: '0.5rem' }}>
-                    <div style={{ fontWeight: '600', color: '#f1f5f9', fontSize: '0.75rem' }}>{sale.receiptNumber}</div>
+                    <div style={{ fontWeight: '600', color: 'var(--foreground)', fontSize: '0.75rem' }}>{sale.receiptNumber}</div>
                   </td>
-                  <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>
+                  <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>
                     {formatDate(sale.createdAt)}
                   </td>
                   <td style={{ padding: '0.5rem' }}>
-                    <div style={{ color: '#f1f5f9', fontSize: '0.75rem' }}>{sale.customerName || '-'}</div>
-                    {sale.customerPhone && <div style={{ color: '#64748b', fontSize: '0.7rem' }}>{sale.customerPhone}</div>}
+                    <div style={{ color: 'var(--foreground)', fontSize: '0.75rem' }}>{sale.customerName || '-'}</div>
+                    {sale.customerPhone && <div style={{ color: 'var(--muted-foreground)', fontSize: '0.7rem' }}>{sale.customerPhone}</div>}
                   </td>
                   <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: '#22c55e', fontSize: '0.75rem' }}>
                     {formatCurrency(sale.total)}
@@ -235,7 +235,7 @@ export default function OrdersPage() {
         </table>
         
         {filteredSales.length === 0 && (
-          <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted-foreground)' }}>
             <Package size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
             <p>No orders found</p>
           </div>
@@ -250,27 +250,27 @@ export default function OrdersPage() {
               <button onClick={() => setShowDetails(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
             </div>
 
-            <div style={{ marginBottom: '1rem', padding: '1rem', background: '#0f172a', borderRadius: '0.5rem' }}>
+            <div style={{ marginBottom: '1rem', padding: '1rem', background: 'var(--background)', borderRadius: '0.5rem' }}>
               <div style={{ fontWeight: '600', marginBottom: '0.5rem' }}>{showDetails.receiptNumber}</div>
-              <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Created: {formatDate(showDetails.createdAt)}</div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)' }}>Created: {formatDate(showDetails.createdAt)}</div>
               {showDetails.trackingNumber && (
-                <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.25rem' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', marginTop: '0.25rem' }}>
                   Tracking: <span style={{ color: '#3b82f6' }}>{showDetails.trackingNumber}</span>
                 </div>
               )}
             </div>
 
             {showDetails.customerName && (
-              <div style={{ marginBottom: '1rem', padding: '1rem', background: '#0f172a', borderRadius: '0.5rem' }}>
+              <div style={{ marginBottom: '1rem', padding: '1rem', background: 'var(--background)', borderRadius: '0.5rem' }}>
                 <div style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Customer Information</div>
-                <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>{showDetails.customerName}</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)' }}>{showDetails.customerName}</div>
                 {showDetails.customerPhone && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#94a3b8' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--muted-foreground)' }}>
                     <Phone size={14} /> {showDetails.customerPhone}
                   </div>
                 )}
                 {showDetails.customerAddress && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--muted-foreground)', marginTop: '0.25rem' }}>
                     <MapPin size={14} /> {showDetails.customerAddress}
                   </div>
                 )}
@@ -328,10 +328,10 @@ export default function OrdersPage() {
               />
             </div>
 
-            <div style={{ marginBottom: '1.5rem', padding: '1rem', background: '#0f172a', borderRadius: '0.5rem' }}>
+            <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'var(--background)', borderRadius: '0.5rem' }}>
               <div style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Order Items</div>
               {showDetails.items.map(item => (
-                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#94a3b8', padding: '0.25rem 0' }}>
+                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--muted-foreground)', padding: '0.25rem 0' }}>
                   <span>{item.product.name} x {item.quantity}</span>
                   <span>{formatCurrency(item.total)}</span>
                 </div>

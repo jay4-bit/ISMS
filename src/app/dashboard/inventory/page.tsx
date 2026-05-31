@@ -634,7 +634,7 @@ export default function InventoryPage() {
               displayValue: true,
               fontSize: 10,
               margin: 0,
-              background: '#ffffff',
+              background: 'var(--primary-foreground)',
               lineColor: '#000000'
             });
             barcodeImg = canvas.toDataURL('image/png');
@@ -805,7 +805,7 @@ export default function InventoryPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Inventory</h1>
-          <p style={{ color: '#64748b', fontSize: '0.85rem' }}>Manage products</p>
+          <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>Manage products</p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           {!isReadOnly && (
@@ -907,13 +907,13 @@ export default function InventoryPage() {
             </>
           )}
           {isWinger && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.75rem', background: '#22c55e20', borderRadius: '0.375rem', color: '#22c55e' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.75rem', background: 'color-mix(in srgb, var(--success) 12.5%, transparent)', borderRadius: '0.375rem', color: 'var(--success)' }}>
               <Eye size={14} />
               <span style={{ fontSize: '0.75rem' }}>View Only - Wholesale</span>
             </div>
           )}
           {isCashier && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.75rem', background: '#3b82f620', borderRadius: '0.375rem', color: '#3b82f6' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.75rem', background: 'color-mix(in srgb, var(--primary) 12.5%, transparent)', borderRadius: '0.375rem', color: 'var(--primary)' }}>
               <Eye size={14} />
               <span style={{ fontSize: '0.75rem' }}>View Only</span>
             </div>
@@ -922,27 +922,27 @@ export default function InventoryPage() {
       </div>
 
       <div className="grid-cols-4" style={{ marginBottom: '1rem' }}>
-        <div className="stat-card" style={{ border: lowStockProducts.length ? '1px solid #f59e0b' : undefined }}>
+        <div className="stat-card" style={{ border: lowStockProducts.length ? '1px solid var(--warning)' : undefined }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <AlertTriangle size={20} color={lowStockProducts.length ? '#f59e0b' : '#22c55e'} />
+            <AlertTriangle size={20} color={lowStockProducts.length ? 'var(--warning)' : 'var(--success)'} />
             <div>
-              <div className="stat-value" style={{ color: lowStockProducts.length ? '#f59e0b' : undefined }}>{lowStockProducts.length}</div>
+              <div className="stat-value" style={{ color: lowStockProducts.length ? 'var(--warning)' : undefined }}>{lowStockProducts.length}</div>
               <div className="stat-label">Low Stock</div>
             </div>
           </div>
         </div>
         <div className="stat-card" style={{ border: outOfStock.length ? '1px solid #ef4444' : undefined }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Package size={20} color={outOfStock.length ? '#ef4444' : '#22c55e'} />
+            <Package size={20} color={outOfStock.length ? 'var(--destructive)' : 'var(--success)'} />
             <div>
-              <div className="stat-value" style={{ color: outOfStock.length ? '#ef4444' : undefined }}>{outOfStock.length}</div>
+              <div className="stat-value" style={{ color: outOfStock.length ? 'var(--destructive)' : undefined }}>{outOfStock.length}</div>
               <div className="stat-label">Out of Stock</div>
             </div>
           </div>
         </div>
         <div className="stat-card">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <TrendingDown size={20} color="#3b82f6" />
+            <TrendingDown size={20} color="var(--primary)" />
             <div>
               <div className="stat-value">{reorderNeeded.length}</div>
               <div className="stat-label">Reorder Needed</div>
@@ -967,8 +967,8 @@ export default function InventoryPage() {
             padding: '0.35rem 0.75rem',
             borderRadius: '0.375rem',
             border: '1px solid',
-            borderColor: selectedCategory === 'all' ? '#3b82f6' : '#334155',
-            background: selectedCategory === 'all' ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : '#1e293b',
+            borderColor: selectedCategory === 'all' ? 'var(--primary)' : 'var(--border)',
+            background: selectedCategory === 'all' ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'var(--card)',
             color: 'white',
             cursor: 'pointer',
             fontWeight: '500',
@@ -987,8 +987,8 @@ export default function InventoryPage() {
                 padding: '0.35rem 0.75rem',
                 borderRadius: '0.375rem',
                 border: '1px solid',
-                borderColor: selectedCategory === cat.id ? '#3b82f6' : '#334155',
-                background: selectedCategory === cat.id ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : '#1e293b',
+                borderColor: selectedCategory === cat.id ? 'var(--primary)' : 'var(--border)',
+                background: selectedCategory === cat.id ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'var(--card)',
                 color: 'white',
                 cursor: 'pointer',
                 fontWeight: '500',
@@ -1006,7 +1006,7 @@ export default function InventoryPage() {
             borderRadius: '0.5rem',
             border: '1px dashed #475569',
             background: 'transparent',
-            color: '#94a3b8',
+            color: 'var(--muted-foreground)',
             cursor: 'pointer',
             fontWeight: '500',
             fontSize: '0.8rem',
@@ -1017,7 +1017,7 @@ export default function InventoryPage() {
         >
           <FolderPlus size={14} /> Add
         </button>
-        <button type="button" onClick={() => setShowCategoryManageModal(true)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '0.75rem', textDecoration: 'underline', padding: '0.25rem' }}>Manage Categories</button>
+        <button type="button" onClick={() => setShowCategoryManageModal(true)} style={{ background: 'none', border: 'none', color: 'var(--muted-foreground)', cursor: 'pointer', fontSize: '0.75rem', textDecoration: 'underline', padding: '0.25rem' }}>Manage Categories</button>
       </div>
 
       {isClothing && (
@@ -1046,7 +1046,7 @@ export default function InventoryPage() {
       <div className="card" style={{ marginBottom: '0.75rem', padding: '0.75rem' }}>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <div style={{ position: 'relative', flex: 1 }}>
-            <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+            <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-foreground)' }} />
             <input
               type="text"
               className="input"
@@ -1058,7 +1058,7 @@ export default function InventoryPage() {
           </div>
           <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
             <div style={{ position: 'relative', width: '150px' }}>
-              <ScanLine size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+              <ScanLine size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-foreground)' }} />
               <input
                 type="text"
                 className="input"
@@ -1069,7 +1069,7 @@ export default function InventoryPage() {
                 style={{ paddingLeft: '34px', padding: '0.5rem', fontSize: '0.85rem' }}
               />
             </div>
-            <button onClick={() => setShowScanner(true)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.4rem', background: '#334155', border: '1px solid #475569', borderRadius: '0.4rem', color: '#f1f5f9', cursor: 'pointer' }} title="Scan with camera">
+            <button onClick={() => setShowScanner(true)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.4rem', background: 'var(--secondary)', border: '1px solid var(--border)', borderRadius: '0.4rem', color: 'var(--secondary-foreground)', cursor: 'pointer' }} title="Scan with camera">
               <Camera size={16} />
             </button>
           </div>
@@ -1093,17 +1093,17 @@ export default function InventoryPage() {
         {isPharmacy ? (
           <table className="table" style={{ fontSize: '0.8rem', width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ background: '#1e293b' }}>
-                <th style={{ minWidth: '160px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>PRODUCT</th>
-                <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>SKU</th>
-                <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>CATEGORY</th>
-                <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>BRAND</th>
-                <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>BATCH</th>
-                <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>EXPIRY</th>
-                <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>BUYING</th>
-                <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>SELLING</th>
-                <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>STOCK</th>
-                <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>ACTIONS</th>
+              <tr style={{ background: 'var(--card)' }}>
+                <th style={{ minWidth: '160px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>PRODUCT</th>
+                <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>SKU</th>
+                <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>CATEGORY</th>
+                <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>BRAND</th>
+                <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>BATCH</th>
+                <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>EXPIRY</th>
+                <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>BUYING</th>
+                <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>SELLING</th>
+                <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>STOCK</th>
+                <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>ACTIONS</th>
               </tr>
             </thead>
             <tbody>
@@ -1111,19 +1111,19 @@ export default function InventoryPage() {
                 const pf = (product as any).pharmacyFields || {};
                 const expiryDate = product.expiryDate ? new Date(product.expiryDate).toLocaleDateString() : '-';
                 return (
-                  <tr key={product.id} style={{ background: index % 2 === 0 ? '#1e293b' : '#0f172a' }}>
+                  <tr key={product.id} style={{ background: index % 2 === 0 ? 'var(--card)' : 'var(--background)' }}>
                     <td style={{ padding: '0.5rem' }}>
-                      <div style={{ fontWeight: '500', color: '#f1f5f9', fontSize: '0.8rem' }}>{product.name}</div>
+                      <div style={{ fontWeight: '500', color: 'var(--foreground)', fontSize: '0.8rem' }}>{product.name}</div>
                     </td>
-                    <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem', fontFamily: 'monospace' }}>{product.sku}</td>
-                    <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>{product.category?.name || '-'}</td>
-                    <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>{pf.brandName || '-'}</td>
-                    <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem', fontFamily: 'monospace' }}>{pf.batchNumber || '-'}</td>
-                    <td style={{ padding: '0.5rem', color: '#64748b', fontSize: '0.75rem' }}>{expiryDate}</td>
-                    <td style={{ padding: '0.5rem', textAlign: 'right', color: '#94a3b8', fontSize: '0.75rem' }}>{formatCurrency(product.purchaseCost, shop?.currency ?? 'TZS')}</td>
-                    <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: '#22c55e', fontSize: '0.75rem' }}>{formatCurrency(product.sellingPrice, shop?.currency ?? 'TZS')}</td>
+                    <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem', fontFamily: 'monospace' }}>{product.sku}</td>
+                    <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>{product.category?.name || '-'}</td>
+                    <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>{pf.brandName || '-'}</td>
+                    <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem', fontFamily: 'monospace' }}>{pf.batchNumber || '-'}</td>
+                    <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>{expiryDate}</td>
+                    <td style={{ padding: '0.5rem', textAlign: 'right', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>{formatCurrency(product.purchaseCost, shop?.currency ?? 'TZS')}</td>
+                    <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: 'var(--success)', fontSize: '0.75rem' }}>{formatCurrency(product.sellingPrice, shop?.currency ?? 'TZS')}</td>
                     <td style={{ padding: '0.5rem', textAlign: 'center' }}>
-                      <span style={{ fontWeight: '600', fontSize: '0.75rem', color: product.stockQuantity <= product.lowStockThreshold ? '#f59e0b' : product.stockQuantity === 0 ? '#ef4444' : '#f1f5f9' }}>
+                      <span style={{ fontWeight: '600', fontSize: '0.75rem', color: product.stockQuantity <= product.lowStockThreshold ? 'var(--warning)' : product.stockQuantity === 0 ? 'var(--destructive)' : 'var(--foreground)' }}>
                         {product.stockQuantity}
                       </span>
                     </td>
@@ -1132,8 +1132,8 @@ export default function InventoryPage() {
                         <button onClick={() => { setViewingProduct(product); setShowViewModal(true); }} style={{ padding: '0.3rem', background: '#64748b', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="View"><Eye size={12} /></button>
                         {!isReadOnly && (
                           <>
-                            <button onClick={() => openModal(product)} style={{ padding: '0.3rem', background: '#3b82f6', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="Edit"><Edit size={12} /></button>
-                            <button onClick={() => handleDelete(product.id)} style={{ padding: '0.3rem', background: '#ef4444', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="Delete"><Trash2 size={12} /></button>
+                            <button onClick={() => openModal(product)} style={{ padding: '0.3rem', background: 'var(--primary)', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="Edit"><Edit size={12} /></button>
+                            <button onClick={() => handleDelete(product.id)} style={{ padding: '0.3rem', background: 'var(--destructive)', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="Delete"><Trash2 size={12} /></button>
                           </>
                         )}
                       </div>
@@ -1146,28 +1146,28 @@ export default function InventoryPage() {
         ) : isLiquor ? (
           <table className="table" style={{ fontSize: '0.8rem', width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ background: '#1e293b' }}>
-                <th style={{ minWidth: '180px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>PRODUCT</th>
-                <th style={{ width: '90px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>CATEGORY</th>
-                <th style={{ width: '70px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>SIZE (ml)</th>
-                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>COST PRICE</th>
-                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>SELLING PRICE</th>
-                <th style={{ width: '60px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>STOCK</th>
-                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>ACTIONS</th>
+              <tr style={{ background: 'var(--card)' }}>
+                <th style={{ minWidth: '180px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>PRODUCT</th>
+                <th style={{ width: '90px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>CATEGORY</th>
+                <th style={{ width: '70px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>SIZE (ml)</th>
+                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>COST PRICE</th>
+                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>SELLING PRICE</th>
+                <th style={{ width: '60px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>STOCK</th>
+                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>ACTIONS</th>
               </tr>
             </thead>
             <tbody>
               {filteredProducts.map((product, index) => (
-                <tr key={product.id} style={{ background: index % 2 === 0 ? '#1e293b' : '#0f172a' }}>
+                <tr key={product.id} style={{ background: index % 2 === 0 ? 'var(--card)' : 'var(--background)' }}>
                   <td style={{ padding: '0.5rem' }}>
-                    <div style={{ fontWeight: '500', color: '#f1f5f9', fontSize: '0.8rem' }}>{product.name}</div>
+                    <div style={{ fontWeight: '500', color: 'var(--foreground)', fontSize: '0.8rem' }}>{product.name}</div>
                   </td>
-                  <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>{product.category?.name || '-'}</td>
-                  <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>{(product as any).liquorFields?.size ? `${(product as any).liquorFields.size}ml` : '-'}</td>
-                  <td style={{ padding: '0.5rem', textAlign: 'right', color: '#94a3b8', fontSize: '0.75rem' }}>{formatCurrency(product.purchaseCost, shop?.currency ?? 'TZS')}</td>
-                  <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: '#22c55e', fontSize: '0.75rem' }}>{formatCurrency(product.sellingPrice, shop?.currency ?? 'TZS')}</td>
+                  <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>{product.category?.name || '-'}</td>
+                  <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>{(product as any).liquorFields?.size ? `${(product as any).liquorFields.size}ml` : '-'}</td>
+                  <td style={{ padding: '0.5rem', textAlign: 'right', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>{formatCurrency(product.purchaseCost, shop?.currency ?? 'TZS')}</td>
+                  <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: 'var(--success)', fontSize: '0.75rem' }}>{formatCurrency(product.sellingPrice, shop?.currency ?? 'TZS')}</td>
                   <td style={{ padding: '0.5rem', textAlign: 'center' }}>
-                    <span style={{ fontWeight: '600', fontSize: '0.75rem', color: product.stockQuantity <= product.lowStockThreshold ? '#f59e0b' : product.stockQuantity === 0 ? '#ef4444' : '#f1f5f9' }}>
+                    <span style={{ fontWeight: '600', fontSize: '0.75rem', color: product.stockQuantity <= product.lowStockThreshold ? 'var(--warning)' : product.stockQuantity === 0 ? 'var(--destructive)' : 'var(--foreground)' }}>
                       {product.stockQuantity}
                     </span>
                   </td>
@@ -1176,8 +1176,8 @@ export default function InventoryPage() {
                       <button onClick={() => { setViewingProduct(product); setShowViewModal(true); }} style={{ padding: '0.3rem', background: '#64748b', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="View"><Eye size={12} /></button>
                       {!isReadOnly && (
                         <>
-                          <button onClick={() => openModal(product)} style={{ padding: '0.3rem', background: '#3b82f6', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="Edit"><Edit size={12} /></button>
-                          <button onClick={() => handleDelete(product.id)} style={{ padding: '0.3rem', background: '#ef4444', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="Delete"><Trash2 size={12} /></button>
+                          <button onClick={() => openModal(product)} style={{ padding: '0.3rem', background: 'var(--primary)', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="Edit"><Edit size={12} /></button>
+                          <button onClick={() => handleDelete(product.id)} style={{ padding: '0.3rem', background: 'var(--destructive)', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="Delete"><Trash2 size={12} /></button>
                         </>
                       )}
                     </div>
@@ -1191,7 +1191,7 @@ export default function InventoryPage() {
             <div style={{ padding: '1rem', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flex: 1 }}>
                 <div style={{ position: 'relative', minWidth: '200px' }}>
-                  <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+                  <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-foreground)' }} />
                   <input
                     type="text"
                     placeholder="Search product, IMEI, brand..."
@@ -1203,7 +1203,7 @@ export default function InventoryPage() {
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  style={{ padding: '0.5rem', background: '#1e293b', border: '1px solid #334155', borderRadius: '0.375rem', color: '#f1f5f9', fontSize: '0.85rem' }}
+                  style={{ padding: '0.5rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.375rem', color: 'var(--foreground)', fontSize: '0.85rem' }}
                 >
                   <option value="all">All Categories</option>
                   {categories.map(cat => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
@@ -1217,26 +1217,26 @@ export default function InventoryPage() {
             </div>
             <table className="table" style={{ fontSize: '0.85rem', width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ background: '#0f172a' }}>
-                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>#</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>PRODUCT</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>IMEI</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>BRAND</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>MODEL</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>COND</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>COLOR</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>STORAGE</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'right', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>COST</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'right', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>PRICE</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>STOCK</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>STATUS</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid #334155' }}>ACTIONS</th>
+                <tr style={{ background: 'var(--background)' }}>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid var(--border)' }}>#</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid var(--border)' }}>PRODUCT</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid var(--border)' }}>IMEI</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid var(--border)' }}>BRAND</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid var(--border)' }}>MODEL</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'center', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid var(--border)' }}>COND</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid var(--border)' }}>COLOR</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'center', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid var(--border)' }}>STORAGE</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'right', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid var(--border)' }}>COST</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'right', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid var(--border)' }}>PRICE</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'center', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid var(--border)' }}>STOCK</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'center', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid var(--border)' }}>STATUS</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'center', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.75rem', borderBottom: '2px solid var(--border)' }}>ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredProducts.length === 0 ? (
                   <tr>
-                    <td colSpan={13} style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
+                    <td colSpan={13} style={{ padding: '3rem', textAlign: 'center', color: 'var(--muted-foreground)' }}>
                       <Package size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
                       <div>No products found</div>
                     </td>
@@ -1244,18 +1244,18 @@ export default function InventoryPage() {
                 ) : filteredProducts.map((product, index) => {
                   const ef = product.electronicsFields;
                   const stockStatus = product.isFaulty ? 'Faulty' : product.stockQuantity === 0 ? 'Out of Stock' : product.stockQuantity <= product.lowStockThreshold ? 'Low Stock' : 'In Stock';
-                  const stockColor = product.isFaulty ? '#a855f7' : product.stockQuantity === 0 ? '#ef4444' : product.stockQuantity <= product.lowStockThreshold ? '#f59e0b' : '#22c55e';
-                  const condColor = ef?.condition === 'NEW' ? '#22c55e' : ef?.condition === 'USED' ? '#f59e0b' : '#3b82f6';
+                  const stockColor = product.isFaulty ? '#a855f7' : product.stockQuantity === 0 ? 'var(--destructive)' : product.stockQuantity <= product.lowStockThreshold ? 'var(--warning)' : 'var(--success)';
+                  const condColor = ef?.condition === 'NEW' ? 'var(--success)' : ef?.condition === 'USED' ? 'var(--warning)' : 'var(--primary)';
                   return (
-                    <tr key={product.id} style={{ background: index % 2 === 0 ? '#1e293b' : '#0f172a', transition: 'background 0.2s' }} className="table-row">
-                      <td style={{ padding: '0.75rem', color: '#64748b', fontFamily: 'monospace' }}>{index + 1}</td>
+                    <tr key={product.id} style={{ background: index % 2 === 0 ? 'var(--card)' : 'var(--background)', transition: 'background 0.2s' }} className="table-row">
+                      <td style={{ padding: '0.75rem', color: 'var(--muted-foreground)', fontFamily: 'monospace' }}>{index + 1}</td>
                       <td style={{ padding: '0.75rem' }}>
-                        <div style={{ fontWeight: '600', color: '#f1f5f9' }}>{product.name || 'N/A'}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{product.category?.name || ''}</div>
+                        <div style={{ fontWeight: '600', color: 'var(--foreground)' }}>{product.name || 'N/A'}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>{product.category?.name || ''}</div>
                       </td>
-                      <td style={{ padding: '0.75rem', fontFamily: 'monospace', fontSize: '0.8rem', color: '#94a3b8' }}>{ef?.imei || ''}</td>
-                      <td style={{ padding: '0.75rem', fontWeight: '500', color: '#f1f5f9' }}>{ef?.brand || ''}</td>
-                      <td style={{ padding: '0.75rem', color: '#94a3b8' }}>{ef?.model || ''}</td>
+                      <td style={{ padding: '0.75rem', fontFamily: 'monospace', fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>{ef?.imei || ''}</td>
+                      <td style={{ padding: '0.75rem', fontWeight: '500', color: 'var(--foreground)' }}>{ef?.brand || ''}</td>
+                      <td style={{ padding: '0.75rem', color: 'var(--muted-foreground)' }}>{ef?.model || ''}</td>
                       <td style={{ padding: '0.75rem', textAlign: 'center' }}>
                         {ef?.condition ? (
                           <span style={{ padding: '0.25rem 0.5rem', borderRadius: '0.25rem', background: `${condColor}20`, color: condColor, fontSize: '0.7rem', fontWeight: '600' }}>
@@ -1266,14 +1266,14 @@ export default function InventoryPage() {
                       <td style={{ padding: '0.75rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           {ef?.color && (
-                            <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: ef.color.toLowerCase(), border: '1px solid #334155' }} />
+                            <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: ef.color.toLowerCase(), border: '1px solid var(--border)' }} />
                           )}
                           <span>{ef?.color || ''}</span>
                         </div>
                       </td>
-                      <td style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8' }}>{ef?.storage || ''}</td>
-                      <td style={{ padding: '0.75rem', textAlign: 'right', color: '#94a3b8' }}>{formatCurrency(product.purchaseCost, shop?.currency ?? 'TZS')}</td>
-                      <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#22c55e' }}>{formatCurrency(product.sellingPrice, shop?.currency ?? 'TZS')}</td>
+                      <td style={{ padding: '0.75rem', textAlign: 'center', color: 'var(--muted-foreground)' }}>{ef?.storage || ''}</td>
+                      <td style={{ padding: '0.75rem', textAlign: 'right', color: 'var(--muted-foreground)' }}>{formatCurrency(product.purchaseCost, shop?.currency ?? 'TZS')}</td>
+                      <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: 'var(--success)' }}>{formatCurrency(product.sellingPrice, shop?.currency ?? 'TZS')}</td>
                       <td style={{ padding: '0.75rem', textAlign: 'center', fontWeight: '600', color: stockColor }}>{product.stockQuantity}</td>
                       <td style={{ padding: '0.75rem', textAlign: 'center' }}>
                         <span style={{ padding: '0.25rem 0.5rem', borderRadius: '0.25rem', background: `${stockColor}20`, color: stockColor, fontSize: '0.7rem', fontWeight: '500' }}>
@@ -1285,8 +1285,8 @@ export default function InventoryPage() {
                           <button onClick={() => { setViewingProduct(product); setShowViewModal(true); }} style={{ padding: '0.4rem', background: '#64748b', border: 'none', borderRadius: '0.375rem', color: 'white', cursor: 'pointer' }} title="View"><Eye size={14} /></button>
                           {!isReadOnly && (
                             <>
-                              <button onClick={() => openModal(product)} style={{ padding: '0.4rem', background: '#3b82f6', border: 'none', borderRadius: '0.375rem', color: 'white', cursor: 'pointer' }} title="Edit"><Edit size={14} /></button>
-                              <button onClick={() => handleDelete(product.id)} style={{ padding: '0.4rem', background: '#ef4444', border: 'none', borderRadius: '0.375rem', color: 'white', cursor: 'pointer' }} title="Delete"><Trash2 size={14} /></button>
+                              <button onClick={() => openModal(product)} style={{ padding: '0.4rem', background: 'var(--primary)', border: 'none', borderRadius: '0.375rem', color: 'white', cursor: 'pointer' }} title="Edit"><Edit size={14} /></button>
+                              <button onClick={() => handleDelete(product.id)} style={{ padding: '0.4rem', background: 'var(--destructive)', border: 'none', borderRadius: '0.375rem', color: 'white', cursor: 'pointer' }} title="Delete"><Trash2 size={14} /></button>
                             </>
                           )}
                         </div>
@@ -1297,7 +1297,7 @@ export default function InventoryPage() {
               </tbody>
             </table>
             {filteredProducts.length > 0 && (
-              <div style={{ padding: '0.75rem', borderTop: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#64748b' }}>
+              <div style={{ padding: '0.75rem', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: 'var(--muted-foreground)' }}>
                 <div>Showing {filteredProducts.length} of {products.length} products</div>
               </div>
             )}
@@ -1305,30 +1305,30 @@ export default function InventoryPage() {
         ) : isWinger ? (
           <table className="table" style={{ fontSize: '0.8rem', width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ background: '#1e293b' }}>
-                <th style={{ minWidth: '200px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>PRODUCT</th>
-                <th style={{ width: '120px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>BARCODE</th>
-                <th style={{ width: '100px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>CATEGORY</th>
-                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>LOCATION</th>
-                <th style={{ width: '90px', padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>WHOLESALE</th>
-                <th style={{ width: '60px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>STOCK</th>
-                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>ACTIONS</th>
+              <tr style={{ background: 'var(--card)' }}>
+                <th style={{ minWidth: '200px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>PRODUCT</th>
+                <th style={{ width: '120px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>BARCODE</th>
+                <th style={{ width: '100px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>CATEGORY</th>
+                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>LOCATION</th>
+                <th style={{ width: '90px', padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>WHOLESALE</th>
+                <th style={{ width: '60px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>STOCK</th>
+                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>ACTIONS</th>
               </tr>
             </thead>
             <tbody>
               {filteredProducts.map((product, index) => (
-                <tr key={product.id} style={{ background: index % 2 === 0 ? '#1e293b' : '#0f172a', transition: 'background 0.2s' }}>
+                <tr key={product.id} style={{ background: index % 2 === 0 ? 'var(--card)' : 'var(--background)', transition: 'background 0.2s' }}>
                   <td style={{ padding: '0.5rem' }}>
-                    <div style={{ fontWeight: '500', color: '#f1f5f9', fontSize: '0.8rem' }}>{product.name}</div>
+                    <div style={{ fontWeight: '500', color: 'var(--foreground)', fontSize: '0.8rem' }}>{product.name}</div>
                   </td>
-                  <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem', fontFamily: 'monospace' }}>{product.barcode || '-'}</td>
-                  <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>{product.category?.name || '-'}</td>
-                  <td style={{ padding: '0.5rem', color: '#64748b', fontSize: '0.75rem' }}>{product.location || '-'}</td>
-                  <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: '#22c55e', fontSize: '0.75rem' }}>
+                  <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem', fontFamily: 'monospace' }}>{product.barcode || '-'}</td>
+                  <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>{product.category?.name || '-'}</td>
+                  <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>{product.location || '-'}</td>
+                  <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: 'var(--success)', fontSize: '0.75rem' }}>
                     {formatCurrency(product.wholesalePrice || product.sellingPrice)}
                   </td>
                   <td style={{ padding: '0.5rem', textAlign: 'center' }}>
-                    <span style={{ fontWeight: '600', fontSize: '0.75rem', color: product.stockQuantity <= product.lowStockThreshold ? '#f59e0b' : product.stockQuantity === 0 ? '#ef4444' : '#f1f5f9' }}>
+                    <span style={{ fontWeight: '600', fontSize: '0.75rem', color: product.stockQuantity <= product.lowStockThreshold ? 'var(--warning)' : product.stockQuantity === 0 ? 'var(--destructive)' : 'var(--foreground)' }}>
                       {product.stockQuantity}
                     </span>
                   </td>
@@ -1337,8 +1337,8 @@ export default function InventoryPage() {
                       <button onClick={() => { setViewingProduct(product); setShowViewModal(true); }} style={{ padding: '0.3rem', background: '#64748b', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="View"><Eye size={12} /></button>
                       {!isReadOnly && (
                         <>
-                          <button onClick={() => openModal(product)} style={{ padding: '0.3rem', background: '#3b82f6', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Edit"><Edit size={12} /></button>
-                          <button onClick={() => handleDelete(product.id)} style={{ padding: '0.3rem', background: '#ef4444', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Delete"><Trash2 size={12} /></button>
+                          <button onClick={() => openModal(product)} style={{ padding: '0.3rem', background: 'var(--primary)', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Edit"><Edit size={12} /></button>
+                          <button onClick={() => handleDelete(product.id)} style={{ padding: '0.3rem', background: 'var(--destructive)', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Delete"><Trash2 size={12} /></button>
                         </>
                       )}
                     </div>
@@ -1350,32 +1350,32 @@ export default function InventoryPage() {
         ) : (
           <table className="table" style={{ fontSize: '0.8rem', width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ background: '#1e293b' }}>
-                <th style={{ minWidth: '140px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>PRODUCT</th>
-                <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>BRAND</th>
-                <th style={{ minWidth: '180px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>VARIANT</th>
-                <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>BARCODE</th>
-                <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>CATEGORY</th>
-                <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>COST</th>
-                <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>PRICE</th>
-                <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>STOCK</th>
-                <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>ACTIONS</th>
+              <tr style={{ background: 'var(--card)' }}>
+                <th style={{ minWidth: '140px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>PRODUCT</th>
+                <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>BRAND</th>
+                <th style={{ minWidth: '180px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>VARIANT</th>
+                <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>BARCODE</th>
+                <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>CATEGORY</th>
+                <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>COST</th>
+                <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>PRICE</th>
+                <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>STOCK</th>
+                <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>ACTIONS</th>
               </tr>
             </thead>
             <tbody>
               {filteredProducts.map((product, index) => (
-                <tr key={product.id} style={{ background: index % 2 === 0 ? '#1e293b' : '#0f172a' }}>
+                <tr key={product.id} style={{ background: index % 2 === 0 ? 'var(--card)' : 'var(--background)' }}>
                   <td style={{ padding: '0.5rem' }}>
-                    <div style={{ fontWeight: '500', color: '#f1f5f9', fontSize: '0.8rem' }}>{product.name}</div>
+                    <div style={{ fontWeight: '500', color: 'var(--foreground)', fontSize: '0.8rem' }}>{product.name}</div>
                   </td>
-                  <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>{product.brand || '-'}</td>
-                  <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem', whiteSpace: 'normal', wordBreak: 'break-word' }}>{product.variants && product.variants.length > 0 ? product.variants.map(v => v.variantValue).join(', ') : product.variant || '-'}</td>
-                  <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem', fontFamily: 'monospace' }}>{product.barcode || '-'}</td>
-                  <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>{product.category?.name || '-'}</td>
-                  <td style={{ padding: '0.5rem', textAlign: 'right', color: '#94a3b8', fontSize: '0.75rem' }}>{formatCurrency(product.purchaseCost, shop?.currency ?? 'TZS')}</td>
-                  <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: '#22c55e', fontSize: '0.75rem' }}>{formatCurrency(product.sellingPrice, shop?.currency ?? 'TZS')}</td>
+                  <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>{product.brand || '-'}</td>
+                  <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem', whiteSpace: 'normal', wordBreak: 'break-word' }}>{product.variants && product.variants.length > 0 ? product.variants.map(v => v.variantValue).join(', ') : product.variant || '-'}</td>
+                  <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem', fontFamily: 'monospace' }}>{product.barcode || '-'}</td>
+                  <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>{product.category?.name || '-'}</td>
+                  <td style={{ padding: '0.5rem', textAlign: 'right', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>{formatCurrency(product.purchaseCost, shop?.currency ?? 'TZS')}</td>
+                  <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: 'var(--success)', fontSize: '0.75rem' }}>{formatCurrency(product.sellingPrice, shop?.currency ?? 'TZS')}</td>
                   <td style={{ padding: '0.5rem', textAlign: 'center' }}>
-                    <span style={{ fontWeight: '600', fontSize: '0.75rem', color: product.stockQuantity <= product.lowStockThreshold ? '#f59e0b' : product.stockQuantity === 0 ? '#ef4444' : '#f1f5f9' }}>
+                    <span style={{ fontWeight: '600', fontSize: '0.75rem', color: product.stockQuantity <= product.lowStockThreshold ? 'var(--warning)' : product.stockQuantity === 0 ? 'var(--destructive)' : 'var(--foreground)' }}>
                       {product.stockQuantity}
                     </span>
                   </td>
@@ -1384,8 +1384,8 @@ export default function InventoryPage() {
                       <button onClick={() => { setViewingProduct(product); setShowViewModal(true); }} style={{ padding: '0.3rem', background: '#64748b', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="View"><Eye size={12} /></button>
                       {!isReadOnly && (
                         <>
-                          <button onClick={() => openModal(product)} style={{ padding: '0.3rem', background: '#3b82f6', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="Edit"><Edit size={12} /></button>
-                          <button onClick={() => handleDelete(product.id)} style={{ padding: '0.3rem', background: '#ef4444', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="Delete"><Trash2 size={12} /></button>
+                          <button onClick={() => openModal(product)} style={{ padding: '0.3rem', background: 'var(--primary)', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="Edit"><Edit size={12} /></button>
+                          <button onClick={() => handleDelete(product.id)} style={{ padding: '0.3rem', background: 'var(--destructive)', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="Delete"><Trash2 size={12} /></button>
                         </>
                       )}
                     </div>
@@ -1445,7 +1445,7 @@ export default function InventoryPage() {
                     <select className="select" value={formData.categoryId} onChange={e => { if (e.target.value === '__add_new__') { setShowCategoryModal(true); } else { setFormData({ ...formData, categoryId: e.target.value }); } }} required>
                       <option value="">Select category</option>
                       {categories.map(cat => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
-                      <option value="__add_new__" style={{ color: '#3b82f6', fontWeight: '600' }}>+ Add New Category...</option>
+                      <option value="__add_new__" style={{ color: 'var(--primary)', fontWeight: '600' }}>+ Add New Category...</option>
                     </select>
                   </div>
                   <div style={{ marginBottom: '1rem' }}>
@@ -1507,7 +1507,7 @@ export default function InventoryPage() {
                       <select className="select" value={formData.categoryId} onChange={e => { if (e.target.value === '__add_new__') { setShowCategoryModal(true); } else { setFormData({ ...formData, categoryId: e.target.value }); } }} required>
                         <option value="">Select category</option>
                         {categories.map(cat => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
-                        <option value="__add_new__" style={{ color: '#3b82f6', fontWeight: '600' }}>+ Add New Category...</option>
+                        <option value="__add_new__" style={{ color: 'var(--primary)', fontWeight: '600' }}>+ Add New Category...</option>
                       </select>
                     </div>
                   </div>
@@ -1557,7 +1557,7 @@ export default function InventoryPage() {
                     </div>
                   </div>
                   <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#e2e8f0', cursor: 'pointer' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--foreground)', cursor: 'pointer' }}>
                       <input type="checkbox" checked={formData.hasExpiry} onChange={e => { setFormData(prev => ({ ...prev, hasExpiry: e.target.checked, expiryDate: e.target.checked ? prev.expiryDate : '' })); }} />
                       <span>Has expiry date</span>
                     </label>
@@ -1574,19 +1574,19 @@ export default function InventoryPage() {
                   {electronicsMode === '' ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1rem' }}>
                       <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-                        <h3 style={{ color: '#f1f5f9', marginBottom: '0.5rem' }}>What would you like to add?</h3>
-                        <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Select the category below</p>
+                        <h3 style={{ color: 'var(--foreground)', marginBottom: '0.5rem' }}>What would you like to add?</h3>
+                        <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>Select the category below</p>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                        <button onClick={() => { setElectronicsMode('PHONES'); setShowModal(true); }} style={{ padding: '1.5rem', background: '#1e293b', border: '2px solid #3b82f6', borderRadius: '0.75rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-                          <Smartphone size={40} color="#3b82f6" />
-                          <span style={{ color: '#f1f5f9', fontWeight: '600' }}>Phones</span>
-                          <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>iPhone, Samsung, etc.</span>
+                        <button onClick={() => { setElectronicsMode('PHONES'); setShowModal(true); }} style={{ padding: '1.5rem', background: 'var(--card)', border: '2px solid #3b82f6', borderRadius: '0.75rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                          <Smartphone size={40} color="var(--primary)" />
+                          <span style={{ color: 'var(--foreground)', fontWeight: '600' }}>Phones</span>
+                          <span style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>iPhone, Samsung, etc.</span>
                         </button>
-                        <button onClick={() => { setElectronicsMode('ACCESSORIES'); setShowModal(true); }} style={{ padding: '1.5rem', background: '#1e293b', border: '2px solid #22c55e', borderRadius: '0.75rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                        <button onClick={() => { setElectronicsMode('ACCESSORIES'); setShowModal(true); }} style={{ padding: '1.5rem', background: 'var(--card)', border: '2px solid #22c55e', borderRadius: '0.75rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
                           <Headphones size={40} color="#22c55e" />
-                          <span style={{ color: '#f1f5f9', fontWeight: '600' }}>Accessories</span>
-                          <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>Chargers, Cases, etc.</span>
+                          <span style={{ color: 'var(--foreground)', fontWeight: '600' }}>Accessories</span>
+                          <span style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Chargers, Cases, etc.</span>
                         </button>
                       </div>
                     </div>
@@ -1663,9 +1663,9 @@ export default function InventoryPage() {
                       <select className="select" value={formData.brand} onChange={e => { if (e.target.value === '__add_new__') { setShowBrandModal(true); } else { setFormData({ ...formData, brand: e.target.value }); } }}>
                         <option value="">Select brand</option>
                         {brands.map(b => (<option key={b.id} value={b.name}>{b.name}</option>))}
-                        <option value="__add_new__" style={{ color: '#3b82f6', fontWeight: '600' }}>+ Add New Brand...</option>
+                        <option value="__add_new__" style={{ color: 'var(--primary)', fontWeight: '600' }}>+ Add New Brand...</option>
                       </select>
-                      <button type="button" onClick={() => setShowBrandManageModal(true)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '0.75rem', marginTop: '0.25rem', textDecoration: 'underline' }}>Manage Brands</button>
+                      <button type="button" onClick={() => setShowBrandManageModal(true)} style={{ background: 'none', border: 'none', color: 'var(--muted-foreground)', cursor: 'pointer', fontSize: '0.75rem', marginTop: '0.25rem', textDecoration: 'underline' }}>Manage Brands</button>
                     </div>
                     <div>
                       <label className="label">Barcode</label>
@@ -1676,7 +1676,7 @@ export default function InventoryPage() {
                       <select className="select" value={formData.categoryId} onChange={e => { if (e.target.value === '__add_new__') { setShowCategoryModal(true); } else { setFormData({ ...formData, categoryId: e.target.value }); } }} required>
                         <option value="">Select category</option>
                         {categories.map(cat => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
-                        <option value="__add_new__" style={{ color: '#3b82f6', fontWeight: '600' }}>+ Add New Category...</option>
+                        <option value="__add_new__" style={{ color: 'var(--primary)', fontWeight: '600' }}>+ Add New Category...</option>
                       </select>
                     </div>
                     {isClothing && (
@@ -1687,18 +1687,18 @@ export default function InventoryPage() {
                     )}
                   </div>
                   {isClothing ? (
-                    <div style={{ marginBottom: '1rem', padding: '1rem', background: '#1e293b', borderRadius: '0.75rem', border: '1px solid #334155' }}>
+                    <div style={{ marginBottom: '1rem', padding: '1rem', background: 'var(--card)', borderRadius: '0.75rem', border: '1px solid var(--border)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                        <h4 style={{ color: '#f1f5f9', fontSize: '0.95rem', fontWeight: '600' }}>Product Variants</h4>
+                        <h4 style={{ color: 'var(--foreground)', fontSize: '0.95rem', fontWeight: '600' }}>Product Variants</h4>
                         <button type="button" onClick={() => setClothingVariants([...clothingVariants, { variantType: 'SIZE', variantValue: '' }])} className="btn btn-success" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}>
                           + Add Variant
                         </button>
                       </div>
                       {clothingVariants.length === 0 && (
-                        <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>No variants added. Click "Add Variant" to create product variations (e.g., sizes, colors).</p>
+                        <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>No variants added. Click "Add Variant" to create product variations (e.g., sizes, colors).</p>
                       )}
                       {clothingVariants.map((v, i) => (
-                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', padding: '0.75rem', background: '#0f172a', borderRadius: '0.5rem' }}>
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', padding: '0.75rem', background: 'var(--background)', borderRadius: '0.5rem' }}>
                           <div style={{ flex: 1 }}>
                             <select className="select" style={{ padding: '0.4rem', fontSize: '0.8rem' }} value={v.variantType} onChange={e => { const c = [...clothingVariants]; c[i].variantType = e.target.value; setClothingVariants(c); }}>
                               {VARIANT_TYPES.map(vt => (<option key={vt.value} value={vt.value}>{vt.label}</option>))}
@@ -1707,25 +1707,25 @@ export default function InventoryPage() {
                           <div style={{ flex: 1 }}>
                             <input type="text" className="input" style={{ padding: '0.4rem', fontSize: '0.8rem' }} value={v.variantValue} onChange={e => { const c = [...clothingVariants]; c[i].variantValue = e.target.value; setClothingVariants(c); }} placeholder={`e.g., ${v.variantType === 'COLOR' ? 'Red' : v.variantType === 'SIZE' ? '42' : 'value'}`} />
                           </div>
-                          <button type="button" onClick={() => setClothingVariants(clothingVariants.filter((_, idx) => idx !== i))} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.5rem' }}>
+                          <button type="button" onClick={() => setClothingVariants(clothingVariants.filter((_, idx) => idx !== i))} style={{ background: 'none', border: 'none', color: 'var(--destructive)', cursor: 'pointer', padding: '0.5rem' }}>
                             <X size={16} />
                           </button>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div style={{ marginBottom: '1rem', padding: '1rem', background: '#1e293b', borderRadius: '0.75rem', border: '1px solid #334155' }}>
+                    <div style={{ marginBottom: '1rem', padding: '1rem', background: 'var(--card)', borderRadius: '0.75rem', border: '1px solid var(--border)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                        <h4 style={{ color: '#f1f5f9', fontSize: '0.95rem', fontWeight: '600' }}>Product Variants</h4>
+                        <h4 style={{ color: 'var(--foreground)', fontSize: '0.95rem', fontWeight: '600' }}>Product Variants</h4>
                         <button type="button" onClick={() => setGeneralVariants([...generalVariants, { variantType: 'OTHER', variantValue: '' }])} className="btn btn-success" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}>
                           + Add Variant
                         </button>
                       </div>
                       {generalVariants.length === 0 && (
-                        <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>No variants added. Click "Add Variant" to create product variations (e.g., sizes, colors, pack sizes).</p>
+                        <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>No variants added. Click "Add Variant" to create product variations (e.g., sizes, colors, pack sizes).</p>
                       )}
                       {generalVariants.map((v, i) => (
-                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', padding: '0.75rem', background: '#0f172a', borderRadius: '0.5rem' }}>
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', padding: '0.75rem', background: 'var(--background)', borderRadius: '0.5rem' }}>
                           <div style={{ flex: 1 }}>
                             <select className="select" style={{ padding: '0.4rem', fontSize: '0.8rem' }} value={v.variantType} onChange={e => { const c = [...generalVariants]; c[i].variantType = e.target.value; setGeneralVariants(c); }}>
                               {VARIANT_TYPES.map(vt => (<option key={vt.value} value={vt.value}>{vt.label}</option>))}
@@ -1734,7 +1734,7 @@ export default function InventoryPage() {
                           <div style={{ flex: 1 }}>
                             <input type="text" className="input" style={{ padding: '0.4rem', fontSize: '0.8rem' }} value={v.variantValue} onChange={e => { const c = [...generalVariants]; c[i].variantValue = e.target.value; setGeneralVariants(c); }} placeholder={`e.g., ${v.variantType === 'COLOR' ? 'Red' : v.variantType === 'SIZE' ? '42' : 'value'}`} />
                           </div>
-                          <button type="button" onClick={() => setGeneralVariants(generalVariants.filter((_, idx) => idx !== i))} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.5rem' }}>
+                          <button type="button" onClick={() => setGeneralVariants(generalVariants.filter((_, idx) => idx !== i))} style={{ background: 'none', border: 'none', color: 'var(--destructive)', cursor: 'pointer', padding: '0.5rem' }}>
                             <X size={16} />
                           </button>
                         </div>
@@ -1815,7 +1815,7 @@ export default function InventoryPage() {
               )}
             </div>
             
-            <p style={{ textAlign: 'center', marginBottom: '1rem', color: '#64748b', fontSize: '0.875rem' }}>
+            <p style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>
               Or enter barcode manually below
             </p>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -1862,7 +1862,7 @@ export default function InventoryPage() {
               <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>Price Tag Settings</h2>
               <button onClick={() => setShowPriceTags(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
             </div>
-            <p style={{ marginBottom: '1rem', color: '#64748b' }}>{selectedProducts.length} products selected</p>
+            <p style={{ marginBottom: '1rem', color: 'var(--muted-foreground)' }}>{selectedProducts.length} products selected</p>
             
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
@@ -1881,8 +1881,8 @@ export default function InventoryPage() {
                 <input type="checkbox" checked={tagTemplate.showBarcode} onChange={(e) => setTagTemplate({ ...tagTemplate, showBarcode: e.target.checked })} />
                 <span>Show Barcode</span>
               </label>
-              <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #334155' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', color: '#94a3b8', fontSize: '0.875rem' }}>Number of copies per product</label>
+              <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>Number of copies per product</label>
                 <input 
                   type="number" 
                   min="1" 
@@ -1892,10 +1892,10 @@ export default function InventoryPage() {
                   style={{ 
                     width: '80px', 
                     padding: '0.5rem', 
-                    background: '#0f172a', 
-                    border: '1px solid #334155', 
+                    background: 'var(--background)', 
+                    border: '1px solid var(--border)', 
                     borderRadius: '0.375rem', 
-                    color: '#e2e8f0',
+                    color: 'var(--foreground)',
                     fontSize: '1rem'
                   }}
                 />
@@ -1914,20 +1914,20 @@ export default function InventoryPage() {
 
       {showCategoryModal && (
         <div className="modal-overlay" onClick={() => setShowCategoryModal(false)}>
-          <div style={{ background: '#1e293b', borderRadius: '1rem', padding: '1.5rem', maxWidth: '400px', width: '90%', border: '1px solid #334155' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: 'var(--card)', borderRadius: '1rem', padding: '1.5rem', maxWidth: '400px', width: '90%', border: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ color: '#f1f5f9', fontSize: '1.25rem', fontWeight: '600' }}><FolderPlus size={20} /> Add New Category</h2>
-              <button onClick={() => setShowCategoryModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={20} /></button>
+              <h2 style={{ color: 'var(--foreground)', fontSize: '1.25rem', fontWeight: '600' }}><FolderPlus size={20} /> Add New Category</h2>
+              <button onClick={() => setShowCategoryModal(false)} style={{ background: 'none', border: 'none', color: 'var(--muted-foreground)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#94a3b8', fontSize: '0.875rem' }}>Category Name</label>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>Category Name</label>
               <input
                 type="text"
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && createCategory()}
                 placeholder="Enter category name"
-                style={{ width: '100%', padding: '0.75rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '0.5rem', color: '#e2e8f0', fontSize: '1rem' }}
+                style={{ width: '100%', padding: '0.75rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--foreground)', fontSize: '1rem' }}
               />
             </div>
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
@@ -1942,19 +1942,19 @@ export default function InventoryPage() {
 
       {showCategoryManageModal && (
         <div className="modal-overlay" onClick={() => setShowCategoryManageModal(false)}>
-          <div style={{ background: '#1e293b', borderRadius: '1rem', padding: '1.5rem', maxWidth: '450px', width: '90%', border: '1px solid #334155' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: 'var(--card)', borderRadius: '1rem', padding: '1.5rem', maxWidth: '450px', width: '90%', border: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ color: '#f1f5f9', fontSize: '1.25rem', fontWeight: '600' }}><FolderPlus size={20} /> Manage Categories</h2>
-              <button onClick={() => setShowCategoryManageModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={20} /></button>
+              <h2 style={{ color: 'var(--foreground)', fontSize: '1.25rem', fontWeight: '600' }}><FolderPlus size={20} /> Manage Categories</h2>
+              <button onClick={() => setShowCategoryManageModal(false)} style={{ background: 'none', border: 'none', color: 'var(--muted-foreground)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
             {categories.length === 0 ? (
-              <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>No categories yet.</p>
+              <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>No categories yet.</p>
             ) : (
               <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
                 {categories.map(c => (
                   <div key={c.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid #334155' }}>
-                    <span style={{ color: '#f1f5f9', fontSize: '0.9rem' }}>{c.name}</span>
-                    <button onClick={() => deleteCategory(c.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.25rem' }}>
+                    <span style={{ color: 'var(--foreground)', fontSize: '0.9rem' }}>{c.name}</span>
+                    <button onClick={() => deleteCategory(c.id)} style={{ background: 'none', border: 'none', color: 'var(--destructive)', cursor: 'pointer', padding: '0.25rem' }}>
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -1970,20 +1970,20 @@ export default function InventoryPage() {
 
       {showBrandModal && (
         <div className="modal-overlay" onClick={() => setShowBrandModal(false)}>
-          <div style={{ background: '#1e293b', borderRadius: '1rem', padding: '1.5rem', maxWidth: '400px', width: '90%', border: '1px solid #334155' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: 'var(--card)', borderRadius: '1rem', padding: '1.5rem', maxWidth: '400px', width: '90%', border: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ color: '#f1f5f9', fontSize: '1.25rem', fontWeight: '600' }}><Tag size={20} /> Add New Brand</h2>
-              <button onClick={() => setShowBrandModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={20} /></button>
+              <h2 style={{ color: 'var(--foreground)', fontSize: '1.25rem', fontWeight: '600' }}><Tag size={20} /> Add New Brand</h2>
+              <button onClick={() => setShowBrandModal(false)} style={{ background: 'none', border: 'none', color: 'var(--muted-foreground)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#94a3b8', fontSize: '0.875rem' }}>Brand Name</label>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>Brand Name</label>
               <input
                 type="text"
                 value={newBrandName}
                 onChange={(e) => setNewBrandName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && createBrand()}
                 placeholder="Enter brand name"
-                style={{ width: '100%', padding: '0.75rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '0.5rem', color: '#e2e8f0', fontSize: '1rem' }}
+                style={{ width: '100%', padding: '0.75rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--foreground)', fontSize: '1rem' }}
               />
             </div>
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
@@ -1998,19 +1998,19 @@ export default function InventoryPage() {
 
       {showBrandManageModal && (
         <div className="modal-overlay" onClick={() => setShowBrandManageModal(false)}>
-          <div style={{ background: '#1e293b', borderRadius: '1rem', padding: '1.5rem', maxWidth: '450px', width: '90%', border: '1px solid #334155' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: 'var(--card)', borderRadius: '1rem', padding: '1.5rem', maxWidth: '450px', width: '90%', border: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ color: '#f1f5f9', fontSize: '1.25rem', fontWeight: '600' }}><Tag size={20} /> Manage Brands</h2>
-              <button onClick={() => setShowBrandManageModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={20} /></button>
+              <h2 style={{ color: 'var(--foreground)', fontSize: '1.25rem', fontWeight: '600' }}><Tag size={20} /> Manage Brands</h2>
+              <button onClick={() => setShowBrandManageModal(false)} style={{ background: 'none', border: 'none', color: 'var(--muted-foreground)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
             {brands.length === 0 ? (
-              <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>No brands yet.</p>
+              <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>No brands yet.</p>
             ) : (
               <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
                 {brands.map(b => (
                   <div key={b.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid #334155' }}>
-                    <span style={{ color: '#f1f5f9', fontSize: '0.9rem' }}>{b.name}</span>
-                    <button onClick={() => deleteBrand(b.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.25rem' }}>
+                    <span style={{ color: 'var(--foreground)', fontSize: '0.9rem' }}>{b.name}</span>
+                    <button onClick={() => deleteBrand(b.id)} style={{ background: 'none', border: 'none', color: 'var(--destructive)', cursor: 'pointer', padding: '0.25rem' }}>
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -2026,52 +2026,52 @@ export default function InventoryPage() {
 
       {showSupplierModal && (
         <div className="modal-overlay" onClick={() => setShowSupplierModal(false)}>
-          <div style={{ background: '#1e293b', borderRadius: '1rem', padding: '1.5rem', maxWidth: '450px', width: '90%', border: '1px solid #334155' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: 'var(--card)', borderRadius: '1rem', padding: '1.5rem', maxWidth: '450px', width: '90%', border: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ color: '#f1f5f9', fontSize: '1.25rem', fontWeight: '600' }}><Plus size={20} /> Add New Supplier</h2>
-              <button onClick={() => setShowSupplierModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={20} /></button>
+              <h2 style={{ color: 'var(--foreground)', fontSize: '1.25rem', fontWeight: '600' }}><Plus size={20} /> Add New Supplier</h2>
+              <button onClick={() => setShowSupplierModal(false)} style={{ background: 'none', border: 'none', color: 'var(--muted-foreground)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#94a3b8', fontSize: '0.875rem' }}>Supplier Name *</label>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>Supplier Name *</label>
               <input
                 type="text"
                 value={newSupplier.name}
                 onChange={(e) => setNewSupplier({ ...newSupplier, name: e.target.value })}
                 onKeyDown={(e) => e.key === 'Enter' && createSupplier()}
                 placeholder="Enter supplier name"
-                style={{ width: '100%', padding: '0.75rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '0.5rem', color: '#e2e8f0', fontSize: '1rem' }}
+                style={{ width: '100%', padding: '0.75rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--foreground)', fontSize: '1rem' }}
               />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', color: '#94a3b8', fontSize: '0.875rem' }}>Email</label>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>Email</label>
                 <input
                   type="email"
                   value={newSupplier.email}
                   onChange={(e) => setNewSupplier({ ...newSupplier, email: e.target.value })}
                   placeholder="email@example.com"
-                  style={{ width: '100%', padding: '0.75rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '0.5rem', color: '#e2e8f0', fontSize: '1rem' }}
+                  style={{ width: '100%', padding: '0.75rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--foreground)', fontSize: '1rem' }}
                 />
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', color: '#94a3b8', fontSize: '0.875rem' }}>Phone</label>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>Phone</label>
                 <input
                   type="text"
                   value={newSupplier.phone}
                   onChange={(e) => setNewSupplier({ ...newSupplier, phone: e.target.value })}
                   placeholder="+255..."
-                  style={{ width: '100%', padding: '0.75rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '0.5rem', color: '#e2e8f0', fontSize: '1rem' }}
+                  style={{ width: '100%', padding: '0.75rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--foreground)', fontSize: '1rem' }}
                 />
               </div>
             </div>
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#94a3b8', fontSize: '0.875rem' }}>Address</label>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>Address</label>
               <input
                 type="text"
                 value={newSupplier.address}
                 onChange={(e) => setNewSupplier({ ...newSupplier, address: e.target.value })}
                 placeholder="Supplier address"
-                style={{ width: '100%', padding: '0.75rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '0.5rem', color: '#e2e8f0', fontSize: '1rem' }}
+                style={{ width: '100%', padding: '0.75rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--foreground)', fontSize: '1rem' }}
               />
             </div>
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
@@ -2094,134 +2094,134 @@ export default function InventoryPage() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {/* Basic Information */}
-              <div style={{ background: '#0f172a', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #1e293b' }}>
-                <h3 style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Basic Information</h3>
+              <div style={{ background: 'var(--background)', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #1e293b' }}>
+                <h3 style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Basic Information</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Name</div><div style={{ color: '#f1f5f9', fontWeight: '500', fontSize: '0.85rem' }}>{viewingProduct.name}</div></div>
-                  <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>SKU</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem', fontFamily: 'monospace' }}>{viewingProduct.sku}</div></div>
-                  <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Barcode</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem', fontFamily: 'monospace' }}>{viewingProduct.barcode || '-'}</div></div>
-                  <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Category</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.category?.name || '-'}</div></div>
-                  <div style={{ gridColumn: 'span 2' }}><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Description</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.description || '-'}</div></div>
-                  <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Weight</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.weight ? `${viewingProduct.weight} kg` : '-'}</div></div>
+                  <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Name</div><div style={{ color: 'var(--foreground)', fontWeight: '500', fontSize: '0.85rem' }}>{viewingProduct.name}</div></div>
+                  <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>SKU</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem', fontFamily: 'monospace' }}>{viewingProduct.sku}</div></div>
+                  <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Barcode</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem', fontFamily: 'monospace' }}>{viewingProduct.barcode || '-'}</div></div>
+                  <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Category</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.category?.name || '-'}</div></div>
+                  <div style={{ gridColumn: 'span 2' }}><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Description</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.description || '-'}</div></div>
+                  <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Weight</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.weight ? `${viewingProduct.weight} kg` : '-'}</div></div>
                 </div>
               </div>
 
               {/* Registration Info */}
-              <div style={{ background: '#0f172a', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #1e293b' }}>
-                <h3 style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Registration Info</h3>
+              <div style={{ background: 'var(--background)', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #1e293b' }}>
+                <h3 style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Registration Info</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Date Registered</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.createdAt ? new Date(viewingProduct.createdAt).toLocaleString() : '-'}</div></div>
-                  <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Last Updated</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.updatedAt ? new Date(viewingProduct.updatedAt).toLocaleString() : '-'}</div></div>
+                  <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Date Registered</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.createdAt ? new Date(viewingProduct.createdAt).toLocaleString() : '-'}</div></div>
+                  <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Last Updated</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.updatedAt ? new Date(viewingProduct.updatedAt).toLocaleString() : '-'}</div></div>
                 </div>
               </div>
 
               {/* Supplier Info */}
-              <div style={{ background: '#0f172a', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #1e293b' }}>
-                <h3 style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Supplier</h3>
+              <div style={{ background: 'var(--background)', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #1e293b' }}>
+                <h3 style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Supplier</h3>
                 {viewingProduct.supplier ? (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Name</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.supplier.name}</div></div>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Contact Person</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.supplier.contactPerson || '-'}</div></div>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Email</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.supplier.email || '-'}</div></div>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Phone</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.supplier.phone || '-'}</div></div>
-                    <div style={{ gridColumn: 'span 2' }}><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Address</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.supplier.address || '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Name</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.supplier.name}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Contact Person</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.supplier.contactPerson || '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Email</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.supplier.email || '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Phone</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.supplier.phone || '-'}</div></div>
+                    <div style={{ gridColumn: 'span 2' }}><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Address</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.supplier.address || '-'}</div></div>
                   </div>
                 ) : (
-                  <div style={{ color: '#64748b', fontSize: '0.85rem' }}>No supplier assigned</div>
+                  <div style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>No supplier assigned</div>
                 )}
               </div>
 
               {/* Pricing */}
-              <div style={{ background: '#0f172a', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #1e293b' }}>
-                <h3 style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pricing</h3>
+              <div style={{ background: 'var(--background)', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #1e293b' }}>
+                <h3 style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pricing</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Purchase Cost</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{formatCurrency(viewingProduct.purchaseCost, shop?.currency ?? 'TZS')}</div></div>
-                  <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Selling Price</div><div style={{ color: '#22c55e', fontWeight: '600', fontSize: '0.85rem' }}>{formatCurrency(viewingProduct.sellingPrice, shop?.currency ?? 'TZS')}</div></div>
-                  <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Wholesale Price</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.wholesalePrice ? formatCurrency(viewingProduct.wholesalePrice, shop?.currency ?? 'TZS') : '-'}</div></div>
-                  <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Tax Rate</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.taxRate}%</div></div>
+                  <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Purchase Cost</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{formatCurrency(viewingProduct.purchaseCost, shop?.currency ?? 'TZS')}</div></div>
+                  <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Selling Price</div><div style={{ color: 'var(--success)', fontWeight: '600', fontSize: '0.85rem' }}>{formatCurrency(viewingProduct.sellingPrice, shop?.currency ?? 'TZS')}</div></div>
+                  <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Wholesale Price</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.wholesalePrice ? formatCurrency(viewingProduct.wholesalePrice, shop?.currency ?? 'TZS') : '-'}</div></div>
+                  <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Tax Rate</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.taxRate}%</div></div>
                 </div>
               </div>
 
               {/* Stock Info */}
-              <div style={{ background: '#0f172a', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #1e293b' }}>
-                <h3 style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Stock Information</h3>
+              <div style={{ background: 'var(--background)', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #1e293b' }}>
+                <h3 style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Stock Information</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Stock Quantity</div>
-                    <div style={{ color: viewingProduct.stockQuantity <= viewingProduct.lowStockThreshold ? '#f59e0b' : viewingProduct.stockQuantity === 0 ? '#ef4444' : '#f1f5f9', fontWeight: '600', fontSize: '0.85rem' }}>
+                  <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Stock Quantity</div>
+                    <div style={{ color: viewingProduct.stockQuantity <= viewingProduct.lowStockThreshold ? 'var(--warning)' : viewingProduct.stockQuantity === 0 ? 'var(--destructive)' : 'var(--foreground)', fontWeight: '600', fontSize: '0.85rem' }}>
                       {viewingProduct.stockQuantity}
                     </div>
                   </div>
-                  <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Status</div>
+                  <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Status</div>
                     <div>
                       <span style={{
                         padding: '0.2rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', fontWeight: '500',
-                        background: viewingProduct.isFaulty ? '#a855f720' : viewingProduct.stockQuantity === 0 ? '#ef444420' : viewingProduct.stockQuantity <= viewingProduct.lowStockThreshold ? '#f59e0b20' : '#22c55e20',
-                        color: viewingProduct.isFaulty ? '#a855f7' : viewingProduct.stockQuantity === 0 ? '#ef4444' : viewingProduct.stockQuantity <= viewingProduct.lowStockThreshold ? '#f59e0b' : '#22c55e'
+                        background: viewingProduct.isFaulty ? '#a855f720' : viewingProduct.stockQuantity === 0 ? 'color-mix(in srgb, var(--destructive) 12.5%, transparent)' : viewingProduct.stockQuantity <= viewingProduct.lowStockThreshold ? 'color-mix(in srgb, var(--warning) 12.5%, transparent)' : 'color-mix(in srgb, var(--success) 12.5%, transparent)',
+                        color: viewingProduct.isFaulty ? '#a855f7' : viewingProduct.stockQuantity === 0 ? 'var(--destructive)' : viewingProduct.stockQuantity <= viewingProduct.lowStockThreshold ? 'var(--warning)' : 'var(--success)'
                       }}>
                         {viewingProduct.isFaulty ? 'Faulty' : viewingProduct.stockQuantity === 0 ? 'Out of Stock' : viewingProduct.stockQuantity <= viewingProduct.lowStockThreshold ? 'Low Stock' : 'In Stock'}
                       </span>
                     </div>
                   </div>
-                  <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Low Stock Threshold</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.lowStockThreshold}</div></div>
-                  <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Reorder Point</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.reorderPoint}</div></div>
-                  <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Faulty</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.isFaulty ? 'Yes' : 'No'}</div></div>
+                  <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Low Stock Threshold</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.lowStockThreshold}</div></div>
+                  <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Reorder Point</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.reorderPoint}</div></div>
+                  <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Faulty</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.isFaulty ? 'Yes' : 'No'}</div></div>
                 </div>
               </div>
 
               {/* Expiry Info */}
               {viewingProduct.hasExpiry && (
-                <div style={{ background: '#0f172a', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #1e293b' }}>
-                  <h3 style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Expiry Information</h3>
+                <div style={{ background: 'var(--background)', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #1e293b' }}>
+                  <h3 style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Expiry Information</h3>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Has Expiry</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>Yes</div></div>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Expiry Date</div><div style={{ color: viewingProduct.expiryDate && new Date(viewingProduct.expiryDate) < new Date() ? '#ef4444' : '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.expiryDate ? new Date(viewingProduct.expiryDate).toLocaleDateString() : '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Has Expiry</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>Yes</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Expiry Date</div><div style={{ color: viewingProduct.expiryDate && new Date(viewingProduct.expiryDate) < new Date() ? 'var(--destructive)' : 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.expiryDate ? new Date(viewingProduct.expiryDate).toLocaleDateString() : '-'}</div></div>
                   </div>
                 </div>
               )}
 
               {/* Pharmacy-specific fields (only for PHARMACY shops) */}
               {isPharmacy && viewingProduct.pharmacyFields && (
-                <div style={{ background: '#0f172a', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #1e293b' }}>
-                  <h3 style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pharmacy Details</h3>
+                <div style={{ background: 'var(--background)', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #1e293b' }}>
+                  <h3 style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pharmacy Details</h3>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Brand Name</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.pharmacyFields.brandName || '-'}</div></div>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Generic Name</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.pharmacyFields.genericName || '-'}</div></div>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Batch Number</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.pharmacyFields.batchNumber || '-'}</div></div>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Manufacturer</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.pharmacyFields.manufacturer || '-'}</div></div>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Dosage</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.pharmacyFields.dosage || '-'}</div></div>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Composition</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.pharmacyFields.composition || '-'}</div></div>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Manufacturing Date</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.pharmacyFields.manufacturingDate ? new Date(viewingProduct.pharmacyFields.manufacturingDate).toLocaleDateString() : '-'}</div></div>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Drug Schedule</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.pharmacyFields.drugSchedule || '-'}</div></div>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Prescription Required</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.pharmacyFields.prescriptionRequired ? 'Yes' : 'No'}</div></div>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Cold Storage Required</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.pharmacyFields.requiresColdStorage ? 'Yes' : 'No'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Brand Name</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.pharmacyFields.brandName || '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Generic Name</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.pharmacyFields.genericName || '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Batch Number</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.pharmacyFields.batchNumber || '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Manufacturer</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.pharmacyFields.manufacturer || '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Dosage</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.pharmacyFields.dosage || '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Composition</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.pharmacyFields.composition || '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Manufacturing Date</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.pharmacyFields.manufacturingDate ? new Date(viewingProduct.pharmacyFields.manufacturingDate).toLocaleDateString() : '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Drug Schedule</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.pharmacyFields.drugSchedule || '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Prescription Required</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.pharmacyFields.prescriptionRequired ? 'Yes' : 'No'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Cold Storage Required</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.pharmacyFields.requiresColdStorage ? 'Yes' : 'No'}</div></div>
                   </div>
                 </div>
               )}
 
               {/* Liquor-specific fields */}
               {viewingProduct.liquorFields && (
-                <div style={{ background: '#0f172a', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #1e293b' }}>
-                  <h3 style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Liquor Details</h3>
+                <div style={{ background: 'var(--background)', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #1e293b' }}>
+                  <h3 style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Liquor Details</h3>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Brand</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.liquorFields.brand || '-'}</div></div>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Size</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.liquorFields.size ? `${viewingProduct.liquorFields.size}ml` : '-'}</div></div>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Volume</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.liquorFields.volume ? `${viewingProduct.liquorFields.volume}ml` : '-'}</div></div>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Notes</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.liquorFields.notes || '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Brand</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.liquorFields.brand || '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Size</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.liquorFields.size ? `${viewingProduct.liquorFields.size}ml` : '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Volume</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.liquorFields.volume ? `${viewingProduct.liquorFields.volume}ml` : '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Notes</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.liquorFields.notes || '-'}</div></div>
                   </div>
                 </div>
               )}
 
               {/* Electronics-specific fields (only for ELECTRONICS shops) */}
               {isElectronics && viewingProduct.electronicsFields && (
-                <div style={{ background: '#0f172a', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #1e293b' }}>
-                  <h3 style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Electronics Details</h3>
+                <div style={{ background: 'var(--background)', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #1e293b' }}>
+                  <h3 style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Electronics Details</h3>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Brand</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.electronicsFields.brand || '-'}</div></div>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Model</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.electronicsFields.model || '-'}</div></div>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>IMEI</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem', fontFamily: 'monospace' }}>{viewingProduct.electronicsFields.imei || '-'}</div></div>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Condition</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.electronicsFields.condition || '-'}</div></div>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Color</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.electronicsFields.color || '-'}</div></div>
-                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Storage</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.electronicsFields.storage || '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Brand</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.electronicsFields.brand || '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Model</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.electronicsFields.model || '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>IMEI</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem', fontFamily: 'monospace' }}>{viewingProduct.electronicsFields.imei || '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Condition</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.electronicsFields.condition || '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Color</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.electronicsFields.color || '-'}</div></div>
+                    <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Storage</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.electronicsFields.storage || '-'}</div></div>
                   </div>
                 </div>
               )}
@@ -2236,36 +2236,36 @@ export default function InventoryPage() {
 
       {showImportModal && (
         <div className="modal-overlay" onClick={() => { setShowImportModal(false); setImportResult(null); }}>
-          <div style={{ background: '#1e293b', borderRadius: '1rem', padding: '1.5rem', maxWidth: '550px', width: '90%', border: '1px solid #334155' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: 'var(--card)', borderRadius: '1rem', padding: '1.5rem', maxWidth: '550px', width: '90%', border: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ color: '#f1f5f9', fontSize: '1.25rem', fontWeight: '600' }}><Upload size={20} /> Import Products from Excel</h2>
-              <button onClick={() => { setShowImportModal(false); setImportResult(null); }} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={20} /></button>
+              <h2 style={{ color: 'var(--foreground)', fontSize: '1.25rem', fontWeight: '600' }}><Upload size={20} /> Import Products from Excel</h2>
+              <button onClick={() => { setShowImportModal(false); setImportResult(null); }} style={{ background: 'none', border: 'none', color: 'var(--muted-foreground)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
             
             {!importResult ? (
               <>
-                <div style={{ marginBottom: '1rem', padding: '1rem', background: '#0f172a', borderRadius: '0.5rem', border: '1px dashed #475569' }}>
-                  <p style={{ color: '#94a3b8', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
+                <div style={{ marginBottom: '1rem', padding: '1rem', background: 'var(--background)', borderRadius: '0.5rem', border: '1px dashed #475569' }}>
+                  <p style={{ color: 'var(--muted-foreground)', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
                     Upload an Excel file (.xlsx) with the following columns:
                   </p>
                   {isElectronics ? (
-                    <div style={{ fontSize: '0.8rem', color: '#64748b', fontFamily: 'monospace' }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)', fontFamily: 'monospace' }}>
                       name, imei, supplier, brand, model, color, storage, condition, purchaseCost, sellingPrice, wholesalePrice, stockQuantity
                     </div>
                   ) : isPharmacy ? (
-                    <div style={{ fontSize: '0.8rem', color: '#64748b', fontFamily: 'monospace' }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)', fontFamily: 'monospace' }}>
                       name, sku, brandName, genericName, batchNumber, manufacturingDate, expiryDate, buyingPrice, sellingPrice, wholesalePrice, quantity
                     </div>
                   ) : isLiquor ? (
-                    <div style={{ fontSize: '0.8rem', color: '#64748b', fontFamily: 'monospace' }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)', fontFamily: 'monospace' }}>
                       name, category, size, supplier, barcode, purchaseCost, sellingPrice, wholesalePrice, stockQuantity, lowStockThreshold, reorderPoint, expiryDate
                     </div>
                   ) : isClothing ? (
-                    <div style={{ fontSize: '0.8rem', color: '#64748b', fontFamily: 'monospace' }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)', fontFamily: 'monospace' }}>
                       name, sku, brand, barcode, category, stockQuantity, variants, supplier, purchaseCost, sellingPrice, wholesalePrice, lowStockThreshold, reorderPoint, description
                     </div>
                   ) : (
-                    <div style={{ fontSize: '0.8rem', color: '#64748b', fontFamily: 'monospace' }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)', fontFamily: 'monospace' }}>
                       name, sku, barcode, brand, category, supplier, purchaseCost, sellingPrice, wholesalePrice, stockQuantity, lowStockThreshold, reorderPoint, description, variants
                     </div>
                   )}
@@ -2325,7 +2325,7 @@ export default function InventoryPage() {
                     justifyContent: 'center',
                     gap: '0.5rem',
                     padding: '1rem',
-                    background: importing ? '#334155' : 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                    background: importing ? 'var(--muted)' : 'linear-gradient(135deg, #3b82f6, #2563eb)',
                     borderRadius: '0.5rem',
                     color: 'white',
                     cursor: importing ? 'not-allowed' : 'pointer',
@@ -2498,7 +2498,7 @@ export default function InventoryPage() {
                       }
                     }}
                     style={{ 
-                      color: '#3b82f6', 
+                      color: 'var(--primary)', 
                       fontSize: '0.875rem', 
                       textDecoration: 'underline',
                       background: 'none',
@@ -2517,28 +2517,28 @@ export default function InventoryPage() {
                   gap: '1rem', 
                   marginBottom: '1rem',
                   padding: '1rem',
-                  background: importResult.success > 0 ? '#22c55e20' : '#0f172a',
+                  background: importResult.success > 0 ? 'color-mix(in srgb, var(--success) 12.5%, transparent)' : 'var(--background)',
                   borderRadius: '0.5rem',
-                  border: `1px solid ${importResult.success > 0 ? '#22c55e' : '#475569'}`
+                  border: `1px solid ${importResult.success > 0 ? 'var(--success)' : 'var(--border)'}`
                 }}>
                   <div style={{ textAlign: 'center', flex: 1 }}>
-                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#22c55e' }}>{importResult.success}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Imported</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--success)' }}>{importResult.success}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>Imported</div>
                   </div>
                   <div style={{ textAlign: 'center', flex: 1 }}>
-                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: importResult.failed > 0 ? '#ef4444' : '#64748b' }}>{importResult.failed}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Failed</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: importResult.failed > 0 ? 'var(--destructive)' : 'var(--muted-foreground)' }}>{importResult.failed}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>Failed</div>
                   </div>
                 </div>
                 
                 {importResult.errors.length > 0 && (
                   <div style={{ maxHeight: '150px', overflowY: 'auto', marginBottom: '1rem' }}>
-                    <div style={{ fontSize: '0.875rem', color: '#f1f5f9', marginBottom: '0.5rem' }}>Errors:</div>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--foreground)', marginBottom: '0.5rem' }}>Errors:</div>
                     {importResult.errors.slice(0, 10).map((err, i) => (
-                      <div key={i} style={{ fontSize: '0.75rem', color: '#ef4444', padding: '0.25rem 0' }}>{err}</div>
+                      <div key={i} style={{ fontSize: '0.75rem', color: 'var(--destructive)', padding: '0.25rem 0' }}>{err}</div>
                     ))}
                     {importResult.errors.length > 10 && (
-                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>...and {importResult.errors.length - 10} more</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>...and {importResult.errors.length - 10} more</div>
                     )}
                   </div>
                 )}

@@ -579,7 +579,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '1.5rem',
   },
   section: {
-    background: '#1e293b',
+    background: 'var(--card)',
     borderRadius: '0.75rem',
     padding: '1.5rem',
     border: '1px solid #334155',
@@ -607,7 +607,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   input: {
     padding: '0.625rem 0.875rem',
-    background: '#0f172a',
+    background: 'var(--background)',
     border: '1px solid #334155',
     borderRadius: '0.5rem',
     color: '#f1f5f9',
@@ -618,7 +618,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   select: {
     padding: '0.625rem 0.875rem',
-    background: '#0f172a',
+    background: 'var(--background)',
     border: '1px solid #334155',
     borderRadius: '0.5rem',
     color: '#f1f5f9',
@@ -629,7 +629,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   textarea: {
     padding: '0.625rem 0.875rem',
-    background: '#0f172a',
+    background: 'var(--background)',
     border: '1px solid #334155',
     borderRadius: '0.5rem',
     color: '#f1f5f9',

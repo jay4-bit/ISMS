@@ -180,7 +180,7 @@ export default function UsersPage() {
           <h1 style={{ fontSize: '1.5rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Users size={28} /> User Management
           </h1>
-          <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '0.25rem' }}>Manage users and roles for this shop</p>
+          <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem', marginTop: '0.25rem' }}>Manage users and roles for this shop</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
@@ -202,24 +202,24 @@ export default function UsersPage() {
       </div>
 
       <div className="table-responsive" style={{
-        background: '#1e293b',
+        background: 'var(--card)',
         borderRadius: '0.75rem',
         overflow: 'auto',
       }}>
         {users.length === 0 ? (
-          <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
+          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--muted-foreground)' }}>
             <Users size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
             <p>No users found</p>
           </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '500px' }}>
             <thead>
-              <tr style={{ background: '#0f172a' }}>
-                <th style={{ padding: '0.75rem 1rem', textAlign: 'left', color: '#94a3b8', fontWeight: '600', fontSize: '0.8rem' }}>USER</th>
-                <th style={{ padding: '0.75rem 1rem', textAlign: 'left', color: '#94a3b8', fontWeight: '600', fontSize: '0.8rem' }}>EMAIL</th>
-                <th style={{ padding: '0.75rem 1rem', textAlign: 'left', color: '#94a3b8', fontWeight: '600', fontSize: '0.8rem' }}>ROLE</th>
-                <th style={{ padding: '0.75rem 1rem', textAlign: 'left', color: '#94a3b8', fontWeight: '600', fontSize: '0.8rem' }}>CREATED</th>
-                <th style={{ padding: '0.75rem 1rem', textAlign: 'right', color: '#94a3b8', fontWeight: '600', fontSize: '0.8rem' }}>ACTIONS</th>
+              <tr style={{ background: 'var(--background)' }}>
+                <th style={{ padding: '0.75rem 1rem', textAlign: 'left', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.8rem' }}>USER</th>
+                <th style={{ padding: '0.75rem 1rem', textAlign: 'left', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.8rem' }}>EMAIL</th>
+                <th style={{ padding: '0.75rem 1rem', textAlign: 'left', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.8rem' }}>ROLE</th>
+                <th style={{ padding: '0.75rem 1rem', textAlign: 'left', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.8rem' }}>CREATED</th>
+                <th style={{ padding: '0.75rem 1rem', textAlign: 'right', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.8rem' }}>ACTIONS</th>
               </tr>
             </thead>
             <tbody>
@@ -246,7 +246,7 @@ export default function UsersPage() {
                         <span style={{ fontWeight: '500' }}>{user.name}</span>
                       </div>
                     </td>
-                    <td style={{ padding: '0.75rem 1rem', color: '#94a3b8' }}>{user.email}</td>
+                    <td style={{ padding: '0.75rem 1rem', color: 'var(--muted-foreground)' }}>{user.email}</td>
                     <td style={{ padding: '0.75rem 1rem' }}>
                       <span style={{
                         padding: '0.25rem 0.75rem',
@@ -259,7 +259,7 @@ export default function UsersPage() {
                         {user.role}
                       </span>
                     </td>
-                    <td style={{ padding: '0.75rem 1rem', color: '#94a3b8', fontSize: '0.85rem' }}>
+                    <td style={{ padding: '0.75rem 1rem', color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>
                       {new Date(user.createdAt).toLocaleDateString()}
                     </td>
                     <td style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>
@@ -313,7 +313,7 @@ export default function UsersPage() {
           zIndex: 100,
         }} onClick={() => setShowModal(false)}>
           <div style={{
-            background: '#1e293b',
+            background: 'var(--card)',
             borderRadius: '0.75rem',
             padding: '1.5rem',
             width: '400px',
@@ -321,14 +321,14 @@ export default function UsersPage() {
           }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>Add New User</h2>
-              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: 'var(--muted-foreground)', cursor: 'pointer' }}>
                 <X size={20} />
               </button>
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', color: '#94a3b8', fontSize: '0.85rem' }}>Name</label>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>Name</label>
                 <input
                   type="text"
                   value={userForm.name}
@@ -338,7 +338,7 @@ export default function UsersPage() {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', color: '#94a3b8', fontSize: '0.85rem' }}>Email</label>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>Email</label>
                 <input
                   type="email"
                   value={userForm.email}
@@ -348,7 +348,7 @@ export default function UsersPage() {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', color: '#94a3b8', fontSize: '0.85rem' }}>Password</label>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>Password</label>
                 <input
                   type="password"
                   value={userForm.password}
@@ -358,7 +358,7 @@ export default function UsersPage() {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', color: '#94a3b8', fontSize: '0.85rem' }}>Role</label>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>Role</label>
                 <select
                   value={userForm.role}
                   onChange={e => setUserForm({ ...userForm, role: e.target.value })}
@@ -390,7 +390,7 @@ export default function UsersPage() {
           zIndex: 100,
         }} onClick={() => setShowResetModal(false)}>
           <div style={{
-            background: '#1e293b',
+            background: 'var(--card)',
             borderRadius: '0.75rem',
             padding: '1.5rem',
             width: '400px',
@@ -398,16 +398,16 @@ export default function UsersPage() {
           }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>Reset Password</h2>
-              <button onClick={() => setShowResetModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+              <button onClick={() => setShowResetModal(false)} style={{ background: 'none', border: 'none', color: 'var(--muted-foreground)', cursor: 'pointer' }}>
                 <X size={20} />
               </button>
             </div>
             
-            <p style={{ color: '#94a3b8', marginBottom: '1rem' }}>Reset password for {resetUser.name}</p>
+            <p style={{ color: 'var(--muted-foreground)', marginBottom: '1rem' }}>Reset password for {resetUser.name}</p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', color: '#94a3b8', fontSize: '0.85rem' }}>New Password</label>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>New Password</label>
                 <input
                   type="password"
                   value={newPassword}
@@ -417,7 +417,7 @@ export default function UsersPage() {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', color: '#94a3b8', fontSize: '0.85rem' }}>Confirm Password</label>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>Confirm Password</label>
                 <input
                   type="password"
                   value={confirmPassword}
@@ -442,10 +442,10 @@ export default function UsersPage() {
 const inputStyle = {
   width: '100%',
   padding: '0.5rem 0.75rem',
-  background: '#0f172a',
+  background: 'var(--background)',
   border: '1px solid #334155',
   borderRadius: '0.375rem',
-  color: '#f1f5f9',
+  color: 'var(--foreground)',
   fontSize: '0.9rem',
 };
 
@@ -454,7 +454,7 @@ const cancelBtnStyle = {
   background: 'transparent',
   border: '1px solid #475569',
   borderRadius: '0.375rem',
-  color: '#94a3b8',
+  color: 'var(--muted-foreground)',
   cursor: 'pointer',
 };
 

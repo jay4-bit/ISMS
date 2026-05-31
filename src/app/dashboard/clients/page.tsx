@@ -105,7 +105,7 @@ export default function ClientsPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Clients</h1>
-          <p style={{ color: '#64748b', fontSize: '0.85rem' }}>Manage customers and clients</p>
+          <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>Manage customers and clients</p>
         </div>
         <button onClick={() => openModal()} className="btn btn-primary" style={{ padding: '0.5rem 1rem' }}>
           <Plus size={18} /> Add Client
@@ -114,7 +114,7 @@ export default function ClientsPage() {
 
       <div className="card" style={{ marginBottom: '1rem', padding: '0.75rem' }}>
         <div style={{ position: 'relative' }}>
-          <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+          <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-foreground)' }} />
           <input
             type="text"
             className="input"
@@ -129,33 +129,33 @@ export default function ClientsPage() {
       <div className="card" style={{ padding: 0, overflow: 'auto' }}>
         <table className="table" style={{ fontSize: '0.8rem', width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ background: '#1e293b' }}>
-              <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600' }}>CLIENT</th>
-              <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600' }}>CONTACT</th>
-              <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600' }}>TOTAL PURCHASES</th>
-              <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600' }}>CREDIT</th>
-              <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600' }}>STATUS</th>
-              <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600' }}>ACTIONS</th>
+            <tr style={{ background: 'var(--card)' }}>
+              <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600' }}>CLIENT</th>
+              <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600' }}>CONTACT</th>
+              <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600' }}>TOTAL PURCHASES</th>
+              <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600' }}>CREDIT</th>
+              <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600' }}>STATUS</th>
+              <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600' }}>ACTIONS</th>
             </tr>
           </thead>
           <tbody>
             {filteredClients.map((client, index) => (
-              <tr key={client.id} style={{ background: index % 2 === 0 ? '#1e293b' : '#0f172a' }}>
+              <tr key={client.id} style={{ background: index % 2 === 0 ? 'var(--card)' : 'var(--background)' }}>
                 <td style={{ padding: '0.5rem' }}>
-                  <div style={{ fontWeight: '600', color: '#f1f5f9' }}>{client.name}</div>
-                  <div style={{ fontSize: '0.7rem', color: '#64748b' }}>
+                  <div style={{ fontWeight: '600', color: 'var(--foreground)' }}>{client.name}</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--muted-foreground)' }}>
                     {client._count?.sales || 0} sales
                   </div>
                 </td>
                 <td style={{ padding: '0.5rem' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                     {client.phone && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: '#94a3b8' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>
                         <Phone size={12} /> {client.phone}
                       </div>
                     )}
                     {client.email && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: '#94a3b8' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>
                         <Mail size={12} /> {client.email}
                       </div>
                     )}
@@ -164,7 +164,7 @@ export default function ClientsPage() {
                 <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: '#22c55e' }}>
                   {formatCurrency(client.totalPurchases || 0)}
                 </td>
-                <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: client.creditBalance > 0 ? '#f59e0b' : '#64748b' }}>
+                <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: client.creditBalance > 0 ? 'var(--warning)' : 'var(--muted-foreground)' }}>
                   {formatCurrency(client.creditBalance || 0)}
                 </td>
                 <td style={{ padding: '0.5rem', textAlign: 'center' }}>
@@ -195,7 +195,7 @@ export default function ClientsPage() {
         </table>
         
         {filteredClients.length === 0 && (
-          <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted-foreground)' }}>
             <Users size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
             <p>No clients found</p>
           </div>
@@ -204,12 +204,12 @@ export default function ClientsPage() {
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div style={{ background: '#1e293b', borderRadius: '1rem', padding: '1.5rem', maxWidth: '450px', width: '90%', border: '1px solid #334155' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: 'var(--card)', borderRadius: '1rem', padding: '1.5rem', maxWidth: '450px', width: '90%', border: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ color: '#f1f5f9', fontSize: '1.25rem', fontWeight: '600' }}>
+              <h2 style={{ color: 'var(--foreground)', fontSize: '1.25rem', fontWeight: '600' }}>
                 {editingClient ? 'Edit Client' : 'Add New Client'}
               </h2>
-              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: 'var(--muted-foreground)', cursor: 'pointer' }}>
                 <X size={20} />
               </button>
             </div>

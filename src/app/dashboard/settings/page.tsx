@@ -300,7 +300,7 @@ export default function SettingsPage() {
   return (
     <div style={styles.container} className="settings-container">
       {notification && (
-        <div style={{ ...styles.notification, background: notification.type === 'success' ? '#22c55e' : '#ef4444' }}>
+        <div style={{ ...styles.notification, background: notification.type === 'success' ? 'var(--success)' : 'var(--destructive)' }}>
           {notification.message}
         </div>
       )}
@@ -453,7 +453,7 @@ export default function SettingsPage() {
                   </div>
                   <button 
                     onClick={() => openResetModal(user)}
-                    style={{ ...styles.deleteBtn, color: '#3b82f6', border: '1px solid #3b82f6' }}
+                    style={{ ...styles.deleteBtn, color: 'var(--primary)', border: '1px solid #3b82f6' }}
                     title="Reset Password"
                   >
                     <Key size={16} />
@@ -471,7 +471,7 @@ export default function SettingsPage() {
 
             <div style={styles.rolesInfo}>
               <h3><Shield size={18} /> Role Permissions</h3>
-              <p style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '1rem' }}>
+              <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem', marginBottom: '1rem' }}>
                 Configure module access for each role. Go to Settings → Permissions for full configuration.
               </p>
               <div style={styles.rolesGrid}>
@@ -498,7 +498,7 @@ export default function SettingsPage() {
                 <SettingsIcon size={18} /> Open Full Permissions
               </button>
             </div>
-            <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
+            <p style={{ color: 'var(--muted-foreground)', marginBottom: '1.5rem' }}>
               Configure what each role can access in the system. Click "Open Full Permissions" to access the full permissions management interface.
             </p>
             <div style={styles.rolesGrid}>
@@ -699,7 +699,7 @@ export default function SettingsPage() {
                   borderRadius: '0.75rem',
                   border: '2px solid',
                   borderColor: theme === 'dark' ? '#3b82f6' : 'var(--border)',
-                  background: theme === 'dark' ? '#1e293b' : 'transparent',
+                  background: theme === 'dark' ? 'var(--card)' : 'transparent',
                   cursor: 'pointer',
                   textAlign: 'center',
                   transition: 'all 0.2s',
@@ -707,7 +707,7 @@ export default function SettingsPage() {
               >
                 <Moon size={32} style={{ color: theme === 'dark' ? '#3b82f6' : '#94a3b8', marginBottom: '0.75rem' }} />
                 <div style={{ fontWeight: '600', color: theme === 'dark' ? '#f1f5f9' : '#1e293b', marginBottom: '0.25rem' }}>Dark Mode</div>
-                <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Easy on the eyes, great for low light</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>Easy on the eyes, great for low light</div>
               </button>
               <button
                 onClick={() => theme !== 'light' && toggleTheme()}
@@ -726,7 +726,7 @@ export default function SettingsPage() {
               >
                 <Sun size={32} style={{ color: theme === 'light' ? '#3b82f6' : '#94a3b8', marginBottom: '0.75rem' }} />
                 <div style={{ fontWeight: '600', color: theme === 'light' ? '#1e293b' : '#f1f5f9', marginBottom: '0.25rem' }}>Light Mode</div>
-                <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Bright and clean, great for daytime</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>Bright and clean, great for daytime</div>
               </button>
             </div>
 
@@ -738,7 +738,7 @@ export default function SettingsPage() {
               border: '1px solid var(--border)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <AlertTriangle size={16} style={{ color: '#f59e0b' }} />
+                <AlertTriangle size={16} style={{ color: 'var(--warning)' }} />
                 <span style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)' }}>
                   Theme preference is saved locally and persists across sessions.
                 </span>
@@ -826,8 +826,8 @@ export default function SettingsPage() {
               <button onClick={() => setShowResetModal(false)} style={styles.closeBtn}><X size={20} /></button>
             </div>
             <div style={styles.modalBody}>
-              <p style={{ color: '#94a3b8', marginBottom: '1rem' }}>
-                Reset password for: <strong style={{ color: '#f1f5f9' }}>{resetUser?.name}</strong> ({resetUser?.email})
+              <p style={{ color: 'var(--muted-foreground)', marginBottom: '1rem' }}>
+                Reset password for: <strong style={{ color: 'var(--foreground)' }}>{resetUser?.name}</strong> ({resetUser?.email})
               </p>
               <div style={styles.field}>
                 <label style={styles.label}>New Password *</label>
@@ -888,7 +888,7 @@ const styles: Record<string, React.CSSProperties> = {
   userName: { fontWeight: '600', color: 'var(--foreground)' },
   userEmail: { fontSize: '0.875rem', color: 'var(--muted-foreground)' },
   userRole: { padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: '600' },
-  deleteBtn: { background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.5rem' },
+  deleteBtn: { background: 'none', border: 'none', color: 'var(--destructive)', cursor: 'pointer', padding: '0.5rem' },
   rolesInfo: { padding: '1rem', background: 'var(--background)', borderRadius: '0.75rem', border: '1px solid var(--border)' },
   rolesGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', marginTop: '1rem' },
   roleCard: { padding: '0.75rem', background: 'var(--card)', borderRadius: '0.5rem' },

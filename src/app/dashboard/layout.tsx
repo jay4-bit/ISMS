@@ -180,12 +180,12 @@ const styles: Record<string, React.CSSProperties> = {
   layout: {
     display: 'flex',
     minHeight: '100vh',
-    background: '#0f172a',
+    background: 'var(--background)',
   },
   sidebar: {
     width: '260px',
-    background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
-    borderRight: '1px solid #334155',
+    background: 'linear-gradient(180deg, var(--card) 0%, var(--background) 100%)',
+    borderRight: '1px solid var(--border)',
     display: 'flex',
     flexDirection: 'column',
     transition: 'width 0.2s',
@@ -195,7 +195,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   sidebarHeader: {
     padding: '1.25rem',
-    borderBottom: '1px solid #334155',
+    borderBottom: '1px solid var(--border)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -215,16 +215,16 @@ const styles: Record<string, React.CSSProperties> = {
   shopName: {
     fontSize: '0.95rem',
     fontWeight: '600',
-    color: '#f1f5f9',
+    color: 'var(--foreground)',
   },
   shopType: {
     fontSize: '0.75rem',
-    color: '#64748b',
+    color: 'var(--muted-foreground)',
   },
   collapseBtn: {
     background: 'none',
     border: 'none',
-    color: '#64748b',
+    color: 'var(--muted-foreground)',
     cursor: 'pointer',
     padding: '0.25rem',
   },
@@ -238,7 +238,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: '0.75rem',
     padding: '0.75rem 1rem',
-    color: '#cbd5e1',
+    color: 'var(--foreground)',
     textDecoration: 'none',
     borderRadius: '0.5rem',
     marginBottom: '0.25rem',
@@ -247,13 +247,13 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: '500',
   },
   navItemActive: {
-    background: 'rgba(59, 130, 246, 0.15)',
-    color: '#3b82f6',
-    borderLeft: '3px solid #3b82f6',
+    background: 'color-mix(in srgb, var(--primary) 15%, transparent)',
+    color: 'var(--primary)',
+    borderLeft: '3px solid var(--primary)',
   },
   sidebarFooter: {
     padding: '1rem',
-    borderTop: '1px solid #334155',
+    borderTop: '1px solid var(--border)',
   },
   userInfo: {
     display: 'flex',
@@ -280,11 +280,11 @@ const styles: Record<string, React.CSSProperties> = {
   userName: {
     fontSize: '0.875rem',
     fontWeight: '500',
-    color: '#f1f5f9',
+    color: 'var(--foreground)',
   },
   userRole: {
     fontSize: '0.75rem',
-    color: '#64748b',
+    color: 'var(--muted-foreground)',
   },
   logoutBtn: {
     display: 'flex',
@@ -307,8 +307,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   header: {
     height: '64px',
-    background: '#1e293b',
-    borderBottom: '1px solid #334155',
+    background: 'var(--card)',
+    borderBottom: '1px solid var(--border)',
     padding: '0 1.5rem',
     display: 'flex',
     alignItems: 'center',
@@ -318,7 +318,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'none',
     background: 'none',
     border: 'none',
-    color: '#f1f5f9',
+    color: 'var(--foreground)',
     cursor: 'pointer',
     padding: '0.5rem',
   },
@@ -328,7 +328,7 @@ const styles: Record<string, React.CSSProperties> = {
   pageTitle: {
     fontSize: '1.25rem',
     fontWeight: '600',
-    color: '#f1f5f9',
+    color: 'var(--foreground)',
     margin: 0,
   },
   headerRight: {
@@ -355,13 +355,13 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     height: '100vh',
-    background: '#0f172a',
-    color: '#f1f5f9',
+    background: 'var(--background)',
+    color: 'var(--foreground)',
   },
   spinner: {
     width: '40px',
     height: '40px',
-    border: '3px solid #334155',
+    border: '3px solid var(--border)',
     borderTopColor: '#3b82f6',
     borderRadius: '50%',
     animation: 'spin 1s linear infinite',

@@ -110,7 +110,7 @@ export default function StockCountPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Stock Count / Audit</h1>
-          <p style={{ color: '#64748b' }}>Perform inventory audits and reconcile stock</p>
+          <p style={{ color: 'var(--muted-foreground)' }}>Perform inventory audits and reconcile stock</p>
         </div>
         {!inProgress && (
           <button onClick={() => setShowModal(true)} className="btn btn-primary">
@@ -127,7 +127,7 @@ export default function StockCountPage() {
                 <RotateCcw size={20} color="#3b82f6" />
                 Stock Count In Progress
               </h3>
-              <p style={{ fontSize: '0.875rem', color: '#64748b' }}>{inProgress.countNumber}</p>
+              <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>{inProgress.countNumber}</p>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button onClick={() => { setActiveCount(inProgress); setShowCountModal(true); }} className="btn btn-primary">
@@ -214,7 +214,7 @@ export default function StockCountPage() {
           </tbody>
         </table>
         {stockCounts.length === 0 && (
-          <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
+          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--muted-foreground)' }}>
             <ClipboardCheck size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
             <p>No stock counts performed yet.</p>
           </div>
@@ -225,7 +225,7 @@ export default function StockCountPage() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1rem' }}>Start Stock Count</h2>
-            <p style={{ marginBottom: '1rem', color: '#64748b' }}>
+            <p style={{ marginBottom: '1rem', color: 'var(--muted-foreground)' }}>
               This will count all {products.length} products in inventory. You'll be able to enter counted quantities and identify variances.
             </p>
             <div style={{ marginBottom: '1.5rem' }}>
@@ -289,7 +289,7 @@ export default function StockCountPage() {
                             style={{ width: '80px', padding: '0.25rem', border: '1px solid #e2e8f0', borderRadius: '0.25rem' }}
                           />
                         </td>
-                        <td style={{ fontWeight: '600', color: variance > 0 ? '#22c55e' : variance < 0 ? '#ef4444' : '#64748b' }}>
+                        <td style={{ fontWeight: '600', color: variance > 0 ? 'var(--success)' : variance < 0 ? 'var(--destructive)' : 'var(--muted-foreground)' }}>
                           {variance > 0 ? '+' : ''}{variance}
                         </td>
                       </tr>

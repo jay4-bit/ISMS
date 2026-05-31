@@ -211,21 +211,21 @@ export default function InstallmentsPage() {
         <div style={styles.statCard}>
           <div style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}><DollarSign size={24} /></div>
           <div>
-            <div style={{ ...styles.statValue, color: '#f59e0b' }}>{formatCurrency(totalDue)}</div>
+            <div style={{ ...styles.statValue, color: 'var(--warning)' }}>{formatCurrency(totalDue)}</div>
             <div style={styles.statLabel}>Total Due</div>
           </div>
         </div>
         <div style={styles.statCard}>
           <div style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}><CheckCircle size={24} /></div>
           <div>
-            <div style={{ ...styles.statValue, color: '#22c55e' }}>{formatCurrency(totalPaid)}</div>
+            <div style={{ ...styles.statValue, color: 'var(--success)' }}>{formatCurrency(totalPaid)}</div>
             <div style={styles.statLabel}>Total Paid</div>
           </div>
         </div>
         <div style={styles.statCard}>
           <div style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}><AlertTriangle size={24} /></div>
           <div>
-            <div style={{ ...styles.statValue, color: '#ef4444' }}>{overdueCount}</div>
+            <div style={{ ...styles.statValue, color: 'var(--destructive)' }}>{overdueCount}</div>
             <div style={styles.statLabel}>Overdue</div>
           </div>
         </div>
@@ -247,7 +247,7 @@ export default function InstallmentsPage() {
           </button>
         </div>
         <div style={styles.searchBox}>
-          <Search size={18} style={{ color: '#64748b' }} />
+          <Search size={18} style={{ color: 'var(--muted-foreground)' }} />
           <input
             type="text"
             placeholder="Search by name, phone, receipt..."
@@ -281,12 +281,12 @@ export default function InstallmentsPage() {
                     <User size={14} />
                     <div>
                       <div>{sale.customerName || 'N/A'}</div>
-                      {sale.customerPhone && <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{sale.customerPhone}</div>}
+                      {sale.customerPhone && <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>{sale.customerPhone}</div>}
                     </div>
                   </div>
                 </td>
                 <td style={{ fontWeight: '600' }}>{formatCurrency(sale.installmentTotal || sale.total)}</td>
-                <td style={{ color: '#22c55e' }}>{formatCurrency(sale.installmentPaid || 0)}</td>
+                <td style={{ color: 'var(--success)' }}>{formatCurrency(sale.installmentPaid || 0)}</td>
                 <td style={{ fontWeight: '600', color: (sale.installmentDue || 0) > 0 ? '#f59e0b' : '#22c55e' }}>
                   {formatCurrency(sale.installmentDue || 0)}
                 </td>
@@ -412,7 +412,7 @@ export default function InstallmentsPage() {
                 <div><strong>Cashier:</strong> {selectedSale.cashier.name}</div>
               </div>
               <div style={styles.itemsList}>
-                <h4 style={{ marginBottom: '0.5rem', color: '#94a3b8' }}>Items Purchased</h4>
+                <h4 style={{ marginBottom: '0.5rem', color: 'var(--muted-foreground)' }}>Items Purchased</h4>
                 {selectedSale.items.map(item => (
                   <div key={item.id} style={styles.itemRow}>
                     <span>{item.product.name} x{item.quantity}</span>
@@ -422,7 +422,7 @@ export default function InstallmentsPage() {
               </div>
               <div style={styles.paymentSummary}>
                 <div style={styles.summaryRow}><span>Total</span><span>{formatCurrency(selectedSale.installmentTotal || selectedSale.total)}</span></div>
-                <div style={styles.summaryRow}><span>Paid</span><span style={{ color: '#22c55e' }}>{formatCurrency(selectedSale.installmentPaid || 0)}</span></div>
+                <div style={styles.summaryRow}><span>Paid</span><span style={{ color: 'var(--success)' }}>{formatCurrency(selectedSale.installmentPaid || 0)}</span></div>
                 <div style={{ ...styles.summaryRow, borderTop: '1px solid #334155', paddingTop: '0.5rem' }}>
                   <span>Balance</span>
                   <span style={{ fontWeight: '700', color: (selectedSale.installmentDue || 0) > 0 ? '#f59e0b' : '#22c55e' }}>
@@ -449,7 +449,7 @@ export default function InstallmentsPage() {
                 <div><strong>Date:</strong> {formatDate(new Date().toISOString())}</div>
               </div>
               
-              <div style={{ background: '#0f172a', padding: '1rem', borderRadius: '0.5rem', margin: '1rem 0' }}>
+              <div style={{ background: 'var(--background)', padding: '1rem', borderRadius: '0.5rem', margin: '1rem 0' }}>
                 <div style={styles.summaryRow}>
                   <span>Total Amount</span>
                   <span>{formatCurrency(selectedSale.installmentTotal || selectedSale.total)}</span>
@@ -458,7 +458,7 @@ export default function InstallmentsPage() {
                   <span>Previous Paid</span>
                   <span>{formatCurrency(selectedSale.installmentPaid || 0)}</span>
                 </div>
-                <div style={{ ...styles.summaryRow, color: '#22c55e', fontWeight: '600' }}>
+                <div style={{ ...styles.summaryRow, color: 'var(--success)', fontWeight: '600' }}>
                   <span>Amount Paid Now</span>
                   <span>+ {formatCurrency(lastPayment.amount)}</span>
                 </div>
@@ -472,12 +472,12 @@ export default function InstallmentsPage() {
 
               {(selectedSale.payments || []).length > 0 && (
                 <div style={{ marginTop: '1rem' }}>
-                  <div style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem', color: '#94a3b8' }}>Payment History</div>
+                  <div style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem', color: 'var(--muted-foreground)' }}>Payment History</div>
                   <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
                     {(selectedSale.payments || []).slice(0, 5).map((payment, idx) => (
-                      <div key={payment.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.375rem 0', borderBottom: '1px solid #334155', fontSize: '0.8rem' }}>
-                        <span style={{ color: '#94a3b8' }}>{payment.paidAt ? formatDate(payment.paidAt) : '-'}</span>
-                        <span style={{ color: '#22c55e' }}>{formatCurrency(payment.amount)}</span>
+                      <div key={payment.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.375rem 0', borderBottom: '1px solid var(--border)', fontSize: '0.8rem' }}>
+                        <span style={{ color: 'var(--muted-foreground)' }}>{payment.paidAt ? formatDate(payment.paidAt) : '-'}</span>
+                        <span style={{ color: 'var(--success)' }}>{formatCurrency(payment.amount)}</span>
                       </div>
                     ))}
                   </div>
@@ -496,45 +496,45 @@ export default function InstallmentsPage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container: { minHeight: '100vh', padding: '1.5rem', color: '#e2e8f0' },
-  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontSize: '1.25rem', color: '#64748b' },
+  container: { minHeight: '100vh', padding: '1.5rem', color: 'var(--foreground)' },
+  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontSize: '1.25rem', color: 'var(--muted-foreground)' },
   notification: { position: 'fixed', top: '1rem', right: '1rem', padding: '1rem 1.5rem', borderRadius: '0.5rem', color: 'white', fontWeight: '600', zIndex: 1000 },
   header: { marginBottom: '1.5rem' },
-  title: { fontSize: '1.75rem', fontWeight: '700', color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: '0.75rem' },
-  subtitle: { color: '#94a3b8', fontSize: '0.875rem', marginTop: '0.25rem' },
+  title: { fontSize: '1.75rem', fontWeight: '700', color: 'var(--foreground)', display: 'flex', alignItems: 'center', gap: '0.75rem' },
+  subtitle: { color: 'var(--muted-foreground)', fontSize: '0.875rem', marginTop: '0.25rem' },
   statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1.5rem' },
-  statCard: { background: 'linear-gradient(145deg, #1e293b, #334155)', borderRadius: '0.75rem', border: '1px solid #334155', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' },
+  statCard: { background: 'var(--card)', borderRadius: '0.75rem', border: '1px solid var(--border)', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' },
   statIcon: { width: '48px', height: '48px', borderRadius: '0.75rem', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' },
-  statValue: { fontSize: '1.5rem', fontWeight: '700', color: '#f1f5f9' },
-  statLabel: { fontSize: '0.875rem', color: '#94a3b8' },
+  statValue: { fontSize: '1.5rem', fontWeight: '700', color: 'var(--foreground)' },
+  statLabel: { fontSize: '0.875rem', color: 'var(--muted-foreground)' },
   filtersRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', gap: '1rem', flexWrap: 'wrap' },
   filterTabs: { display: 'flex', gap: '0.5rem' },
-  filterTab: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.625rem 1rem', background: '#1e293b', border: '1px solid #334155', borderRadius: '0.5rem', color: '#94a3b8', cursor: 'pointer', fontWeight: '500' },
+  filterTab: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.625rem 1rem', background: 'var(--card)', border: '1px solid #334155', borderRadius: '0.5rem', color: 'var(--muted-foreground)', cursor: 'pointer', fontWeight: '500' },
   filterTabActive: { background: 'linear-gradient(135deg, #3b82f6, #2563eb)', border: '1px solid #3b82f6', color: 'white' },
-  searchBox: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: '#1e293b', border: '1px solid #334155', borderRadius: '0.5rem', minWidth: '250px' },
-  searchInput: { background: 'transparent', border: 'none', color: '#e2e8f0', fontSize: '0.9rem', outline: 'none', width: '100%' },
-  tableCard: { background: '#1e293b', borderRadius: '1rem', border: '1px solid #334155', overflow: 'hidden' },
+  searchBox: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: 'var(--card)', border: '1px solid #334155', borderRadius: '0.5rem', minWidth: '250px' },
+  searchInput: { background: 'transparent', border: 'none', color: 'var(--foreground)', fontSize: '0.9rem', outline: 'none', width: '100%' },
+  tableCard: { background: 'var(--card)', borderRadius: '1rem', border: '1px solid #334155', overflow: 'hidden' },
   table: { width: '100%', borderCollapse: 'collapse' },
-  emptyState: { padding: '3rem', textAlign: 'center', color: '#64748b' },
-  paidBadge: { padding: '0.25rem 0.75rem', background: 'rgba(34, 197, 94, 0.2)', color: '#22c55e', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: '600' },
-  overdueBadge: { padding: '0.25rem 0.75rem', background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: '600' },
-  activeBadge: { padding: '0.25rem 0.75rem', background: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: '600' },
+  emptyState: { padding: '3rem', textAlign: 'center', color: 'var(--muted-foreground)' },
+  paidBadge: { padding: '0.25rem 0.75rem', background: 'rgba(34, 197, 94, 0.2)', color: 'var(--success)', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: '600' },
+  overdueBadge: { padding: '0.25rem 0.75rem', background: 'rgba(239, 68, 68, 0.2)', color: 'var(--destructive)', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: '600' },
+  activeBadge: { padding: '0.25rem 0.75rem', background: 'rgba(59, 130, 246, 0.2)', color: 'var(--primary)', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: '600' },
   actionButtons: { display: 'flex', gap: '0.5rem' },
   payBtn: { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', background: 'linear-gradient(135deg, #22c55e, #16a34a)', border: 'none', borderRadius: '0.375rem', color: 'white', cursor: 'pointer' },
   callBtn: { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)', border: 'none', borderRadius: '0.375rem', color: 'white', cursor: 'pointer' },
-  viewBtn: { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', background: '#334155', border: 'none', borderRadius: '0.375rem', color: 'white', cursor: 'pointer' },
+  viewBtn: { display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', background: 'var(--secondary)', border: 'none', borderRadius: '0.375rem', color: 'white', cursor: 'pointer' },
   modalOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 },
-  modal: { background: '#1e293b', borderRadius: '1rem', padding: '1.5rem', maxWidth: '500px', width: '90%', border: '1px solid #334155' },
-  modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', color: '#f1f5f9' },
-  closeBtn: { background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' },
+  modal: { background: 'var(--card)', borderRadius: '1rem', padding: '1.5rem', maxWidth: '500px', width: '90%', border: '1px solid #334155' },
+  modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', color: 'var(--foreground)' },
+  closeBtn: { background: 'none', border: 'none', color: 'var(--muted-foreground)', cursor: 'pointer' },
   modalBody: { display: 'flex', flexDirection: 'column', gap: '1rem' },
-  saleInfo: { padding: '1rem', background: '#0f172a', borderRadius: '0.5rem', fontSize: '0.9rem', color: '#94a3b8', display: 'flex', flexDirection: 'column', gap: '0.25rem' },
+  saleInfo: { padding: '1rem', background: 'var(--background)', borderRadius: '0.5rem', fontSize: '0.9rem', color: 'var(--muted-foreground)', display: 'flex', flexDirection: 'column', gap: '0.25rem' },
   field: { display: 'flex', flexDirection: 'column', gap: '0.5rem' },
-  label: { fontSize: '0.875rem', color: '#94a3b8' },
-  input: { padding: '0.75rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '0.5rem', color: '#e2e8f0', fontSize: '1rem' },
+  label: { fontSize: '0.875rem', color: 'var(--muted-foreground)' },
+  input: { padding: '0.75rem', background: 'var(--background)', border: '1px solid #334155', borderRadius: '0.5rem', color: 'var(--foreground)', fontSize: '1rem' },
   submitBtn: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.875rem', background: 'linear-gradient(135deg, #22c55e, #16a34a)', border: 'none', borderRadius: '0.5rem', color: 'white', fontWeight: '600', cursor: 'pointer', marginTop: '0.5rem' },
-  itemsList: { padding: '1rem', background: '#0f172a', borderRadius: '0.5rem' },
-  itemRow: { display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid #334155', fontSize: '0.9rem' },
-  paymentSummary: { padding: '1rem', background: '#0f172a', borderRadius: '0.5rem' },
+  itemsList: { padding: '1rem', background: 'var(--background)', borderRadius: '0.5rem' },
+  itemRow: { display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--border)', fontSize: '0.9rem' },
+  paymentSummary: { padding: '1rem', background: 'var(--background)', borderRadius: '0.5rem' },
   summaryRow: { display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', fontSize: '0.9rem' },
 };

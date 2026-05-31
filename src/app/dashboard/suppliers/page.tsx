@@ -112,7 +112,7 @@ export default function SuppliersPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Supplier Management</h1>
-          <p style={{ color: '#64748b' }}>Manage suppliers and purchase orders</p>
+          <p style={{ color: 'var(--muted-foreground)' }}>Manage suppliers and purchase orders</p>
         </div>
         <button onClick={() => openModal()} className="btn btn-primary">
           <Plus size={18} /> Add Supplier
@@ -133,7 +133,7 @@ export default function SuppliersPage() {
               <div>
                 <h3 style={{ fontWeight: '600', fontSize: '1.125rem' }}>{supplier.name}</h3>
                 {supplier.contactPerson && (
-                  <p style={{ fontSize: '0.875rem', color: '#64748b' }}>Contact: {supplier.contactPerson}</p>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>Contact: {supplier.contactPerson}</p>
                 )}
               </div>
               <button 
@@ -147,24 +147,24 @@ export default function SuppliersPage() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
               {supplier.phone && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#475569' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>
                   <Phone size={16} /> {supplier.phone}
                 </div>
               )}
               {supplier.email && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#475569' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>
                   <Mail size={16} /> {supplier.email}
                 </div>
               )}
               {supplier.address && (
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.875rem', color: '#475569' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>
                   <MapPin size={16} style={{ marginTop: '2px' }} /> {supplier.address}
                 </div>
               )}
             </div>
 
             {supplier.notes && (
-              <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem', fontStyle: 'italic' }}>
+              <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)', marginBottom: '1rem', fontStyle: 'italic' }}>
                 {supplier.notes}
               </p>
             )}
@@ -182,7 +182,7 @@ export default function SuppliersPage() {
       </div>
 
       {filteredSuppliers.length === 0 && (
-        <div className="card" style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+        <div className="card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--muted-foreground)' }}>
           <Package size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
           <p>No suppliers found. Add your first supplier to get started.</p>
         </div>

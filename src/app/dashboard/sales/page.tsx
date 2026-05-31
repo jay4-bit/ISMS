@@ -98,7 +98,7 @@ export default function SalesPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Sales History</h1>
-          <p style={{ color: '#64748b', fontSize: '0.85rem' }}>View all completed sales</p>
+          <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>View all completed sales</p>
         </div>
       </div>
 
@@ -118,9 +118,9 @@ export default function SalesPage() {
               onClick={() => setTimeFilter(opt.key)}
               style={{
                 padding: '0.35rem 0.65rem', borderRadius: '0.375rem', border: '1px solid',
-                borderColor: timeFilter === opt.key ? '#3b82f6' : '#334155',
+                borderColor: timeFilter === opt.key ? 'var(--primary)' : 'var(--border)',
                 background: timeFilter === opt.key ? '#3b82f6' : 'transparent',
-                color: timeFilter === opt.key ? 'white' : '#94a3b8',
+                color: timeFilter === opt.key ? 'white' : 'var(--muted-foreground)',
                 cursor: 'pointer', fontWeight: timeFilter === opt.key ? '600' : '400',
                 fontSize: '0.78rem', whiteSpace: 'nowrap',
               }}
@@ -131,7 +131,7 @@ export default function SalesPage() {
         </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
-            <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+            <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-foreground)' }} />
             <input
               type="text"
               className="input"
@@ -142,7 +142,7 @@ export default function SalesPage() {
             />
           </div>
           <div style={{ padding: '0.5rem 1rem', background: '#22c55e20', borderRadius: '0.5rem' }}>
-            <span style={{ color: '#22c55e', fontWeight: '600' }}>Total: {formatCurrency(totalSales)}</span>
+            <span style={{ color: 'var(--success)', fontWeight: '600' }}>Total: {formatCurrency(totalSales)}</span>
           </div>
         </div>
       </div>
@@ -164,9 +164,9 @@ export default function SalesPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <TrendingUp size={18} color="#22c55e" />
-                <h3 style={{ fontWeight: '600', fontSize: '0.95rem', color: '#f1f5f9' }}>Sales Trend</h3>
+                <h3 style={{ fontWeight: '600', fontSize: '0.95rem', color: 'var(--foreground)' }}>Sales Trend</h3>
               </div>
-              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{chartData.length} days</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>{chartData.length} days</span>
             </div>
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
@@ -177,15 +177,15 @@ export default function SalesPage() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={{ stroke: '#334155' }} tickLine={false} interval="preserveStartEnd" />
-                <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : `${v}`} width={50} />
+                <XAxis dataKey="date" tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }} axisLine={{ stroke: 'var(--border)' }} tickLine={false} interval="preserveStartEnd" />
+                <YAxis tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}K` : `${v}`} width={50} />
                 <Tooltip
-                  contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', fontSize: '0.8rem' }}
-                  labelStyle={{ color: '#94a3b8', fontWeight: '600', marginBottom: '4px' }}
+                  contentStyle={{ background: 'var(--card)', border: '1px solid #334155', borderRadius: '8px', fontSize: '0.8rem' }}
+                  labelStyle={{ color: 'var(--muted-foreground)', fontWeight: '600', marginBottom: '4px' }}
                   formatter={(value: any) => [formatCurrency(value as number), 'Sales']}
                   labelFormatter={(label: any) => String(label)}
                 />
-                <Area type="monotone" dataKey="total" stroke="#22c55e" strokeWidth={2.5} fill="url(#salesGradient)" dot={{ fill: '#22c55e', stroke: '#0f172a', strokeWidth: 2, r: 3.5 }} activeDot={{ fill: '#22c55e', stroke: '#0f172a', strokeWidth: 2, r: 5 }} />
+                <Area type="monotone" dataKey="total" stroke="#22c55e" strokeWidth={2.5} fill="url(#salesGradient)" dot={{ fill: '#22c55e', stroke: 'var(--background)', strokeWidth: 2, r: 3.5 }} activeDot={{ fill: '#22c55e', stroke: 'var(--background)', strokeWidth: 2, r: 5 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -195,38 +195,38 @@ export default function SalesPage() {
       <div className="card" style={{ padding: 0, overflow: 'auto' }}>
         <table className="table" style={{ fontSize: '0.8rem', width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ background: '#1e293b' }}>
-              <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>RECEIPT</th>
-              <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>DATE</th>
-              <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>CUSTOMER</th>
-              <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>ITEMS</th>
-              <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>TOTAL</th>
-              <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>STATUS</th>
-              <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>ACTIONS</th>
+            <tr style={{ background: 'var(--card)' }}>
+              <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>RECEIPT</th>
+              <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>DATE</th>
+              <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>CUSTOMER</th>
+              <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>ITEMS</th>
+              <th style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>TOTAL</th>
+              <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>STATUS</th>
+              <th style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>ACTIONS</th>
             </tr>
           </thead>
           <tbody>
             {filteredSales.map((sale, index) => (
-              <tr key={sale.id} style={{ background: index % 2 === 0 ? '#1e293b' : '#0f172a' }}>
+              <tr key={sale.id} style={{ background: index % 2 === 0 ? 'var(--card)' : 'var(--background)' }}>
                 <td style={{ padding: '0.5rem' }}>
-                  <div style={{ fontWeight: '600', color: '#f1f5f9', fontSize: '0.75rem' }}>{sale.receiptNumber}</div>
+                  <div style={{ fontWeight: '600', color: 'var(--foreground)', fontSize: '0.75rem' }}>{sale.receiptNumber}</div>
                 </td>
-                <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>
+                <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>
                   {formatDate(sale.createdAt)}
                 </td>
                 <td style={{ padding: '0.5rem' }}>
-                  <div style={{ color: '#f1f5f9', fontSize: '0.75rem' }}>{sale.customerName || '-'}</div>
-                  {sale.customerPhone && <div style={{ color: '#64748b', fontSize: '0.7rem' }}>{sale.customerPhone}</div>}
+                  <div style={{ color: 'var(--foreground)', fontSize: '0.75rem' }}>{sale.customerName || '-'}</div>
+                  {sale.customerPhone && <div style={{ color: 'var(--muted-foreground)', fontSize: '0.7rem' }}>{sale.customerPhone}</div>}
                 </td>
-                <td style={{ padding: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>
+                <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>
                   <div>{sale.items.length} item(s)</div>
                   {sale.items.map((item, i) => (
-                    <div key={i} style={{ fontSize: '0.65rem', color: '#f1f5f9', marginTop: '0.15rem' }}>
+                    <div key={i} style={{ fontSize: '0.65rem', color: 'var(--foreground)', marginTop: '0.15rem' }}>
                       {item.product.name}{item.product.electronicsFields?.imei ? <span style={{ color: '#f59e0b', fontFamily: 'monospace', marginLeft: '0.25rem' }}>IMEI: {item.product.electronicsFields.imei}</span> : null}
                     </div>
                   ))}
                 </td>
-                <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: '#22c55e', fontSize: '0.75rem' }}>
+                <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: 'var(--success)', fontSize: '0.75rem' }}>
                   {formatCurrency(sale.total)}
                 </td>
                 <td style={{ padding: '0.5rem', textAlign: 'center' }}>
@@ -256,7 +256,7 @@ export default function SalesPage() {
         </table>
         
         {filteredSales.length === 0 && (
-          <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted-foreground)' }}>
             <ShoppingCart size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
             <p>No sales found</p>
           </div>
@@ -271,28 +271,28 @@ export default function SalesPage() {
               <button onClick={() => setSelectedSale(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
             </div>
 
-            <div style={{ background: '#0f172a', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem' }}>
+            <div style={{ background: 'var(--background)', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span style={{ color: '#94a3b8' }}>Receipt:</span>
+                <span style={{ color: 'var(--muted-foreground)' }}>Receipt:</span>
                 <span style={{ fontWeight: '600' }}>{selectedSale.receiptNumber}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span style={{ color: '#94a3b8' }}>Date:</span>
+                <span style={{ color: 'var(--muted-foreground)' }}>Date:</span>
                 <span>{formatDate(selectedSale.createdAt)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span style={{ color: '#94a3b8' }}>Cashier:</span>
+                <span style={{ color: 'var(--muted-foreground)' }}>Cashier:</span>
                 <span>{selectedSale.cashier.name}</span>
               </div>
               {selectedSale.customerName && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                  <span style={{ color: '#94a3b8' }}>Customer:</span>
+                  <span style={{ color: 'var(--muted-foreground)' }}>Customer:</span>
                   <span>{selectedSale.customerName}</span>
                 </div>
               )}
               {selectedSale.customerPhone && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                  <span style={{ color: '#94a3b8' }}>Phone:</span>
+                  <span style={{ color: 'var(--muted-foreground)' }}>Phone:</span>
                   <span>{selectedSale.customerPhone}</span>
                 </div>
               )}
@@ -304,7 +304,7 @@ export default function SalesPage() {
                 <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid #334155' }}>
                   <div>
                     <div style={{ fontSize: '0.85rem' }}>{item.product.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{item.quantity} x {formatCurrency(item.unitPrice)}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>{item.quantity} x {formatCurrency(item.unitPrice)}</div>
                     {item.product.electronicsFields?.imei && <div style={{ fontSize: '0.7rem', color: '#f59e0b', fontFamily: 'monospace' }}>IMEI: {item.product.electronicsFields.imei}</div>}
                   </div>
                   <div style={{ fontWeight: '600' }}>{formatCurrency(item.total)}</div>
@@ -312,18 +312,18 @@ export default function SalesPage() {
               ))}
             </div>
 
-            <div style={{ background: '#0f172a', padding: '1rem', borderRadius: '0.5rem' }}>
+            <div style={{ background: 'var(--background)', padding: '1rem', borderRadius: '0.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span style={{ color: '#94a3b8' }}>Subtotal:</span>
+                <span style={{ color: 'var(--muted-foreground)' }}>Subtotal:</span>
                 <span>{formatCurrency(selectedSale.subtotal)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span style={{ color: '#94a3b8' }}>Discount:</span>
+                <span style={{ color: 'var(--muted-foreground)' }}>Discount:</span>
                 <span>-{formatCurrency(selectedSale.discount)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.5rem', borderTop: '1px solid #334155', fontWeight: '600', fontSize: '1.1rem' }}>
                 <span>Total:</span>
-                <span style={{ color: '#22c55e' }}>{formatCurrency(selectedSale.total)}</span>
+                <span style={{ color: 'var(--success)' }}>{formatCurrency(selectedSale.total)}</span>
               </div>
               {selectedSale.isInstallment && (
                 <>

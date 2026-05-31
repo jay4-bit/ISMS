@@ -6,9 +6,9 @@ import BarcodeScanner from './BarcodeScanner';
 
 const scanBtnStyle: React.CSSProperties = {
   display: 'flex', alignItems: 'center', justifyContent: 'center',
-  padding: '0.5rem', background: '#334155',
+  padding: '0.5rem', background: 'var(--secondary)',
   border: '1px solid #475569', borderRadius: '0.4rem',
-  color: '#f1f5f9', cursor: 'pointer',
+  color: 'var(--foreground)', cursor: 'pointer',
 };
 
 interface Supplier {
@@ -248,14 +248,14 @@ export function ElectronicsPhoneForm({
         <div>
           <label className="label">Supplier *</label>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <select value={selectedSupplier} onChange={(e) => setSelectedSupplier(e.target.value)} style={{ flex: 1, padding: '0.6rem', background: '#1e293b', color: '#f1f5f9' }}>
-              <option value="" style={{ background: '#1e293b', color: '#94a3b8' }}>Select Supplier</option>
-              {[...suppliers].sort((a, b) => a.name.localeCompare(b.name)).map(s => <option key={s.id} value={s.id} style={{ background: '#1e293b', color: '#f1f5f9' }}>{s.name}</option>)}
+            <select value={selectedSupplier} onChange={(e) => setSelectedSupplier(e.target.value)} style={{ flex: 1, padding: '0.6rem', background: 'var(--card)', color: 'var(--foreground)' }}>
+              <option value="" style={{ background: 'var(--card)', color: 'var(--muted-foreground)' }}>Select Supplier</option>
+              {[...suppliers].sort((a, b) => a.name.localeCompare(b.name)).map(s => <option key={s.id} value={s.id} style={{ background: 'var(--card)', color: 'var(--foreground)' }}>{s.name}</option>)}
             </select>
             <button type="button" onClick={() => setShowAddSupplier(!showAddSupplier)} className="btn btn-secondary" style={{ padding: '0.6rem' }}><UserPlus size={20} /></button>
           </div>
           {showAddSupplier && (
-            <div style={{ padding: '1.25rem', marginTop: '0.75rem', background: '#1e293b', borderRadius: '0.5rem' }}>
+            <div style={{ padding: '1.25rem', marginTop: '0.75rem', background: 'var(--card)', borderRadius: '0.5rem' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem' }}>
                 <input type="text" className="input" style={{ padding: '0.85rem 1rem', fontSize: '1rem' }} placeholder="Supplier Name *" value={newSupplier.name} onChange={(e) => setNewSupplier({...newSupplier, name: e.target.value})} />
                 <input type="email" className="input" style={{ padding: '0.85rem 1rem', fontSize: '1rem' }} placeholder="Email" value={newSupplier.email} onChange={(e) => setNewSupplier({...newSupplier, email: e.target.value})} />
@@ -271,9 +271,9 @@ export function ElectronicsPhoneForm({
         <div>
           <label className="label">Brand *</label>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <select value={phoneBrand} onChange={(e) => setPhoneBrand(e.target.value)} style={{ flex: 1, padding: '0.6rem', background: '#1e293b', color: '#f1f5f9' }}>
-              <option value="" style={{ background: '#1e293b', color: '#94a3b8' }}>Select Brand</option>
-              {[...phoneBrands].sort().map(b => <option key={b} value={b} style={{ background: '#1e293b', color: '#f1f5f9' }}>{b}</option>)}
+            <select value={phoneBrand} onChange={(e) => setPhoneBrand(e.target.value)} style={{ flex: 1, padding: '0.6rem', background: 'var(--card)', color: 'var(--foreground)' }}>
+              <option value="" style={{ background: 'var(--card)', color: 'var(--muted-foreground)' }}>Select Brand</option>
+              {[...phoneBrands].sort().map(b => <option key={b} value={b} style={{ background: 'var(--card)', color: 'var(--foreground)' }}>{b}</option>)}
             </select>
             {phoneBrand && !currentModelEntries.length && (
               <button type="button" onClick={() => handleDeleteBrand(phoneBrand)} className="btn btn-danger" style={{ padding: '0.55rem' }} title="Delete selected brand"><Trash2 size={16} /></button>
@@ -301,8 +301,8 @@ export function ElectronicsPhoneForm({
                   padding: '0.5rem 0.85rem',
                   borderRadius: '0.375rem',
                   border: '1px solid',
-                  borderColor: phoneCondition === c ? '#3b82f6' : '#334155',
-                  background: phoneCondition === c ? '#3b82f6' : '#1e293b',
+borderColor: phoneCondition === c ? 'var(--primary)' : 'var(--border)',
+     background: phoneCondition === c ? 'var(--primary)' : 'var(--card)',
                   color: 'white',
                   cursor: 'pointer',
                   fontWeight: '500',
@@ -345,11 +345,11 @@ export function ElectronicsPhoneForm({
       </div>
 
       {!editingProduct && currentModelEntries.map((entry, idx) => (
-        <div key={idx} style={{ padding: '0.6rem', background: '#1e293b', borderRadius: '0.5rem', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div key={idx} style={{ padding: '0.6rem', background: 'var(--card)', borderRadius: '0.5rem', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', gap: '1rem', fontSize: '0.9rem' }}>
-            <span style={{ color: '#94a3b8' }}>#{idx + 1}</span>
-            <span style={{ color: '#f1f5f9' }}>{entry.color} / {entry.storage}</span>
-            <span style={{ fontFamily: 'monospace', color: '#64748b' }}>{entry.imei}</span>
+            <span style={{ color: 'var(--muted-foreground)' }}>#{idx + 1}</span>
+            <span style={{ color: 'var(--foreground)' }}>{entry.color} / {entry.storage}</span>
+            <span style={{ fontFamily: 'monospace', color: 'var(--muted-foreground)' }}>{entry.imei}</span>
           </div>
         </div>
       ))}
@@ -606,14 +606,14 @@ export function ElectronicsAccessoryForm({
         <div>
           <label className="label">Supplier *</label>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <select value={selectedSupplier} onChange={(e) => setSelectedSupplier(e.target.value)} disabled={editingProduct ? false : accessoryItems.length > 0} style={{ flex: 1, padding: '0.6rem', background: '#1e293b', color: '#f1f5f9', borderRadius: '0.4rem' }}>
-              <option value="" style={{ background: '#1e293b', color: '#94a3b8' }}>Select Supplier</option>
-              {[...suppliers].sort((a, b) => a.name.localeCompare(b.name)).map(s => <option key={s.id} value={s.id} style={{ background: '#1e293b', color: '#f1f5f9' }}>{s.name}</option>)}
+            <select value={selectedSupplier} onChange={(e) => setSelectedSupplier(e.target.value)} disabled={editingProduct ? false : accessoryItems.length > 0} style={{ flex: 1, padding: '0.6rem', background: 'var(--card)', color: 'var(--foreground)', borderRadius: '0.4rem' }}>
+              <option value="" style={{ background: 'var(--card)', color: 'var(--muted-foreground)' }}>Select Supplier</option>
+              {[...suppliers].sort((a, b) => a.name.localeCompare(b.name)).map(s => <option key={s.id} value={s.id} style={{ background: 'var(--card)', color: 'var(--foreground)' }}>{s.name}</option>)}
             </select>
             <button type="button" onClick={() => setShowAddSupplier(!showAddSupplier)} className="btn btn-secondary" disabled={editingProduct ? false : accessoryItems.length > 0} style={{ padding: '0.6rem' }}><UserPlus size={20} /></button>
           </div>
           {showAddSupplier && (
-            <div style={{ padding: '1.25rem', marginTop: '0.75rem', background: '#1e293b', borderRadius: '0.5rem' }}>
+            <div style={{ padding: '1.25rem', marginTop: '0.75rem', background: 'var(--card)', borderRadius: '0.5rem' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem' }}>
                 <input type="text" className="input" style={{ padding: '0.85rem 1rem', fontSize: '1rem' }} placeholder="Supplier Name *" value={newSupplier.name} onChange={(e) => setNewSupplier({...newSupplier, name: e.target.value})} />
                 <input type="email" className="input" style={{ padding: '0.85rem 1rem', fontSize: '1rem' }} placeholder="Email" value={newSupplier.email} onChange={(e) => setNewSupplier({...newSupplier, email: e.target.value})} />
@@ -629,9 +629,9 @@ export function ElectronicsAccessoryForm({
         <div>
           <label className="label">Accessory Group *</label>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <select value={accessoryGroup} onChange={(e) => setAccessoryGroup(e.target.value)} style={{ flex: 1, padding: '0.6rem', background: '#1e293b', color: '#f1f5f9', borderRadius: '0.4rem' }}>
-              <option value="" style={{ background: '#1e293b', color: '#94a3b8' }}>Select Group</option>
-              {[...accessoryGroups].sort().map(g => <option key={g} value={g} style={{ background: '#1e293b', color: '#f1f5f9' }}>{g}</option>)}
+            <select value={accessoryGroup} onChange={(e) => setAccessoryGroup(e.target.value)} style={{ flex: 1, padding: '0.6rem', background: 'var(--card)', color: 'var(--foreground)', borderRadius: '0.4rem' }}>
+              <option value="" style={{ background: 'var(--card)', color: 'var(--muted-foreground)' }}>Select Group</option>
+              {[...accessoryGroups].sort().map(g => <option key={g} value={g} style={{ background: 'var(--card)', color: 'var(--foreground)' }}>{g}</option>)}
             </select>
             <input type="text" placeholder="New group" value={accessoryGroupInput} onChange={(e) => setAccessoryGroupInput(e.target.value)} style={{ flex: 1, padding: '0.6rem', borderRadius: '0.4rem' }} />
             <button type="button" onClick={handleAddGroup} className="btn btn-secondary" style={{ padding: '0.6rem 1rem' }}>Add</button>
@@ -692,17 +692,17 @@ export function ElectronicsAccessoryForm({
         <>
           {accessoryItems.length > 0 && (
             <div style={{ marginBottom: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '600' }}>ITEMS TO SAVE ({accessoryItems.length})</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)', fontWeight: '600' }}>ITEMS TO SAVE ({accessoryItems.length})</div>
               {accessoryItems.map((item, idx) => (
-                <div key={idx} style={{ padding: '0.6rem 0.8rem', background: '#0f172a', borderRadius: '0.4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #334155' }}>
+                <div key={idx} style={{ padding: '0.6rem 0.8rem', background: 'var(--background)', borderRadius: '0.4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--border)' }}>
                   <div style={{ display: 'flex', gap: '1rem', fontSize: '0.9rem' }}>
-                    <span style={{ color: '#64748b' }}>#{idx + 1}</span>
-                    <span style={{ color: '#f1f5f9' }}>Qty: {item.quantity}</span>
+                    <span style={{ color: 'var(--muted-foreground)' }}>#{idx + 1}</span>
+                    <span style={{ color: 'var(--foreground)' }}>Qty: {item.quantity}</span>
                   </div>
                   <button 
                     type="button" 
                     onClick={() => setAccessoryItems(accessoryItems.filter((_, i) => i !== idx))}
-                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.2rem' }}
+                    style={{ background: 'none', border: 'none', color: 'var(--destructive)', cursor: 'pointer', padding: '0.2rem' }}
                   >
                     <Trash2 size={14} />
                   </button>

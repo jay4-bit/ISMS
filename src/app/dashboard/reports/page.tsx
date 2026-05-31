@@ -56,7 +56,7 @@ export default function ReportsPage() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-        <div><h1 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Reports & Analytics</h1><p style={{ color: '#64748b' }}>Financial insights and business performance</p></div>
+        <div><h1 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Reports & Analytics</h1><p style={{ color: 'var(--muted-foreground)' }}>Financial insights and business performance</p></div>
         <button onClick={exportToExcel} className="btn btn-secondary" disabled={!reportData}><Download size={18} /> Export CSV</button>
       </div>
 
@@ -105,7 +105,7 @@ export default function ReportsPage() {
             </table>
           </div>
         </div>
-      ) : <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>No data available.</div>}
+      ) : <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--muted-foreground)' }}>No data available.</div>}
     </div>
   );
 }

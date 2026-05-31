@@ -116,18 +116,18 @@ export default function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps)
               {status === 'starting' && (
                 <>
                   <Loader2 size={32} className="spin" style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
-                  <p style={{ color: '#94a3b8', margin: 0 }}>Starting camera...</p>
+                  <p style={{ color: 'var(--muted-foreground)', margin: 0 }}>Starting camera...</p>
                 </>
               )}
               {status === 'error' && (
-                <p style={{ color: '#ef4444', textAlign: 'center', margin: 0 }}>{errorMsg}</p>
+                <p style={{ color: 'var(--destructive)', textAlign: 'center', margin: 0 }}>{errorMsg}</p>
               )}
             </div>
           )}
         </div>
         <div style={styles.footer}>
           {status === 'active' && torchSupported && (
-            <button onClick={toggleTorch} style={{ ...styles.flashBtn, background: torchOn ? '#f59e0b' : '#334155' }}>
+            <button onClick={toggleTorch} style={{ ...styles.flashBtn, background: torchOn ? 'var(--warning)' : 'var(--secondary)' }}>
               {torchOn ? <FlashlightOff size={18} /> : <Flashlight size={18} />}
               {torchOn ? 'Flash Off' : 'Flash On'}
             </button>
@@ -148,16 +148,16 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem',
   },
   modal: {
-    background: '#1e293b', borderRadius: '1rem', border: '1px solid #334155',
+    background: 'var(--card)', borderRadius: '1rem', border: '1px solid var(--border)',
     maxWidth: '450px', width: '100%', overflow: 'hidden',
   },
   header: {
     display: 'flex', alignItems: 'center', gap: '0.75rem',
-    padding: '1rem 1.5rem', borderBottom: '1px solid #334155', color: '#f1f5f9',
+    padding: '1rem 1.5rem', borderBottom: '1px solid #334155', color: 'var(--foreground)',
   },
-  closeBtn: { marginLeft: 'auto', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' },
+  closeBtn: { marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--muted-foreground)', cursor: 'pointer' },
   body: { padding: '1.5rem', position: 'relative' },
-  viewfinder: { width: '100%', height: '280px', borderRadius: '0.75rem', overflow: 'hidden', background: '#0f172a' },
+  viewfinder: { width: '100%', height: '280px', borderRadius: '0.75rem', overflow: 'hidden', background: 'var(--background)' },
   overlayBox: {
     position: 'absolute', inset: '1.5rem', display: 'flex', flexDirection: 'column',
     alignItems: 'center', justifyContent: 'center', textAlign: 'center',
@@ -169,7 +169,7 @@ const styles: Record<string, React.CSSProperties> = {
   flashBtn: {
     display: 'flex', alignItems: 'center', gap: '0.4rem',
     padding: '0.7rem 1.2rem', border: '1px solid #475569',
-    borderRadius: '0.5rem', color: '#f1f5f9', fontWeight: '600', cursor: 'pointer',
+    borderRadius: '0.5rem', color: 'var(--foreground)', fontWeight: '600', cursor: 'pointer',
   },
   retryBtn: {
     display: 'flex', alignItems: 'center', gap: '0.5rem',
@@ -177,7 +177,7 @@ const styles: Record<string, React.CSSProperties> = {
     border: 'none', borderRadius: '0.5rem', color: 'white', fontWeight: '600', cursor: 'pointer',
   },
   cancelBtn: {
-    padding: '0.75rem 1.5rem', background: '#334155',
-    border: '1px solid #475569', borderRadius: '0.5rem', color: '#f1f5f9', cursor: 'pointer',
+    padding: '0.75rem 1.5rem', background: 'var(--secondary)',
+    border: '1px solid #475569', borderRadius: '0.5rem', color: 'var(--foreground)', cursor: 'pointer',
   },
 };

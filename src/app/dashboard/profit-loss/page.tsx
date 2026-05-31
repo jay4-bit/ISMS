@@ -195,25 +195,25 @@ export default function ProfitLossPage() {
                 <>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
                     <div style={{ ...styles.statBox, padding: '1rem', border: '1px solid #ef4444' }}>
-                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.25rem' }}>Total Loss from Returns</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '0.25rem' }}>Total Loss from Returns</div>
                       <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#ef4444' }}>{formatCurr(data.totalReturnLoss || 0)}</div>
                     </div>
                     <div style={{ ...styles.statBox, padding: '1rem', border: '1px solid #22c55e' }}>
-                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.25rem' }}>Total Profit from Returns</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '0.25rem' }}>Total Profit from Returns</div>
                       <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#22c55e' }}>{formatCurr(data.totalReturnProfit || 0)}</div>
                     </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
                     <div style={{ ...styles.statBox, padding: '1rem' }}>
-                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.25rem' }}>Cash Refunds</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '0.25rem' }}>Cash Refunds</div>
                       <div style={{ fontSize: '1rem', fontWeight: '600', color: '#ef4444' }}>{formatCurr(data.totalRefundsGiven || 0)}</div>
                     </div>
                     <div style={{ ...styles.statBox, padding: '1rem' }}>
-                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.25rem' }}>Repair Costs</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '0.25rem' }}>Repair Costs</div>
                       <div style={{ fontSize: '1rem', fontWeight: '600', color: '#ef4444' }}>{formatCurr(data.totalRepairCosts || 0)}</div>
                     </div>
                     <div style={{ ...styles.statBox, padding: '1rem' }}>
-                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.25rem' }}>Top-Up Received</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '0.25rem' }}>Top-Up Received</div>
                       <div style={{ fontSize: '1rem', fontWeight: '600', color: '#22c55e' }}>{formatCurr(data.totalTopUpReceived || 0)}</div>
                     </div>
                   </div>
@@ -289,7 +289,7 @@ export default function ProfitLossPage() {
                     </tbody>
                   </table>
                   {profitableProducts.length > 10 && (
-                    <div style={{ padding: '0.5rem', textAlign: 'center', color: '#64748b', fontSize: '0.8rem' }}>
+                    <div style={{ padding: '0.5rem', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: '0.8rem' }}>
                       ... and {profitableProducts.length - 10} more products
                     </div>
                   )}
@@ -365,7 +365,7 @@ export default function ProfitLossPage() {
                       <tr key={expense.category}>
                         <td style={{ fontWeight: '500' }}>{expense.category}</td>
                         <td style={{ color: '#ef4444' }}>{formatCurr(expense.amount)}</td>
-                        <td style={{ color: '#64748b' }}>
+                        <td style={{ color: 'var(--muted-foreground)' }}>
                           {((expense.amount / (data.totalExpenses || 1)) * 100).toFixed(1)}%
                         </td>
                       </tr>
@@ -420,31 +420,31 @@ export default function ProfitLossPage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container: { minHeight: '100vh', padding: '1.5rem', color: '#e2e8f0' },
-  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontSize: '1.25rem', color: '#64748b' },
+  container: { minHeight: '100vh', padding: '1.5rem', color: 'var(--foreground)' },
+  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontSize: '1.25rem', color: 'var(--muted-foreground)' },
   header: { marginBottom: '1.5rem' },
-  title: { fontSize: '1.75rem', fontWeight: '700', color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: '0.75rem' },
-  subtitle: { color: '#94a3b8', fontSize: '0.875rem', marginTop: '0.25rem' },
+  title: { fontSize: '1.75rem', fontWeight: '700', color: 'var(--foreground)', display: 'flex', alignItems: 'center', gap: '0.75rem' },
+  subtitle: { color: 'var(--muted-foreground)', fontSize: '0.875rem', marginTop: '0.25rem' },
   periodSelector: { display: 'flex', gap: '0.5rem', marginTop: '1rem', flexWrap: 'wrap' },
-  periodBtn: { padding: '0.5rem 1rem', background: '#1e293b', border: '1px solid #334155', borderRadius: '0.5rem', color: '#94a3b8', cursor: 'pointer', fontWeight: '500' },
+  periodBtn: { padding: '0.5rem 1rem', background: 'var(--card)', border: '1px solid #334155', borderRadius: '0.5rem', color: 'var(--muted-foreground)', cursor: 'pointer', fontWeight: '500' },
   periodBtnActive: { background: 'linear-gradient(135deg, #3b82f6, #2563eb)', border: '1px solid #3b82f6', color: 'white' },
-  mainCard: { background: 'linear-gradient(145deg, #1e293b, #334155)', borderRadius: '1rem', border: '1px solid #334155', padding: '1.5rem' },
-  profitHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', padding: '1rem', background: '#0f172a', borderRadius: '0.75rem' },
-  profitLabel: { fontSize: '0.875rem', color: '#94a3b8', marginBottom: '0.25rem' },
+  mainCard: { background: 'var(--card)', borderRadius: '1rem', border: '1px solid var(--border)', padding: '1.5rem' },
+  profitHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', padding: '1rem', background: 'var(--background)', borderRadius: '0.75rem' },
+  profitLabel: { fontSize: '0.875rem', color: 'var(--muted-foreground)', marginBottom: '0.25rem' },
   profitValue: { fontSize: '2.5rem', fontWeight: '700' },
   statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' },
-  statBox: { display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', background: '#0f172a', borderRadius: '0.75rem' },
+  statBox: { display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', background: 'var(--background)', borderRadius: '0.75rem' },
   statIcon: { width: '40px', height: '40px', borderRadius: '0.5rem', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' },
-  statValue: { fontSize: '1.25rem', fontWeight: '700', color: '#f1f5f9' },
-  statLabel: { fontSize: '0.75rem', color: '#64748b' },
-  divider: { height: '1px', background: '#334155', marginBottom: '1.5rem' },
+  statValue: { fontSize: '1.25rem', fontWeight: '700', color: 'var(--foreground)' },
+  statLabel: { fontSize: '0.75rem', color: 'var(--muted-foreground)' },
+  divider: { height: '1px', background: 'var(--border)', marginBottom: '1.5rem' },
   section: { marginBottom: '1rem' },
-  sectionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem 0', color: '#f1f5f9' },
+  sectionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem 0', color: 'var(--foreground)' },
   sectionTitle: { fontSize: '1rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' },
-  subSection: { marginBottom: '1rem', padding: '1rem', background: '#0f172a', borderRadius: '0.5rem' },
+  subSection: { marginBottom: '1rem', padding: '1rem', background: 'var(--background)', borderRadius: '0.5rem' },
   subSectionHeader: { display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', fontSize: '0.9rem' },
   table: { width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' },
-  emptyState: { padding: '2rem', textAlign: 'center', color: '#64748b' },
-  summaryBox: { padding: '1rem', background: '#0f172a', borderRadius: '0.75rem' },
+  emptyState: { padding: '2rem', textAlign: 'center', color: 'var(--muted-foreground)' },
+  summaryBox: { padding: '1rem', background: 'var(--background)', borderRadius: '0.75rem' },
   summaryRow: { display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', fontSize: '0.9rem' },
 };
