@@ -622,6 +622,29 @@ body {
   }
 }
 
+/* Mobile reports page (≤768px) */
+@media (max-width: 768px) {
+  .reports-page h1 {
+    font-size: 1.1rem !important;
+  }
+  .reports-page .card {
+    padding: 0.75rem;
+  }
+  .reports-page select,
+  .reports-page input[type="date"] {
+    width: 100% !important;
+  }
+  .reports-page .stat-card .stat-value {
+    font-size: 1rem;
+  }
+  .reports-page h3 {
+    font-size: 0.85rem !important;
+  }
+  .reports-page h3 + div {
+    font-size: 1.25rem !important;
+  }
+}
+
 .responsive-container {
   width: 100%;
   max-width: 500px;

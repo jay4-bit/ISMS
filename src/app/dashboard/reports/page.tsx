@@ -55,7 +55,7 @@ export default function ReportsPage() {
 
   return (
     <div className="reports-page">
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
         <div><h1 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Reports & Analytics</h1><p style={{ color: 'var(--muted-foreground)' }}>Financial insights and business performance</p></div>
         <button onClick={exportToExcel} className="btn btn-secondary" disabled={!reportData}><Download size={18} /> Export CSV</button>
       </div>
@@ -76,7 +76,7 @@ export default function ReportsPage() {
             <div className="stat-card"><div className="stat-value">{reportData.itemsSold || 0}</div><div className="stat-label">Items Sold</div></div>
             <div className="stat-card"><div className="stat-value">{reportData.sales?.length || 0}</div><div className="stat-label">Total Transactions</div></div>
           </div>
-          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div className="card table-responsive" style={{ padding: 0, overflow: 'hidden' }}>
             <table className="table">
               <thead><tr><th>Date</th><th>Receipt #</th><th>Items</th><th>Subtotal</th><th>Discount</th><th>Total</th><th>Profit</th><th>Payment</th></tr></thead>
               <tbody>{reportData.sales?.slice(0, 50).map((sale: any) => { const profit = sale.items.reduce((sum: number, i: any) => sum + (i.unitPrice - i.product.purchaseCost) * i.quantity, 0); return (<tr key={sale.id}><td>{formatDate(sale.createdAt)}</td><td style={{ fontWeight: '600' }}>{sale.receiptNumber}</td><td>{sale.items.reduce((s: number, i: any) => s + i.quantity, 0)}</td><td>{formatCurrency(sale.subtotal)}</td><td style={{ color: '#ef4444' }}>-{formatCurrency(sale.discount)}</td><td style={{ fontWeight: '600' }}>{formatCurrency(sale.total)}</td><td style={{ color: '#22c55e' }}>{formatCurrency(profit)}</td><td><span className="badge badge-info">{sale.paymentMethod}</span></td></tr>); })}</tbody>
@@ -98,7 +98,7 @@ export default function ReportsPage() {
             <div className="stat-card"><div className="stat-value">{formatCurrency(reportData.totalValue || 0)}</div><div className="stat-label">Total Stock Value</div></div>
             <div className="stat-card"><div className="stat-value" style={{ color: '#22c55e' }}>{formatCurrency(reportData.totalProfit || 0)}</div><div className="stat-label">Potential Profit</div></div>
           </div>
-          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div className="card table-responsive" style={{ padding: 0, overflow: 'hidden' }}>
             <table className="table">
               <thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Stock</th><th>Cost</th><th>Price</th><th>Value</th><th>Status</th></tr></thead>
               <tbody>{reportData.products?.map((product: any) => (<tr key={product.id}><td style={{ fontWeight: '500' }}>{product.name}</td><td>{product.sku}</td><td>{product.category?.name}</td><td style={{ color: product.stockQuantity <= product.lowStockThreshold ? '#f59e0b' : undefined }}>{product.stockQuantity}</td><td>{formatCurrency(product.purchaseCost)}</td><td>{formatCurrency(product.sellingPrice)}</td><td style={{ fontWeight: '600' }}>{formatCurrency(product.sellingPrice * product.stockQuantity)}</td><td>{product.isFaulty ? <span className="badge badge-danger">Faulty</span> : product.stockQuantity <= product.lowStockThreshold ? <span className="badge badge-warning">Low Stock</span> : <span className="badge badge-success">OK</span>}</td></tr>))}</tbody>
