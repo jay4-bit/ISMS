@@ -360,44 +360,173 @@ body {
 
 /* Compact inventory on smaller laptop screens (≤14" / 1366px) */
 @media (max-width: 1400px) {
+  .inventory-page h1 {
+    font-size: 1.15rem !important;
+  }
   .inventory-page .stat-card {
-    padding: 0.875rem;
+    padding: 0.75rem;
   }
   .inventory-page .stat-card .stat-value {
     font-size: 1.15rem;
   }
   .inventory-page .stat-card .stat-label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
+  }
+  .inventory-page .grid-cols-4 {
+    gap: 0.75rem;
   }
   .inventory-page .card {
-    padding: 1rem;
+    padding: 0.875rem;
   }
   .inventory-page .table thead th {
-    padding: 0.4rem 0.5rem;
-    font-size: 0.7rem;
+    padding: 0.35rem 0.45rem !important;
+    font-size: 0.65rem !important;
   }
   .inventory-page .table tbody td {
-    padding: 0.4rem 0.5rem;
-    font-size: 0.75rem;
+    padding: 0.35rem 0.45rem !important;
+    font-size: 0.7rem !important;
   }
   .inventory-page .btn {
-    padding: 0.3rem 0.5rem;
-    font-size: 0.7rem;
+    padding: 0.25rem 0.45rem !important;
+    font-size: 0.65rem !important;
+  }
+  .inventory-page .category-filters button {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.65rem !important;
+  }
+  .inventory-page .search-bar {
+    padding: 0.625rem !important;
+  }
+  .inventory-page .search-bar .input,
+  .inventory-page .search-bar input {
+    font-size: 0.8rem !important;
+  }
+  .inventory-page .clothing-filters .select {
+    padding: 0.3rem !important;
+    font-size: 0.7rem !important;
+  }
+  .inventory-page .clothing-filters select {
+    width: 110px !important;
+  }
+  /* Electronics – many columns need extra compacting */
+  .inventory-page .electronics-header {
+    padding: 0.5rem 0.625rem !important;
+  }
+  .inventory-page .electronics-header .search-wrap {
+    min-width: 160px !important;
+  }
+  .inventory-page .electronics-header select {
+    padding: 0.3rem !important;
+    font-size: 0.7rem !important;
+  }
+  .inventory-page .electronics-header input {
+    padding-top: 0.3rem !important;
+    padding-bottom: 0.3rem !important;
+    padding-right: 0.3rem !important;
+    font-size: 0.8rem !important;
+  }
+  .inventory-page .electronics-table .table thead th {
+    padding: 0.2rem 0.25rem !important;
+    font-size: 0.55rem !important;
+  }
+  .inventory-page .electronics-table .table tbody td {
+    padding: 0.2rem 0.25rem !important;
+    font-size: 0.6rem !important;
+  }
+  .inventory-page .electronics-table .table tbody td button {
+    padding: 0.25rem !important;
+  }
+  .inventory-page .electronics-table .table tbody td > span {
+    padding: 0.15rem 0.25rem !important;
+    font-size: 0.55rem !important;
   }
 }
 
-/* Extra compact on very narrow windows */
+/* Compact on sub-1280px windows */
+@media (max-width: 1280px) {
+  .inventory-page .grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Extra compact on narrow windows (≤1100px) */
 @media (max-width: 1100px) {
+  .inventory-page h1 {
+    font-size: 1rem !important;
+  }
   .inventory-page .stat-card {
-    padding: 0.75rem;
+    padding: 0.625rem;
   }
   .inventory-page .stat-card .stat-value {
-    font-size: 1rem;
+    font-size: 0.9rem;
+  }
+  .inventory-page .stat-card .stat-label {
+    font-size: 0.65rem;
+  }
+  .inventory-page .grid-cols-4 {
+    gap: 0.5rem;
   }
   .inventory-page .table thead th,
   .inventory-page .table tbody td {
-    padding: 0.3rem 0.375rem;
-    font-size: 0.7rem;
+    padding: 0.25rem 0.3rem !important;
+    font-size: 0.65rem !important;
+  }
+  .inventory-page .btn {
+    padding: 0.2rem 0.35rem !important;
+    font-size: 0.6rem !important;
+  }
+  .inventory-page .category-filters button {
+    padding: 0.2rem 0.35rem !important;
+    font-size: 0.6rem !important;
+  }
+  .inventory-page .search-bar {
+    padding: 0.5rem !important;
+  }
+  .inventory-page .search-bar .input,
+  .inventory-page .search-bar input {
+    font-size: 0.75rem !important;
+  }
+  .inventory-page .search-bar > div:first-child {
+    flex: 1 1 160px !important;
+  }
+  .inventory-page .clothing-filters .select {
+    padding: 0.25rem !important;
+    font-size: 0.65rem !important;
+  }
+  .inventory-page .clothing-filters select {
+    width: 95px !important;
+  }
+  /* Electronics – extra compact at ≤1100px */
+  .inventory-page .electronics-header {
+    padding: 0.375rem 0.5rem !important;
+  }
+  .inventory-page .electronics-header .search-wrap {
+    min-width: 140px !important;
+  }
+  .inventory-page .electronics-header select {
+    padding: 0.25rem !important;
+    font-size: 0.65rem !important;
+  }
+  .inventory-page .electronics-header input {
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+    padding-right: 0.25rem !important;
+    font-size: 0.75rem !important;
+  }
+  .inventory-page .electronics-table .table thead th {
+    padding: 0.15rem 0.2rem !important;
+    font-size: 0.5rem !important;
+  }
+  .inventory-page .electronics-table .table tbody td {
+    padding: 0.15rem 0.2rem !important;
+    font-size: 0.55rem !important;
+  }
+  .inventory-page .electronics-table .table tbody td button {
+    padding: 0.2rem !important;
+  }
+  .inventory-page .electronics-table .table tbody td > span {
+    padding: 0.1rem 0.2rem !important;
+    font-size: 0.5rem !important;
   }
 }
 

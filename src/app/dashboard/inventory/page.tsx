@@ -958,7 +958,7 @@ export default function InventoryPage() {
         </div>
       </div>
 
-      <div style={{ marginBottom: '0.75rem', display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
+      <div className="category-filters" style={{ marginBottom: '0.75rem', display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
         <button
           onClick={() => setSelectedCategory('all')}
           style={{
@@ -1019,7 +1019,7 @@ export default function InventoryPage() {
       </div>
 
       {isClothing && (
-        <div style={{ marginBottom: '0.75rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div className="clothing-filters" style={{ marginBottom: '0.75rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <select className="select" style={{ width: '150px', padding: '0.35rem', fontSize: '0.8rem' }} value={selectedBrand} onChange={e => setSelectedBrand(e.target.value)}>
             <option value="all">All Brands</option>
             {[...new Set(products.map(p => ((p as any).clothingFields?.brand || '')).filter(Boolean))].sort().map(b => (
@@ -1041,7 +1041,7 @@ export default function InventoryPage() {
         </div>
       )}
 
-      <div className="card" style={{ marginBottom: '0.75rem', padding: '0.75rem' }}>
+      <div className="card search-bar" style={{ marginBottom: '0.75rem', padding: '0.75rem' }}>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ position: 'relative', flex: '1 1 200px' }}>
             <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-foreground)' }} />
@@ -1185,10 +1185,10 @@ export default function InventoryPage() {
             </tbody>
           </table>
         ) : isElectronics ? (
-          <div className="card table-responsive" style={{ padding: 0 }}>
-            <div style={{ padding: '1rem', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div className="card table-responsive electronics-table" style={{ padding: 0 }}>
+            <div className="electronics-header" style={{ padding: '1rem', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flex: 1 }}>
-                <div style={{ position: 'relative', minWidth: '200px' }}>
+                <div className="search-wrap" style={{ position: 'relative', minWidth: '200px' }}>
                   <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-foreground)' }} />
                   <input
                     type="text"
