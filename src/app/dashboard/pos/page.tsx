@@ -449,7 +449,7 @@ export default function POSPage() {
   if (loading) return <div style={styles.loading}>Loading...</div>;
 
   return (
-    <div style={styles.container}>
+    <div className="inventory-page" style={styles.container}>
       <style>{`
         .cart-scroll::-webkit-scrollbar { width: 8px; }
         .cart-scroll::-webkit-scrollbar-track { background: var(--card); border-radius: 4px; }

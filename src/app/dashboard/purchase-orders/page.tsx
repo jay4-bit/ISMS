@@ -524,7 +524,7 @@ export default function PurchaseOrdersPage() {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div className="page-container">
+    <div className="page-container inventory-page">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }} className="page-header">
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Purchase Orders</h1>

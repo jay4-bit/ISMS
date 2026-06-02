@@ -801,13 +801,12 @@ export default function InventoryPage() {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div>
+    <div className="inventory-page">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Inventory</h1>
           <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>Manage products</p>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           {!isReadOnly && (
             <>
               <button onClick={() => setShowScanner(true)} className="btn btn-secondary" title="Scan Barcode" style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}>
@@ -919,7 +918,6 @@ export default function InventoryPage() {
             </div>
           )}
         </div>
-      </div>
 
       <div className="grid-cols-4" style={{ marginBottom: '1rem' }}>
         <div className="stat-card" style={{ border: lowStockProducts.length ? '1px solid var(--warning)' : undefined }}>
@@ -1680,7 +1678,7 @@ export default function InventoryPage() {
                       </select>
                     </div>
                     {isClothing && (
-    <div className="inventory-page">
+                      <div>
                         <label className="label">Stock Quantity</label>
                         <input type="number" className="input" value={formData.stockQuantity} onChange={e => setFormData({ ...formData, stockQuantity: e.target.value })} />
                       </div>
