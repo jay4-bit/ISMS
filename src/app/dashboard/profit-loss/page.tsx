@@ -87,7 +87,7 @@ export default function ProfitLossPage() {
   const lossProducts = data?.productList.filter(p => p.profit < 0) || [];
 
   return (
-    <div style={styles.container}>
+    <div className="profit-loss-page" style={styles.container}>
       <div style={styles.header}>
         <div>
           <h1 style={styles.title}><PieChart size={28} /> Profit & Loss Report</h1>
@@ -130,7 +130,7 @@ export default function ProfitLossPage() {
         <div style={styles.divider}></div>
 
         {/* Stats Grid */}
-        <div style={styles.statsGrid}>
+        <div className="stats-grid" style={styles.statsGrid}>
           <div style={styles.statBox}>
             <div style={styles.statIcon}><ShoppingCart size={20} /></div>
             <div>
@@ -193,7 +193,7 @@ export default function ProfitLossPage() {
             <div>
               {data?.returnExpensesList && data.returnExpensesList.length > 0 ? (
                 <>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
+                  <div className="returns-summary-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
                     <div style={{ ...styles.statBox, padding: '1rem', border: '1px solid #ef4444' }}>
                       <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '0.25rem' }}>Total Loss from Returns</div>
                       <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#ef4444' }}>{formatCurr(data.totalReturnLoss || 0)}</div>
@@ -203,7 +203,7 @@ export default function ProfitLossPage() {
                       <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#22c55e' }}>{formatCurr(data.totalReturnProfit || 0)}</div>
                     </div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
+                  <div className="returns-detail-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
                     <div style={{ ...styles.statBox, padding: '1rem' }}>
                       <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '0.25rem' }}>Cash Refunds</div>
                       <div style={{ fontSize: '1rem', fontWeight: '600', color: '#ef4444' }}>{formatCurr(data.totalRefundsGiven || 0)}</div>
@@ -217,24 +217,26 @@ export default function ProfitLossPage() {
                       <div style={{ fontSize: '1rem', fontWeight: '600', color: '#22c55e' }}>{formatCurr(data.totalTopUpReceived || 0)}</div>
                     </div>
                   </div>
-                  <table style={styles.table}>
-                    <thead>
-                      <tr>
-                        <th>Type</th>
-                        <th>Count</th>
-                        <th>Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.returnExpensesList.map((ret, idx) => (
-                        <tr key={idx}>
-                          <td style={{ fontWeight: '500' }}>{ret.type}</td>
-                          <td>{ret.count}</td>
-                          <td style={{ color: ret.isLoss ? '#ef4444' : '#22c55e' }}>{formatCurr(ret.amount)}</td>
+                  <div className="table-responsive">
+                    <table style={styles.table}>
+                      <thead>
+                        <tr>
+                          <th>Type</th>
+                          <th>Count</th>
+                          <th>Amount</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {data.returnExpensesList.map((ret, idx) => (
+                          <tr key={idx}>
+                            <td style={{ fontWeight: '500' }}>{ret.type}</td>
+                            <td>{ret.count}</td>
+                            <td style={{ color: ret.isLoss ? '#ef4444' : '#22c55e' }}>{formatCurr(ret.amount)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </>
               ) : (
                 <div style={styles.emptyState}>No returns in this period</div>
@@ -266,28 +268,30 @@ export default function ProfitLossPage() {
                     <span style={{ color: '#22c55e', fontWeight: '600' }}>Profitable Products ({profitableProducts.length})</span>
                     <span style={{ color: '#22c55e' }}>{formatCurr(profitableProducts.reduce((sum, p) => sum + p.profit, 0))}</span>
                   </div>
-                  <table style={styles.table}>
-                    <thead>
-                      <tr>
-                        <th>Product</th>
-                        <th>Qty</th>
-                        <th>Revenue</th>
-                        <th>Cost</th>
-                        <th>Profit</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {profitableProducts.slice(0, 10).map(product => (
-                        <tr key={product.id}>
-                          <td style={{ fontWeight: '500' }}>{product.name}</td>
-                          <td>{product.quantity}</td>
-                          <td style={{ color: '#22c55e' }}>{formatCurr(product.revenue)}</td>
-                          <td style={{ color: '#ef4444' }}>{formatCurr(product.cost)}</td>
-                          <td style={{ color: '#22c55e', fontWeight: '600' }}>{formatCurr(product.profit)}</td>
+                  <div className="table-responsive">
+                    <table style={styles.table}>
+                      <thead>
+                        <tr>
+                          <th>Product</th>
+                          <th>Qty</th>
+                          <th>Revenue</th>
+                          <th>Cost</th>
+                          <th>Profit</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {profitableProducts.slice(0, 10).map(product => (
+                          <tr key={product.id}>
+                            <td style={{ fontWeight: '500' }}>{product.name}</td>
+                            <td>{product.quantity}</td>
+                            <td style={{ color: '#22c55e' }}>{formatCurr(product.revenue)}</td>
+                            <td style={{ color: '#ef4444' }}>{formatCurr(product.cost)}</td>
+                            <td style={{ color: '#22c55e', fontWeight: '600' }}>{formatCurr(product.profit)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                   {profitableProducts.length > 10 && (
                     <div style={{ padding: '0.5rem', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: '0.8rem' }}>
                       ... and {profitableProducts.length - 10} more products
@@ -303,28 +307,30 @@ export default function ProfitLossPage() {
                     <span style={{ color: '#ef4444', fontWeight: '600' }}>Products with Loss ({lossProducts.length})</span>
                     <span style={{ color: '#ef4444' }}>{formatCurr(lossProducts.reduce((sum, p) => sum + p.profit, 0))}</span>
                   </div>
-                  <table style={styles.table}>
-                    <thead>
-                      <tr>
-                        <th>Product</th>
-                        <th>Qty</th>
-                        <th>Revenue</th>
-                        <th>Cost</th>
-                        <th>Loss</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {lossProducts.slice(0, 10).map(product => (
-                        <tr key={product.id}>
-                          <td style={{ fontWeight: '500' }}>{product.name}</td>
-                          <td>{product.quantity}</td>
-                          <td>{formatCurr(product.revenue)}</td>
-                          <td style={{ color: '#ef4444' }}>{formatCurr(product.cost)}</td>
-                          <td style={{ color: '#ef4444', fontWeight: '600' }}>{formatCurr(product.profit)}</td>
+                  <div className="table-responsive">
+                    <table style={styles.table}>
+                      <thead>
+                        <tr>
+                          <th>Product</th>
+                          <th>Qty</th>
+                          <th>Revenue</th>
+                          <th>Cost</th>
+                          <th>Loss</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {lossProducts.slice(0, 10).map(product => (
+                          <tr key={product.id}>
+                            <td style={{ fontWeight: '500' }}>{product.name}</td>
+                            <td>{product.quantity}</td>
+                            <td>{formatCurr(product.revenue)}</td>
+                            <td style={{ color: '#ef4444' }}>{formatCurr(product.cost)}</td>
+                            <td style={{ color: '#ef4444', fontWeight: '600' }}>{formatCurr(product.profit)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
 
@@ -352,26 +358,28 @@ export default function ProfitLossPage() {
           {showExpenses && (
             <div>
               {data?.expenseList && data.expenseList.length > 0 ? (
-                <table style={styles.table}>
-                  <thead>
-                    <tr>
-                      <th>Category</th>
-                      <th>Amount</th>
-                      <th>% of Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.expenseList.map(expense => (
-                      <tr key={expense.category}>
-                        <td style={{ fontWeight: '500' }}>{expense.category}</td>
-                        <td style={{ color: '#ef4444' }}>{formatCurr(expense.amount)}</td>
-                        <td style={{ color: 'var(--muted-foreground)' }}>
-                          {((expense.amount / (data.totalExpenses || 1)) * 100).toFixed(1)}%
-                        </td>
+                <div className="table-responsive">
+                  <table style={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>% of Total</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {data.expenseList.map(expense => (
+                        <tr key={expense.category}>
+                          <td style={{ fontWeight: '500' }}>{expense.category}</td>
+                          <td style={{ color: '#ef4444' }}>{formatCurr(expense.amount)}</td>
+                          <td style={{ color: 'var(--muted-foreground)' }}>
+                            {((expense.amount / (data.totalExpenses || 1)) * 100).toFixed(1)}%
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               ) : (
                 <div style={styles.emptyState}>No expenses in this period</div>
               )}

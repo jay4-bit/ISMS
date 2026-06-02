@@ -645,6 +645,22 @@ body {
   }
 }
 
+/* Mobile profit & loss page (≤768px) */
+@media (max-width: 768px) {
+  .profit-loss-page .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .profit-loss-page .returns-summary-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .profit-loss-page .returns-detail-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .profit-loss-page table {
+    font-size: 0.75rem !important;
+  }
+}
+
 .responsive-container {
   width: 100%;
   max-width: 500px;
