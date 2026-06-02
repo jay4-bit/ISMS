@@ -659,6 +659,9 @@ body {
   .profit-loss-page table {
     font-size: 0.75rem !important;
   }
+  .profit-loss-page .profit-value {
+    font-size: 1.25rem !important;
+  }
 }
 
 .responsive-container {

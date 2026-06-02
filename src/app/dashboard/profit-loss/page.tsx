@@ -113,7 +113,7 @@ export default function ProfitLossPage() {
         <div style={styles.profitHeader}>
           <div>
             <div style={styles.profitLabel}>Net Profit</div>
-            <div style={{
+            <div className="profit-value" style={{
               ...styles.profitValue,
               color: (data?.netProfit || 0) >= 0 ? '#22c55e' : '#ef4444'
             }}>
