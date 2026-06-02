@@ -530,6 +530,98 @@ body {
   }
 }
 
+/* Compact reports page on smaller laptop screens (≤14" / 1366px) */
+@media (max-width: 1400px) {
+  .reports-page h1 {
+    font-size: 1.15rem !important;
+  }
+  .reports-page .card {
+    padding: 0.875rem;
+  }
+  .reports-page .table thead th,
+  .reports-page .table tbody td {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.7rem;
+  }
+  .reports-page .stat-card .stat-value {
+    font-size: 1.15rem;
+  }
+  .reports-page .stat-card .stat-label {
+    font-size: 0.7rem;
+  }
+  .reports-page .grid-cols-4,
+  .reports-page .grid-cols-3,
+  .reports-page .grid-cols-2 {
+    gap: 0.75rem;
+  }
+  .reports-page .btn {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.7rem;
+  }
+  .reports-page select {
+    width: 160px !important;
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+  .reports-page input[type="date"] {
+    width: 150px !important;
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+  .reports-page h3 {
+    font-size: 0.9rem !important;
+  }
+  .reports-page h3 + div {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* Extra compact reports page on narrow windows (≤1100px) */
+@media (max-width: 1100px) {
+  .reports-page h1 {
+    font-size: 1rem !important;
+  }
+  .reports-page .card {
+    padding: 0.75rem;
+  }
+  .reports-page .table thead th,
+  .reports-page .table tbody td {
+    padding: 0.25rem 0.375rem;
+    font-size: 0.65rem;
+  }
+  .reports-page .stat-card .stat-value {
+    font-size: 1rem;
+  }
+  .reports-page .stat-card .stat-label {
+    font-size: 0.65rem;
+  }
+  .reports-page .grid-cols-4,
+  .reports-page .grid-cols-3,
+  .reports-page .grid-cols-2 {
+    gap: 0.5rem;
+  }
+  .reports-page .btn {
+    padding: 0.25rem 0.4rem;
+    font-size: 0.65rem;
+  }
+  .reports-page select {
+    width: 140px !important;
+    padding: 0.4rem;
+    font-size: 0.75rem;
+  }
+  .reports-page input[type="date"] {
+    width: 130px !important;
+    padding: 0.4rem;
+    font-size: 0.75rem;
+  }
+  .reports-page h3 {
+    font-size: 0.85rem !important;
+  }
+  .reports-page h3 + div {
+    font-size: 1.25rem !important;
+  }
+}
+
 .responsive-container {
   width: 100%;
   max-width: 500px;

@@ -54,7 +54,7 @@ export default function ReportsPage() {
   }
 
   return (
-    <div>
+    <div className="reports-page">
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
         <div><h1 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Reports & Analytics</h1><p style={{ color: 'var(--muted-foreground)' }}>Financial insights and business performance</p></div>
         <button onClick={exportToExcel} className="btn btn-secondary" disabled={!reportData}><Download size={18} /> Export CSV</button>
