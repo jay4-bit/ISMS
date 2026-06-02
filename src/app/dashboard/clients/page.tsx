@@ -101,7 +101,7 @@ export default function ClientsPage() {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div>
+    <div className="clients-page">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Clients</h1>
@@ -112,7 +112,7 @@ export default function ClientsPage() {
         </button>
       </div>
 
-      <div className="card" style={{ marginBottom: '1rem', padding: '0.75rem' }}>
+      <div className="card search-box" style={{ marginBottom: '1rem', padding: '0.75rem' }}>
         <div style={{ position: 'relative' }}>
           <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-foreground)' }} />
           <input
@@ -121,12 +121,12 @@ export default function ClientsPage() {
             placeholder="Search by name, phone, email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{ paddingLeft: '34px', padding: '0.5rem', fontSize: '0.85rem' }}
+            style={{ padding: '0.5rem', paddingLeft: '34px', fontSize: '0.85rem' }}
           />
         </div>
       </div>
 
-      <div className="card" style={{ padding: 0, overflow: 'auto' }}>
+      <div className="card table-responsive clients-grid" style={{ padding: 0, overflow: 'auto' }}>
         <table className="table" style={{ fontSize: '0.8rem', width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: 'var(--card)' }}>
@@ -181,10 +181,10 @@ export default function ClientsPage() {
                 </td>
                 <td style={{ padding: '0.5rem', textAlign: 'center' }}>
                   <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
-                    <button onClick={() => openModal(client)} className="btn btn-secondary" style={{ padding: '0.25rem' }}>
+                    <button onClick={() => openModal(client)} className="btn btn-secondary edit-btn" style={{ padding: '0.25rem' }}>
                       <Edit size={14} />
                     </button>
-                    <button onClick={() => handleDelete(client.id)} className="btn btn-danger" style={{ padding: '0.25rem' }}>
+                    <button onClick={() => handleDelete(client.id)} className="btn btn-danger delete-btn" style={{ padding: '0.25rem' }}>
                       <Trash2 size={14} />
                     </button>
                   </div>

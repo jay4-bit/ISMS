@@ -123,7 +123,7 @@ export default function ExpensesPage() {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div className="page-container">
+    <div className="page-container expenses-page">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }} className="page-header">
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Expenses Tracking</h1>
@@ -137,7 +137,7 @@ export default function ExpensesPage() {
       <div className="grid-cols-4" style={{ marginBottom: '1.5rem' }}>
         <div className="stat-card">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <DollarSign size={20} color="#ef4444" />
+            <div className="stat-icon"><DollarSign size={20} color="#ef4444" /></div>
             <div>
               <div className="stat-value">{formatCurr(totalExpenses)}</div>
               <div className="stat-label">Total Expenses</div>
@@ -146,7 +146,7 @@ export default function ExpensesPage() {
         </div>
         <div className="stat-card">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Calendar size={20} color="#3b82f6" />
+            <div className="stat-icon"><Calendar size={20} color="#3b82f6" /></div>
             <div>
               <div className="stat-value">{formatCurr(thisMonth)}</div>
               <div className="stat-label">This Month</div>
@@ -155,7 +155,7 @@ export default function ExpensesPage() {
         </div>
         <div className="stat-card">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <TrendingUp size={20} color="#22c55e" />
+            <div className="stat-icon"><TrendingUp size={20} color="#22c55e" /></div>
             <div>
               <div className="stat-value">{filteredExpenses.length}</div>
               <div className="stat-label">Transactions</div>
@@ -164,7 +164,7 @@ export default function ExpensesPage() {
         </div>
         <div className="stat-card">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Filter size={20} color="#8b5cf6" />
+            <div className="stat-icon"><Filter size={20} color="#8b5cf6" /></div>
             <div>
               <div className="stat-value">{EXPENSE_CATEGORIES.filter(c => byCategory.find(bc => bc.value === c.value && bc.total > 0)).length}</div>
               <div className="stat-label">Categories Used</div>
@@ -187,7 +187,7 @@ export default function ExpensesPage() {
           ))}
         </div>
 
-        <div className="card table-responsive" style={{ padding: '1rem' }}>
+        <div className="card table-responsive expenses-grid" style={{ padding: '1rem' }}>
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
             <select className="select" style={{ width: 'auto' }} value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
               <option value="">All Categories</option>
@@ -226,8 +226,8 @@ export default function ExpensesPage() {
                     <td style={{ fontWeight: '600', color: 'var(--destructive)' }}>{formatCurr(expense.amount)}</td>
                     <td>
                       <div style={{ display: 'flex', gap: '0.25rem' }}>
-                        <button onClick={() => openModal(expense)} className="btn btn-secondary" style={{ padding: '0.25rem' }}><Edit size={14} /></button>
-                        <button onClick={() => handleDelete(expense.id)} className="btn btn-danger" style={{ padding: '0.25rem' }}><Trash2 size={14} /></button>
+                        <button onClick={() => openModal(expense)} className="btn btn-secondary edit-btn" style={{ padding: '0.25rem' }}><Edit size={14} /></button>
+                        <button onClick={() => handleDelete(expense.id)} className="btn btn-danger delete-btn" style={{ padding: '0.25rem' }}><Trash2 size={14} /></button>
                       </div>
                     </td>
                   </tr>

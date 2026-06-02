@@ -122,7 +122,7 @@ export default function PermissionsPage() {
   const currentRole = ROLES.find(r => r.value === selectedRole);
 
   return (
-    <div style={styles.container}>
+    <div className="permissions-page" style={styles.container}>
       {notification && (
         <div style={{ ...styles.notification, background: notification.type === 'success' ? '#22c55e' : '#ef4444' }}>
           {notification.message}
@@ -134,7 +134,7 @@ export default function PermissionsPage() {
           <h1 style={styles.title}><Shield size={28} /> Role Permissions</h1>
           <p style={styles.subtitle}>Configure what each role can access in the system</p>
         </div>
-        <button onClick={resetToDefaults} style={styles.resetBtn}>
+        <button onClick={resetToDefaults} className="reset-btn" style={styles.resetBtn}>
           <RotateCcw size={18} /> Reset to Defaults
         </button>
       </div>
@@ -169,7 +169,7 @@ export default function PermissionsPage() {
             <h3 style={styles.sectionTitle}>
               Permissions for <span style={{ color: currentRole?.color }}>{currentRole?.label}</span>
             </h3>
-            <button onClick={savePermissions} disabled={saving} style={styles.saveBtn}>
+            <button onClick={savePermissions} disabled={saving} className="save-btn" style={styles.saveBtn}>
               <Save size={18} /> {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
@@ -252,6 +252,7 @@ export default function PermissionsPage() {
                   updatePermission(m.id, 'canDelete', false);
                 });
               }}
+              className="quick-action-btn"
               style={styles.quickBtn}
             >
               <Eye size={16} /> Read & Write Only
@@ -264,6 +265,7 @@ export default function PermissionsPage() {
                   updatePermission(m.id, 'canDelete', false);
                 });
               }}
+              className="quick-action-btn"
               style={styles.quickBtn}
             >
               <Eye size={16} /> Read Only
@@ -276,6 +278,7 @@ export default function PermissionsPage() {
                   updatePermission(m.id, 'canDelete', false);
                 });
               }}
+              className="quick-action-btn"
               style={styles.quickBtn}
             >
               <X size={16} /> No Access

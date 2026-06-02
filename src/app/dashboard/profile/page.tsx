@@ -82,7 +82,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div style={styles.container}>
+    <div className="profile-page" style={styles.container}>
       {notification && (
         <div style={{ ...styles.notification, background: notification.type === 'success' ? '#22c55e' : '#ef4444' }}>
           {notification.message}
@@ -151,7 +151,7 @@ export default function ProfilePage() {
                   style={styles.input}
                 />
               </div>
-              <button onClick={handleUpdateProfile} style={styles.saveBtn}>
+              <button onClick={handleUpdateProfile} className="save-btn" style={styles.saveBtn}>
                 <Save size={18} /> Save Changes
               </button>
             </div>
@@ -220,7 +220,7 @@ export default function ProfilePage() {
                   </button>
                 </div>
               </div>
-              <button onClick={handleChangePassword} style={styles.passwordBtn}>
+              <button onClick={handleChangePassword} className="change-password-btn" style={styles.passwordBtn}>
                 <Lock size={18} /> Change Password
               </button>
             </div>

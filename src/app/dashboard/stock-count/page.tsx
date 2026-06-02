@@ -106,7 +106,7 @@ export default function StockCountPage() {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div>
+    <div className="stock-count-page">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Stock Count / Audit</h1>
@@ -130,10 +130,10 @@ export default function StockCountPage() {
               <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>{inProgress.countNumber}</p>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button onClick={() => { setActiveCount(inProgress); setShowCountModal(true); }} className="btn btn-primary">
+              <button onClick={() => { setActiveCount(inProgress); setShowCountModal(true); }} className="btn btn-primary continue-btn">
                 Continue
               </button>
-              <button onClick={cancelCount} className="btn btn-secondary">
+              <button onClick={cancelCount} className="btn btn-secondary cancel-btn">
                 Cancel
               </button>
             </div>
@@ -144,7 +144,7 @@ export default function StockCountPage() {
       <div className="grid-cols-3" style={{ marginBottom: '1.5rem' }}>
         <div className="stat-card">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <ClipboardCheck size={20} color="#3b82f6" />
+            <div className="stat-icon"><ClipboardCheck size={20} color="#3b82f6" /></div>
             <div>
               <div className="stat-value">{stockCounts.length}</div>
               <div className="stat-label">Total Counts</div>
@@ -153,7 +153,7 @@ export default function StockCountPage() {
         </div>
         <div className="stat-card">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <CheckCircle size={20} color="#22c55e" />
+            <div className="stat-icon"><CheckCircle size={20} color="#22c55e" /></div>
             <div>
               <div className="stat-value">{completed.length}</div>
               <div className="stat-label">Completed</div>
@@ -162,7 +162,7 @@ export default function StockCountPage() {
         </div>
         <div className="stat-card">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <AlertTriangle size={20} color="#f59e0b" />
+            <div className="stat-icon"><AlertTriangle size={20} color="#f59e0b" /></div>
             <div>
               <div className="stat-value">{completed.reduce((sum, sc) => sum + sc.varianceCount, 0)}</div>
               <div className="stat-label">Total Variances</div>
@@ -171,7 +171,7 @@ export default function StockCountPage() {
         </div>
       </div>
 
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+      <div className="card table-responsive stock-count-grid" style={{ padding: 0, overflow: 'hidden' }}>
         <div style={{ padding: '1rem', borderBottom: '1px solid #e2e8f0' }}>
           <h3 style={{ fontWeight: '600' }}>Stock Count History</h3>
         </div>
@@ -234,7 +234,7 @@ export default function StockCountPage() {
             </div>
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
               <button onClick={() => setShowModal(false)} className="btn btn-secondary">Cancel</button>
-              <button onClick={startCount} className="btn btn-primary">
+              <button onClick={startCount} className="btn btn-primary start-btn">
                 <Play size={16} /> Start Count
               </button>
             </div>
@@ -250,7 +250,7 @@ export default function StockCountPage() {
               <button onClick={cancelCount} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><XCircle size={20} /></button>
             </div>
             
-            <div style={{ marginBottom: '1rem' }}>
+            <div className="search-box" style={{ marginBottom: '1rem' }}>
               <input
                 type="text"
                 className="input"
@@ -260,7 +260,7 @@ export default function StockCountPage() {
               />
             </div>
 
-            <div style={{ maxHeight: '400px', overflow: 'auto', marginBottom: '1rem' }}>
+            <div className="table-responsive stock-count-modal-grid" style={{ maxHeight: '400px', overflow: 'auto', marginBottom: '1rem' }}>
               <table className="table">
                 <thead>
                   <tr>
@@ -301,7 +301,7 @@ export default function StockCountPage() {
 
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
               <button onClick={cancelCount} className="btn btn-secondary">Cancel</button>
-              <button onClick={completeCount} className="btn btn-success">
+              <button onClick={completeCount} className="btn btn-success complete-btn">
                 <CheckCircle size={16} /> Complete Count
               </button>
             </div>

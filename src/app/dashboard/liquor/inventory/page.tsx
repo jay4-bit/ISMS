@@ -195,24 +195,24 @@ export default function LiquorInventoryPage() {
   }
 
   return (
-    <div>
+    <div className="liquor-inventory-page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Liquor Inventory</h1>
           <p style={{ color: '#64748b', fontSize: '0.875rem' }}>{products.length} products</p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button onClick={() => setShowImportModal(true)} className="btn btn-secondary">
+          <button onClick={() => setShowImportModal(true)} className="import-btn btn btn-secondary">
             <Upload size={16} /> Import
           </button>
-          <button onClick={openAddModal} className="btn btn-primary">
+          <button onClick={openAddModal} className="add-btn btn btn-primary">
             <Plus size={16} /> Add Product
           </button>
         </div>
       </div>
 
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center' }}>
-        <div style={{ flex: 1, position: 'relative' }}>
+        <div className="search-box" style={{ flex: 1, position: 'relative' }}>
           <Search size={18} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
           <input
             type="text"
@@ -225,7 +225,7 @@ export default function LiquorInventoryPage() {
         </div>
       </div>
 
-      <div style={{ overflowX: 'auto', background: '#1e293b', borderRadius: '0.75rem', border: '1px solid #334155' }}>
+      <div className="liquor-inventory-table-wrap" style={{ overflowX: 'auto', background: '#1e293b', borderRadius: '0.75rem', border: '1px solid #334155' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
           <thead>
             <tr style={{ background: '#0f172a' }}>
@@ -257,14 +257,17 @@ export default function LiquorInventoryPage() {
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>
                   <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
                     <button onClick={() => { setViewingProduct(product); setShowViewModal(true); }}
+                      className="view-btn"
                       style={{ padding: '0.3rem', background: '#64748b', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="View">
                       <Eye size={12} />
                     </button>
                     <button onClick={() => openEditModal(product)}
+                      className="edit-btn"
                       style={{ padding: '0.3rem', background: '#3b82f6', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="Edit">
                       <Edit size={12} />
                     </button>
                     <button onClick={() => handleDelete(product.id)}
+                      className="delete-btn"
                       style={{ padding: '0.3rem', background: '#ef4444', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="Delete">
                       <Trash2 size={12} />
                     </button>

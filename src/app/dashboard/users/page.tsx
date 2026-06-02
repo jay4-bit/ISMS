@@ -158,7 +158,7 @@ export default function UsersPage() {
   if (loading) return <div style={{ padding: '2rem' }}>Loading...</div>;
 
   return (
-    <div style={{ padding: '1.5rem' }}>
+    <div className="users-page" style={{ padding: '1.5rem' }}>
       {notification && (
         <div style={{
           position: 'fixed',
@@ -184,6 +184,7 @@ export default function UsersPage() {
         </div>
         <button
           onClick={() => setShowModal(true)}
+          className="add-user-btn"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -201,7 +202,7 @@ export default function UsersPage() {
         </button>
       </div>
 
-      <div className="table-responsive" style={{
+      <div className="users-table-wrap table-responsive" style={{
         background: 'var(--card)',
         borderRadius: '0.75rem',
         overflow: 'auto',
@@ -266,6 +267,7 @@ export default function UsersPage() {
                       <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                         <button
                           onClick={() => openResetModal(user)}
+                          className="reset-pwd-btn"
                           style={{
                             padding: '0.35rem',
                             background: 'transparent',
@@ -280,6 +282,7 @@ export default function UsersPage() {
                         </button>
                         <button
                           onClick={() => handleDeleteUser(user.id)}
+                          className="delete-btn"
                           style={{
                             padding: '0.35rem',
                             background: 'transparent',

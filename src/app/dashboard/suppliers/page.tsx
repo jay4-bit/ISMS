@@ -108,13 +108,13 @@ export default function SuppliersPage() {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div>
+    <div className="suppliers-page">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Supplier Management</h1>
           <p style={{ color: 'var(--muted-foreground)' }}>Manage suppliers and purchase orders</p>
         </div>
-        <button onClick={() => openModal()} className="btn btn-primary">
+        <button onClick={() => openModal()} className="btn btn-primary add-btn">
           <Plus size={18} /> Add Supplier
         </button>
       </div>
@@ -138,6 +138,7 @@ export default function SuppliersPage() {
               </div>
               <button 
                 onClick={() => toggleActive(supplier)}
+                className="toggle-btn"
                 style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                 title={supplier.isActive ? 'Active' : 'Inactive'}
               >
@@ -170,10 +171,10 @@ export default function SuppliersPage() {
             )}
 
             <div style={{ display: 'flex', gap: '0.5rem', borderTop: '1px solid #e2e8f0', paddingTop: '1rem' }}>
-              <button onClick={() => openModal(supplier)} className="btn btn-secondary" style={{ flex: 1 }}>
+              <button onClick={() => openModal(supplier)} className="btn btn-secondary edit-btn" style={{ flex: 1 }}>
                 <Edit size={16} /> Edit
               </button>
-              <button onClick={() => handleDelete(supplier.id)} className="btn btn-danger" style={{ padding: '0.5rem' }}>
+              <button onClick={() => handleDelete(supplier.id)} className="btn btn-danger delete-btn" style={{ padding: '0.5rem' }}>
                 <Trash2 size={16} />
               </button>
             </div>

@@ -98,6 +98,7 @@ export default function ProfitLossPage() {
             <button
               key={opt.value}
               onClick={() => setPeriod(opt.value)}
+              className="filter-tab"
               style={{
                 ...styles.periodBtn,
                 ...(period === opt.value ? styles.periodBtnActive : {})
@@ -132,45 +133,45 @@ export default function ProfitLossPage() {
         {/* Stats Grid */}
         <div className="stats-grid" style={styles.statsGrid}>
           <div style={styles.statBox}>
-            <div style={styles.statIcon}><ShoppingCart size={20} /></div>
+            <div className="stat-icon" style={styles.statIcon}><ShoppingCart size={20} /></div>
             <div>
-              <div style={styles.statValue}>{data?.salesCount || 0}</div>
-              <div style={styles.statLabel}>Total Sales</div>
+              <div className="stat-value" style={styles.statValue}>{data?.salesCount || 0}</div>
+              <div className="stat-label" style={styles.statLabel}>Total Sales</div>
             </div>
           </div>
           <div style={styles.statBox}>
-            <div style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}><DollarSign size={20} /></div>
+            <div className="stat-icon" style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}><DollarSign size={20} /></div>
             <div>
-              <div style={{ ...styles.statValue, color: '#22c55e' }}>{data ? formatCurr(data.totalRevenue) : '-'}</div>
-              <div style={styles.statLabel}>Total Revenue</div>
+              <div className="stat-value" style={{ ...styles.statValue, color: '#22c55e' }}>{data ? formatCurr(data.totalRevenue) : '-'}</div>
+              <div className="stat-label" style={styles.statLabel}>Total Revenue</div>
             </div>
           </div>
           <div style={styles.statBox}>
-            <div style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}><ArrowDownRight size={20} /></div>
+            <div className="stat-icon" style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}><ArrowDownRight size={20} /></div>
             <div>
-              <div style={{ ...styles.statValue, color: '#f59e0b' }}>{data ? formatCurr(data.totalCost) : '-'}</div>
-              <div style={styles.statLabel}>Cost of Goods</div>
+              <div className="stat-value" style={{ ...styles.statValue, color: '#f59e0b' }}>{data ? formatCurr(data.totalCost) : '-'}</div>
+              <div className="stat-label" style={styles.statLabel}>Cost of Goods</div>
             </div>
           </div>
           <div style={styles.statBox}>
-            <div style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #3b82f6, #2563eb)' }}><ArrowUpRight size={20} /></div>
+            <div className="stat-icon" style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #3b82f6, #2563eb)' }}><ArrowUpRight size={20} /></div>
             <div>
-              <div style={{ ...styles.statValue, color: '#3b82f6' }}>{data ? formatCurr(data.totalProfit) : '-'}</div>
-              <div style={styles.statLabel}>Gross Profit</div>
+              <div className="stat-value" style={{ ...styles.statValue, color: '#3b82f6' }}>{data ? formatCurr(data.totalProfit) : '-'}</div>
+              <div className="stat-label" style={styles.statLabel}>Gross Profit</div>
             </div>
           </div>
           <div style={styles.statBox}>
-            <div style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}><Undo2 size={20} /></div>
+            <div className="stat-icon" style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}><Undo2 size={20} /></div>
             <div>
-              <div style={{ ...styles.statValue, color: '#ef4444' }}>{data ? formatCurr(data.totalReturnLoss || 0) : '-'}</div>
-              <div style={styles.statLabel}>Returns (Loss)</div>
+              <div className="stat-value" style={{ ...styles.statValue, color: '#ef4444' }}>{data ? formatCurr(data.totalReturnLoss || 0) : '-'}</div>
+              <div className="stat-label" style={styles.statLabel}>Returns (Loss)</div>
             </div>
           </div>
           <div style={styles.statBox}>
-            <div style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}><TrendingUp size={20} /></div>
+            <div className="stat-icon" style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}><TrendingUp size={20} /></div>
             <div>
-              <div style={{ ...styles.statValue, color: '#22c55e' }}>{data ? formatCurr(data.totalReturnProfit || 0) : '-'}</div>
-              <div style={styles.statLabel}>Returns (Profit)</div>
+              <div className="stat-value" style={{ ...styles.statValue, color: '#22c55e' }}>{data ? formatCurr(data.totalReturnProfit || 0) : '-'}</div>
+              <div className="stat-label" style={styles.statLabel}>Returns (Profit)</div>
             </div>
           </div>
         </div>
@@ -195,26 +196,26 @@ export default function ProfitLossPage() {
                 <>
                   <div className="returns-summary-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
                     <div style={{ ...styles.statBox, padding: '1rem', border: '1px solid #ef4444' }}>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '0.25rem' }}>Total Loss from Returns</div>
-                      <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#ef4444' }}>{formatCurr(data.totalReturnLoss || 0)}</div>
+                      <div className="stat-label" style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '0.25rem' }}>Total Loss from Returns</div>
+                      <div className="stat-value" style={{ fontSize: '1.1rem', fontWeight: '700', color: '#ef4444' }}>{formatCurr(data.totalReturnLoss || 0)}</div>
                     </div>
                     <div style={{ ...styles.statBox, padding: '1rem', border: '1px solid #22c55e' }}>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '0.25rem' }}>Total Profit from Returns</div>
-                      <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#22c55e' }}>{formatCurr(data.totalReturnProfit || 0)}</div>
+                      <div className="stat-label" style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '0.25rem' }}>Total Profit from Returns</div>
+                      <div className="stat-value" style={{ fontSize: '1.1rem', fontWeight: '700', color: '#22c55e' }}>{formatCurr(data.totalReturnProfit || 0)}</div>
                     </div>
                   </div>
                   <div className="returns-detail-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
                     <div style={{ ...styles.statBox, padding: '1rem' }}>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '0.25rem' }}>Cash Refunds</div>
-                      <div style={{ fontSize: '1rem', fontWeight: '600', color: '#ef4444' }}>{formatCurr(data.totalRefundsGiven || 0)}</div>
+                      <div className="stat-label" style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '0.25rem' }}>Cash Refunds</div>
+                      <div className="stat-value" style={{ fontSize: '1rem', fontWeight: '600', color: '#ef4444' }}>{formatCurr(data.totalRefundsGiven || 0)}</div>
                     </div>
                     <div style={{ ...styles.statBox, padding: '1rem' }}>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '0.25rem' }}>Repair Costs</div>
-                      <div style={{ fontSize: '1rem', fontWeight: '600', color: '#ef4444' }}>{formatCurr(data.totalRepairCosts || 0)}</div>
+                      <div className="stat-label" style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '0.25rem' }}>Repair Costs</div>
+                      <div className="stat-value" style={{ fontSize: '1rem', fontWeight: '600', color: '#ef4444' }}>{formatCurr(data.totalRepairCosts || 0)}</div>
                     </div>
                     <div style={{ ...styles.statBox, padding: '1rem' }}>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '0.25rem' }}>Top-Up Received</div>
-                      <div style={{ fontSize: '1rem', fontWeight: '600', color: '#22c55e' }}>{formatCurr(data.totalTopUpReceived || 0)}</div>
+                      <div className="stat-label" style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginBottom: '0.25rem' }}>Top-Up Received</div>
+                      <div className="stat-value" style={{ fontSize: '1rem', fontWeight: '600', color: '#22c55e' }}>{formatCurr(data.totalTopUpReceived || 0)}</div>
                     </div>
                   </div>
                   <div className="table-responsive">

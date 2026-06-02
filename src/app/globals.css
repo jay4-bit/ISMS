@@ -486,7 +486,7 @@ body {
   .inventory-page .search-bar input {
     font-size: 0.75rem !important;
   }
-  .inventory-page .search-bar > div:first-child {
+  .inventory-page .search-bar > div:first-child > div:first-child {
     flex: 1 1 160px !important;
   }
   .inventory-page .clothing-filters .select {
@@ -645,24 +645,7 @@ body {
   }
 }
 
-/* Mobile profit & loss page (≤768px) */
-@media (max-width: 768px) {
-  .profit-loss-page .stats-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .profit-loss-page .returns-summary-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .profit-loss-page .returns-detail-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .profit-loss-page table {
-    font-size: 0.75rem !important;
-  }
-  .profit-loss-page .profit-value {
-    font-size: 1.25rem !important;
-  }
-}
+/* Mobile profit & loss page (≤768px) — see responsive section below */
 
 .responsive-container {
   width: 100%;
@@ -942,6 +925,352 @@ body {
   [data-theme='light'] textarea {
     border-color: #94a3b8 !important;
   }
+}
+
+/* Installments table — natural column widths on desktop, scroll on mobile */
+.installments-table-wrap {
+  overflow: visible;
+}
+.installments-table-wrap table {
+  width: auto;
+  min-width: auto;
+}
+.installments-table-wrap table th,
+.installments-table-wrap table td {
+  padding: 0.625rem 0.75rem;
+  white-space: nowrap;
+}
+@media (max-width: 768px) {
+  .installments-table-wrap {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .installments-table-wrap table {
+    width: 100% !important;
+    min-width: 640px;
+  }
+  .installments-table-wrap table th,
+  .installments-table-wrap table td {
+    padding: 0.5rem 0.5rem;
+  }
+}
+
+/* Compact installments page */
+@media (max-width: 1400px) {
+  .installments-page h1 {
+    font-size: 1.15rem !important;
+  }
+  .installments-page .stats-grid {
+    gap: 0.75rem;
+  }
+  .installments-page .stats-grid > div {
+    padding: 0.75rem !important;
+    gap: 0.75rem !important;
+  }
+  .installments-page .stats-grid .stat-value {
+    font-size: 1.15rem !important;
+  }
+  .installments-page .stats-grid .stat-label {
+    font-size: 0.7rem !important;
+  }
+  .installments-page .stats-grid .stat-icon {
+    width: 38px !important;
+    height: 38px !important;
+  }
+  .installments-page .stats-grid .stat-icon svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .installments-page .installments-table-wrap table th,
+  .installments-page .installments-table-wrap table td {
+    padding: 0.35rem 0.5rem !important;
+    font-size: 0.7rem !important;
+  }
+  .installments-page .filter-tab {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.8rem !important;
+  }
+  .installments-page .search-box {
+    min-width: 200px !important;
+  }
+  .installments-page .search-box input {
+    font-size: 0.8rem !important;
+  }
+  .installments-page .pay-btn,
+  .installments-page .call-btn,
+  .installments-page .view-btn {
+    width: 28px !important;
+    height: 28px !important;
+  }
+  .installments-page .pay-btn svg,
+  .installments-page .call-btn svg,
+  .installments-page .view-btn svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+}
+@media (max-width: 1280px) {
+  .installments-page .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+@media (max-width: 1100px) {
+  .installments-page h1 {
+    font-size: 1rem !important;
+  }
+  .installments-page .stats-grid {
+    gap: 0.5rem;
+  }
+  .installments-page .stats-grid > div {
+    padding: 0.625rem !important;
+    gap: 0.5rem !important;
+  }
+  .installments-page .stats-grid .stat-value {
+    font-size: 0.9rem !important;
+  }
+  .installments-page .stats-grid .stat-label {
+    font-size: 0.65rem !important;
+  }
+  .installments-page .stats-grid .stat-icon {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  .installments-page .stats-grid .stat-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+  .installments-page .installments-table-wrap table th,
+  .installments-page .installments-table-wrap table td {
+    padding: 0.25rem 0.35rem !important;
+    font-size: 0.65rem !important;
+  }
+  .installments-page .filter-tab {
+    padding: 0.4rem 0.6rem !important;
+    font-size: 0.75rem !important;
+  }
+  .installments-page .search-box {
+    min-width: 160px !important;
+  }
+  .installments-page .search-box input {
+    font-size: 0.75rem !important;
+  }
+  .installments-page .pay-btn,
+  .installments-page .call-btn,
+  .installments-page .view-btn {
+    width: 24px !important;
+    height: 24px !important;
+  }
+  .installments-page .pay-btn svg,
+  .installments-page .call-btn svg,
+  .installments-page .view-btn svg {
+    width: 11px !important;
+    height: 11px !important;
+  }
+}
+
+/* Responsive Returns page */
+@media (max-width: 1400px) {
+  .returns-page h1 { font-size: 1.15rem !important; }
+  .returns-page .table-responsive table th,
+  .returns-page .table-responsive table td { padding: 0.35rem 0.5rem !important; font-size: 0.7rem !important; }
+  .returns-page .search-box { min-width: 200px !important; }
+}
+@media (max-width: 1280px) {
+  .returns-page .stat-value { font-size: 0.9rem !important; }
+  .returns-page .stat-label { font-size: 0.6rem !important; }
+}
+@media (max-width: 1100px) {
+  .returns-page h1 { font-size: 1rem !important; }
+  .returns-page .table-responsive table th,
+  .returns-page .table-responsive table td { padding: 0.25rem 0.35rem !important; font-size: 0.65rem !important; }
+  .returns-page .search-box { min-width: 160px !important; }
+}
+
+/* Responsive Sales page */
+@media (max-width: 1400px) {
+  .sales-page h1 { font-size: 1.15rem !important; }
+  .sales-page .table-responsive table th,
+  .sales-page .table-responsive table td { padding: 0.35rem 0.5rem !important; font-size: 0.7rem !important; }
+  .sales-page .filter-tab { padding: 0.5rem 0.75rem !important; font-size: 0.8rem !important; }
+  .sales-page .search-box { min-width: 200px !important; }
+}
+@media (max-width: 1100px) {
+  .sales-page h1 { font-size: 1rem !important; }
+  .sales-page .table-responsive table th,
+  .sales-page .table-responsive table td { padding: 0.25rem 0.35rem !important; font-size: 0.65rem !important; }
+  .sales-page .filter-tab { padding: 0.4rem 0.6rem !important; font-size: 0.75rem !important; }
+  .sales-page .search-box { min-width: 160px !important; }
+}
+
+/* Responsive Orders page */
+@media (max-width: 1400px) {
+  .orders-page h1 { font-size: 1.15rem !important; }
+  .orders-page .table-responsive table th,
+  .orders-page .table-responsive table td { padding: 0.35rem 0.5rem !important; font-size: 0.7rem !important; }
+  .orders-page .filter-tab { padding: 0.5rem 0.75rem !important; font-size: 0.8rem !important; }
+  .orders-page .search-box { min-width: 200px !important; }
+}
+@media (max-width: 1100px) {
+  .orders-page h1 { font-size: 1rem !important; }
+  .orders-page .table-responsive table th,
+  .orders-page .table-responsive table td { padding: 0.25rem 0.35rem !important; font-size: 0.65rem !important; }
+  .orders-page .filter-tab { padding: 0.4rem 0.6rem !important; font-size: 0.75rem !important; }
+  .orders-page .search-box { min-width: 160px !important; }
+}
+
+/* Responsive Clients page */
+@media (max-width: 1400px) {
+  .clients-page h1 { font-size: 1.15rem !important; }
+  .clients-page .clients-grid table th,
+  .clients-page .clients-grid table td { padding: 0.35rem 0.5rem !important; font-size: 0.7rem !important; }
+  .clients-page .search-box { min-width: 200px !important; }
+  .clients-page .edit-btn,
+  .clients-page .delete-btn { padding: 0.2rem !important; }
+  .clients-page .edit-btn svg,
+  .clients-page .delete-btn svg { width: 12px !important; height: 12px !important; }
+}
+
+/* Responsive Expenses page */
+@media (max-width: 1280px) {
+  .expenses-page .grid-cols-4 { grid-template-columns: repeat(2, 1fr) !important; }
+  .expenses-page .stat-icon svg { width: 16px !important; height: 16px !important; }
+  .expenses-page .stat-value { font-size: 0.9rem !important; }
+  .expenses-page .stat-label { font-size: 0.7rem !important; }
+}
+@media (max-width: 1400px) {
+  .expenses-page h1 { font-size: 1.15rem !important; }
+  .expenses-page .expenses-grid table th,
+  .expenses-page .expenses-grid table td { padding: 0.35rem 0.5rem !important; font-size: 0.7rem !important; }
+  .expenses-page .edit-btn,
+  .expenses-page .delete-btn { padding: 0.2rem !important; }
+  .expenses-page .edit-btn svg,
+  .expenses-page .delete-btn svg { width: 12px !important; height: 12px !important; }
+}
+@media (max-width: 1024px) {
+  .expenses-page .page-grid-sidebar { grid-template-columns: 1fr !important; }
+}
+
+/* Responsive Stock Count page */
+@media (max-width: 1280px) {
+  .stock-count-page .grid-cols-3 { grid-template-columns: repeat(2, 1fr) !important; }
+  .stock-count-page .stat-icon svg { width: 16px !important; height: 16px !important; }
+  .stock-count-page .stat-value { font-size: 0.9rem !important; }
+  .stock-count-page .stat-label { font-size: 0.7rem !important; }
+}
+@media (max-width: 1400px) {
+  .stock-count-page h1 { font-size: 1.15rem !important; }
+  .stock-count-page .stock-count-grid table th,
+  .stock-count-page .stock-count-grid table td,
+  .stock-count-page .stock-count-modal-grid table th,
+  .stock-count-page .stock-count-modal-grid table td { padding: 0.35rem 0.5rem !important; font-size: 0.7rem !important; }
+  .stock-count-page .stock-count-modal-grid input[type="number"] { width: 60px !important; font-size: 0.7rem !important; }
+  .stock-count-page .search-box { min-width: 200px !important; }
+  .stock-count-page .continue-btn,
+  .stock-count-page .cancel-btn,
+  .stock-count-page .start-btn,
+  .stock-count-page .complete-btn { padding: 0.35rem 0.6rem !important; font-size: 0.8rem !important; }
+}
+
+/* Responsive Users page */
+@media (max-width: 1400px) {
+  .users-page h1 { font-size: 1.15rem !important; }
+  .users-page table th,
+  .users-page table td { padding: 0.35rem 0.5rem !important; font-size: 0.7rem !important; }
+}
+
+/* Responsive Liquor Inventory page */
+@media (max-width: 1400px) {
+  .liquor-inventory-page h1 { font-size: 1.15rem !important; }
+  .liquor-inventory-page table th,
+  .liquor-inventory-page table td { padding: 0.35rem 0.5rem !important; font-size: 0.7rem !important; }
+  .liquor-inventory-page .filter-tab { padding: 0.5rem 0.75rem !important; font-size: 0.8rem !important; }
+  .liquor-inventory-page .search-box { min-width: 200px !important; }
+}
+
+/* Responsive Profit & Loss page (desktop compact) */
+@media (max-width: 1400px) {
+  .profit-loss-page h1 { font-size: 1.15rem !important; }
+  .profit-loss-page table th,
+  .profit-loss-page table td { padding: 0.35rem 0.5rem !important; font-size: 0.7rem !important; }
+  .profit-loss-page .filter-tab { padding: 0.5rem 0.75rem !important; font-size: 0.8rem !important; }
+  .profit-loss-page .stats-grid { grid-template-columns: repeat(3, 1fr) !important; }
+  .profit-loss-page .stat-icon { width: 32px !important; height: 32px !important; }
+  .profit-loss-page .stat-icon svg { width: 16px !important; height: 16px !important; }
+  .profit-loss-page .stat-value { font-size: 1rem !important; }
+  .profit-loss-page .stat-label { font-size: 0.65rem !important; }
+  .profit-loss-page .returns-summary-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .profit-loss-page .returns-detail-grid { grid-template-columns: repeat(3, 1fr) !important; }
+}
+@media (max-width: 1100px) {
+  .profit-loss-page h1 { font-size: 1rem !important; }
+  .profit-loss-page .stats-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.75rem !important; }
+  .profit-loss-page .stat-icon { width: 28px !important; height: 28px !important; }
+  .profit-loss-page .stat-icon svg { width: 14px !important; height: 14px !important; }
+  .profit-loss-page .stat-value { font-size: 0.85rem !important; }
+  .profit-loss-page .stat-label { font-size: 0.6rem !important; }
+  .profit-loss-page .returns-summary-grid { grid-template-columns: 1fr !important; }
+  .profit-loss-page .returns-detail-grid { grid-template-columns: 1fr !important; }
+  .profit-loss-page .filter-tab { padding: 0.4rem 0.6rem !important; font-size: 0.7rem !important; }
+  .profit-loss-page table th,
+  .profit-loss-page table td { padding: 0.25rem 0.4rem !important; font-size: 0.65rem !important; }
+}
+@media (max-width: 768px) {
+  .profit-loss-page .stats-grid { grid-template-columns: 1fr 1fr !important; }
+  .profit-loss-page .profit-value { font-size: 1.75rem !important; }
+  .profit-loss-page .period-selector { flex-wrap: wrap !important; }
+  .profit-loss-page .period-btn { flex: 1 !important; min-width: 80px !important; text-align: center !important; }
+}
+
+/* Responsive POS page */
+@media (max-width: 1400px) {
+  .pos-page h1 { font-size: 1.15rem !important; }
+}
+@media (max-width: 1100px) {
+  .pos-page h1 { font-size: 1rem !important; }
+  .pos-page .products-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important; }
+}
+@media (max-width: 768px) {
+  .pos-page { padding: 0.75rem !important; }
+  .pos-page .pos-split { grid-template-columns: 1fr !important; }
+  .pos-page .pos-searchbar { flex-direction: column !important; }
+  .pos-page .products-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important; }
+}
+
+/* Responsive Purchase Orders page */
+@media (max-width: 1400px) {
+  .purchase-orders-page h1 { font-size: 1.15rem !important; }
+  .purchase-orders-page table th,
+  .purchase-orders-page table td { padding: 0.35rem 0.5rem !important; font-size: 0.7rem !important; }
+  .purchase-orders-page .grid-cols-4 { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 1100px) {
+  .purchase-orders-page h1 { font-size: 1rem !important; }
+  .purchase-orders-page table th,
+  .purchase-orders-page table td { padding: 0.25rem 0.35rem !important; font-size: 0.65rem !important; }
+  .purchase-orders-page .grid-cols-4 { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 768px) {
+  .purchase-orders-page { padding: 0.75rem !important; }
+  .purchase-orders-page table { font-size: 0.6rem !important; }
+}
+
+/* Responsive Suppliers page */
+@media (max-width: 768px) {
+  .suppliers-page { padding: 1rem !important; }
+  .suppliers-page .card { padding: 0.75rem !important; }
+}
+
+/* Responsive Profile page */
+@media (max-width: 768px) {
+  .profile-page { padding: 1rem !important; }
+  .profile-page .grid { grid-template-columns: 1fr !important; }
+}
+
+/* Responsive Permissions page */
+@media (max-width: 768px) {
+  .permissions-page { padding: 1rem !important; }
+  .permissions-page .role-grid { grid-template-columns: 1fr !important; }
+  .permissions-page .permissions-table { overflow-x: auto !important; }
 }
 
 /* Mobile product forms - single column */

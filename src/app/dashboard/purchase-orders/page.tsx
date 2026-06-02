@@ -524,13 +524,13 @@ export default function PurchaseOrdersPage() {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div className="page-container inventory-page">
+    <div className="page-container inventory-page purchase-orders-page">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }} className="page-header">
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Purchase Orders</h1>
           <p style={{ color: 'var(--muted-foreground)' }}>Manage supplier orders and restocking</p>
         </div>
-        <button onClick={() => setShowModal(true)} className="btn btn-primary">
+        <button onClick={() => setShowModal(true)} className="btn btn-primary add-btn">
           <Plus size={18} /> New Order
         </button>
       </div>
@@ -575,7 +575,7 @@ export default function PurchaseOrdersPage() {
       </div>
 
       <div className="card" style={{ marginBottom: '1rem', padding: '1rem' }}>
-        <div style={{ position: 'relative' }}>
+          <div className="search-box" style={{ position: 'relative' }}>
           <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-foreground)' }} />
           <input
             type="text"
@@ -618,26 +618,26 @@ export default function PurchaseOrdersPage() {
                 </td>
                 <td>
                   <div style={{ display: 'flex', gap: '0.25rem' }}>
-                    <button onClick={() => setSelectedOrder(order)} className="btn btn-secondary" style={{ padding: '0.25rem' }} title="View Details">
+                    <button onClick={() => setSelectedOrder(order)} className="btn btn-secondary view-btn" style={{ padding: '0.25rem' }} title="View Details">
                       <Eye size={14} />
                     </button>
                     {order.status === 'PENDING' && (
-                      <button onClick={() => updateOrderStatus(order.id, 'ORDERED')} className="btn btn-primary" style={{ padding: '0.25rem' }} title="Mark as Ordered">
+                      <button onClick={() => updateOrderStatus(order.id, 'ORDERED')} className="btn btn-primary order-btn" style={{ padding: '0.25rem' }} title="Mark as Ordered">
                         <Truck size={14} />
                       </button>
                     )}
                     {order.status === 'ORDERED' && (
-                      <button onClick={() => openReceiveModal(order)} className="btn btn-success" style={{ padding: '0.25rem', background: '#22c55e' }} title="Mark as Received">
+                      <button onClick={() => openReceiveModal(order)} className="btn btn-success receive-btn" style={{ padding: '0.25rem', background: '#22c55e' }} title="Mark as Received">
                         <CheckCircle size={14} />
                       </button>
                     )}
                     {order.status !== 'RECEIVED' && order.status !== 'CANCELLED' && (
-                      <button onClick={() => updateOrderStatus(order.id, 'CANCELLED')} className="btn btn-danger" style={{ padding: '0.25rem' }} title="Cancel Order">
+                      <button onClick={() => updateOrderStatus(order.id, 'CANCELLED')} className="btn btn-danger cancel-btn" style={{ padding: '0.25rem' }} title="Cancel Order">
                         <X size={14} />
                       </button>
                     )}
                     {order.status === 'PENDING' && (
-                      <button onClick={() => deleteOrder(order.id)} className="btn btn-danger" style={{ padding: '0.25rem' }} title="Delete">
+                      <button onClick={() => deleteOrder(order.id)} className="btn btn-danger delete-btn" style={{ padding: '0.25rem' }} title="Delete">
                         <Trash2 size={14} />
                       </button>
                     )}

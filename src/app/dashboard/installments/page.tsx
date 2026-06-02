@@ -186,7 +186,7 @@ export default function InstallmentsPage() {
   if (loading) return <div style={styles.loading}>Loading...</div>;
 
   return (
-    <div style={styles.container} className="page-container">
+    <div style={styles.container} className="page-container installments-page">
       {notification && (
         <div style={{ ...styles.notification, background: notification.type === 'success' ? '#22c55e' : '#ef4444' }}>
           {notification.message}
@@ -202,31 +202,31 @@ export default function InstallmentsPage() {
 
       <div style={styles.statsGrid} className="stats-grid">
         <div style={styles.statCard}>
-          <div style={styles.statIcon}><FileText size={24} /></div>
+          <div style={styles.statIcon} className="stat-icon"><FileText size={24} /></div>
           <div>
-            <div style={styles.statValue}>{sales.length}</div>
-            <div style={styles.statLabel}>Active Credits</div>
+            <div style={styles.statValue} className="stat-value">{sales.length}</div>
+            <div style={styles.statLabel} className="stat-label">Active Credits</div>
           </div>
         </div>
         <div style={styles.statCard}>
-          <div style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}><DollarSign size={24} /></div>
+          <div style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #f59e0b, #d97706)' }} className="stat-icon"><DollarSign size={24} /></div>
           <div>
-            <div style={{ ...styles.statValue, color: 'var(--warning)' }}>{formatCurrency(totalDue)}</div>
-            <div style={styles.statLabel}>Total Due</div>
+            <div style={{ ...styles.statValue, color: 'var(--warning)' }} className="stat-value">{formatCurrency(totalDue)}</div>
+            <div style={styles.statLabel} className="stat-label">Total Due</div>
           </div>
         </div>
         <div style={styles.statCard}>
-          <div style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}><CheckCircle size={24} /></div>
+          <div style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #22c55e, #16a34a)' }} className="stat-icon"><CheckCircle size={24} /></div>
           <div>
-            <div style={{ ...styles.statValue, color: 'var(--success)' }}>{formatCurrency(totalPaid)}</div>
-            <div style={styles.statLabel}>Total Paid</div>
+            <div style={{ ...styles.statValue, color: 'var(--success)' }} className="stat-value">{formatCurrency(totalPaid)}</div>
+            <div style={styles.statLabel} className="stat-label">Total Paid</div>
           </div>
         </div>
         <div style={styles.statCard}>
-          <div style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}><AlertTriangle size={24} /></div>
+          <div style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #ef4444, #dc2626)' }} className="stat-icon"><AlertTriangle size={24} /></div>
           <div>
-            <div style={{ ...styles.statValue, color: 'var(--destructive)' }}>{overdueCount}</div>
-            <div style={styles.statLabel}>Overdue</div>
+            <div style={{ ...styles.statValue, color: 'var(--destructive)' }} className="stat-value">{overdueCount}</div>
+            <div style={styles.statLabel} className="stat-label">Overdue</div>
           </div>
         </div>
       </div>
@@ -236,17 +236,19 @@ export default function InstallmentsPage() {
           <button
             onClick={() => setFilter('active')}
             style={{ ...styles.filterTab, ...(filter === 'active' ? styles.filterTabActive : {}) }}
+            className="filter-tab"
           >
             <Clock size={16} /> Active ({sales.length})
           </button>
           <button
             onClick={() => setFilter('completed')}
             style={{ ...styles.filterTab, ...(filter === 'completed' ? styles.filterTabActive : {}) }}
+            className="filter-tab"
           >
             <CheckCircle size={16} /> Completed ({completedSales.length})
           </button>
         </div>
-        <div style={styles.searchBox}>
+        <div style={styles.searchBox} className="search-box">
           <Search size={18} style={{ color: 'var(--muted-foreground)' }} />
           <input
             type="text"
@@ -258,7 +260,7 @@ export default function InstallmentsPage() {
         </div>
       </div>
 
-      <div style={styles.tableCard} className="table-responsive">
+      <div style={styles.tableCard} className="installments-table-wrap">
         <table style={styles.table}>
           <thead>
             <tr>
@@ -315,6 +317,7 @@ export default function InstallmentsPage() {
                           onClick={() => { setSelectedSale(sale); setShowPaymentModal(true); }}
                           style={styles.payBtn}
                           title="Record Payment"
+                          className="pay-btn"
                         >
                           <DollarSign size={14} />
                         </button>
@@ -323,6 +326,7 @@ export default function InstallmentsPage() {
                             onClick={() => callCustomer(sale.customerPhone!)}
                             style={styles.callBtn}
                             title="Call Customer"
+                            className="call-btn"
                           >
                             <Phone size={14} />
                           </button>
@@ -333,6 +337,7 @@ export default function InstallmentsPage() {
                       onClick={() => { setSelectedSale(sale); setShowDetailsModal(true); }}
                       style={styles.viewBtn}
                       title="View Details"
+                      className="view-btn"
                     >
                       <Eye size={14} />
                     </button>

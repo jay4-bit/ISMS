@@ -1053,7 +1053,7 @@ export default function InventoryPage() {
               placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              style={{ paddingLeft: '34px', padding: '0.5rem', fontSize: '0.85rem' }}
+              style={{ padding: '0.5rem', paddingLeft: '34px', fontSize: '0.85rem' }}
             />
           </div>
           <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
@@ -1066,7 +1066,7 @@ export default function InventoryPage() {
                 value={barcodeInput}
                 onChange={(e) => setBarcodeInput(e.target.value)}
                 onKeyDown={handleBarcodeScan}
-                style={{ paddingLeft: '34px', padding: '0.5rem', fontSize: '0.85rem' }}
+                style={{ padding: '0.5rem', paddingLeft: '34px', fontSize: '0.85rem' }}
               />
             </div>
             <button onClick={() => setShowScanner(true)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.4rem', background: 'var(--secondary)', border: '1px solid var(--border)', borderRadius: '0.4rem', color: 'var(--secondary-foreground)', cursor: 'pointer' }} title="Scan with camera">

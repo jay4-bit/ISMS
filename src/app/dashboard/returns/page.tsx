@@ -247,20 +247,20 @@ export default function ReturnsPage() {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div>
+    <div className="returns-page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
         <div><h1 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Returns & Faulty Items</h1><p style={{ color: 'var(--muted-foreground)', fontSize: '0.8rem' }}>Track returns, replacements, and price differences</p></div>
         <button onClick={() => setShowModal(true)} style={styles.primaryBtn}><Plus size={15} /> Process Return</button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
-        <div style={styles.statCard}><div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Undo2 size={16} color="#3b82f6" /><div><div style={styles.statValue}>{returns.length}</div><div style={styles.statLabel}>Total Returns</div></div></div></div>
-        <div style={styles.statCard}><div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><DollarSign size={16} color="#22c55e" /><div><div style={{ ...styles.statValue, color: 'var(--success)' }}>{formatCurr(totalAwarded)}</div><div style={styles.statLabel}>Total Refunded</div></div></div></div>
-        <div style={styles.statCard}><div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Wrench size={16} color="#f59e0b" /><div><div style={{ ...styles.statValue, color: 'var(--warning)' }}>{formatCurr(totalRepairCosts)}</div><div style={styles.statLabel}>Repair Costs</div></div></div></div>
-        <div style={styles.statCard}><div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><ArrowUpDown size={16} color="#ec4899" /><div><div style={{ ...styles.statValue, color: clientPaidDiff > 0 ? '#22c55e' : '#ef4444' }}>{formatCurr(Math.abs(clientPaidDiff))}</div><div style={styles.statLabel}>{clientPaidDiff >= 0 ? 'Extra from Client' : 'Extra to Client'}</div></div></div></div>
+        <div style={styles.statCard}><div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Undo2 size={16} color="#3b82f6" /><div><div className="stat-value" style={styles.statValue}>{returns.length}</div><div className="stat-label" style={styles.statLabel}>Total Returns</div></div></div></div>
+        <div style={styles.statCard}><div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><DollarSign size={16} color="#22c55e" /><div><div className="stat-value" style={{ ...styles.statValue, color: 'var(--success)' }}>{formatCurr(totalAwarded)}</div><div className="stat-label" style={styles.statLabel}>Total Refunded</div></div></div></div>
+        <div style={styles.statCard}><div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Wrench size={16} color="#f59e0b" /><div><div className="stat-value" style={{ ...styles.statValue, color: 'var(--warning)' }}>{formatCurr(totalRepairCosts)}</div><div className="stat-label" style={styles.statLabel}>Repair Costs</div></div></div></div>
+        <div style={styles.statCard}><div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><ArrowUpDown size={16} color="#ec4899" /><div><div className="stat-value" style={{ ...styles.statValue, color: clientPaidDiff > 0 ? '#22c55e' : '#ef4444' }}>{formatCurr(Math.abs(clientPaidDiff))}</div><div className="stat-label" style={styles.statLabel}>{clientPaidDiff >= 0 ? 'Extra from Client' : 'Extra to Client'}</div></div></div></div>
       </div>
 
-      <div style={{ marginBottom: '1rem' }}>
+      <div className="search-box" style={{ marginBottom: '1rem' }}>
         <input
           type="text"
           placeholder="Search returns by number, product, reason..."
@@ -270,7 +270,7 @@ export default function ReturnsPage() {
         />
       </div>
 
-      <div style={styles.tableCard}>
+      <div className="table-responsive returns-table" style={styles.tableCard}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
           <thead>
             <tr style={{ background: 'var(--background)' }}>
@@ -363,20 +363,20 @@ export default function ReturnsPage() {
                   <td style={{ padding: '0.5rem 0.4rem', color: 'var(--muted-foreground)', fontSize: '0.7rem', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{[...new Set(returnRecord.items.map((i: ReturnItem) => i.supplierName).filter(Boolean))].join(', ') || '-'}</td>
                   <td style={{ padding: '0.5rem 0.4rem', textAlign: 'center' }}>
                     <div style={{ display: 'flex', gap: '0.3rem', justifyContent: 'center' }}>
-                      <button onClick={() => viewReturn(returnRecord)} style={{ ...actionBtn, background: '#3b82f620', color: 'var(--primary)' }} title="View Details">
+                      <button onClick={() => viewReturn(returnRecord)} className="view-btn" style={{ ...actionBtn, background: '#3b82f620', color: 'var(--primary)' }} title="View Details">
                         <Eye size={12} />
                       </button>
                       {deleteConfirm === returnRecord.id ? (
                         <>
-                          <button onClick={() => deleteReturn(returnRecord.id)} style={{ ...actionBtn, background: '#ef444420', color: 'var(--destructive)' }} title="Confirm Delete">
+                          <button onClick={() => deleteReturn(returnRecord.id)} className="delete-btn" style={{ ...actionBtn, background: '#ef444420', color: 'var(--destructive)' }} title="Confirm Delete">
                             <CheckCircle size={12} />
                           </button>
-                          <button onClick={() => setDeleteConfirm(null)} style={{ ...actionBtn, background: '#64748b20', color: 'var(--muted-foreground)' }} title="Cancel">
+                          <button onClick={() => setDeleteConfirm(null)} className="cancel-btn" style={{ ...actionBtn, background: '#64748b20', color: 'var(--muted-foreground)' }} title="Cancel">
                             <X size={12} />
                           </button>
                         </>
                       ) : (
-                        <button onClick={() => setDeleteConfirm(returnRecord.id)} style={{ ...actionBtn, background: '#ef444420', color: 'var(--destructive)' }} title="Delete">
+                        <button onClick={() => setDeleteConfirm(returnRecord.id)} className="delete-btn" style={{ ...actionBtn, background: '#ef444420', color: 'var(--destructive)' }} title="Delete">
                           <Trash2 size={12} />
                         </button>
                       )}

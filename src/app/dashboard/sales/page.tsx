@@ -99,7 +99,7 @@ export default function SalesPage() {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div>
+    <div className="sales-page">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Sales History</h1>
@@ -121,6 +121,7 @@ export default function SalesPage() {
             <button
               key={opt.key}
               onClick={() => setTimeFilter(opt.key)}
+              className="filter-tab"
               style={{
                 padding: '0.35rem 0.65rem', borderRadius: '0.375rem', border: '1px solid',
                 borderColor: timeFilter === opt.key ? 'var(--primary)' : 'var(--border)',
@@ -135,7 +136,7 @@ export default function SalesPage() {
           ))}
         </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
+          <div className="search-box" style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
             <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-foreground)' }} />
             <input
               type="text"
@@ -143,7 +144,7 @@ export default function SalesPage() {
               placeholder="Search by receipt, customer..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              style={{ paddingLeft: '34px', padding: '0.5rem', fontSize: '0.85rem' }}
+              style={{ padding: '0.5rem', paddingLeft: '34px', fontSize: '0.85rem' }}
             />
           </div>
           <div style={{ padding: '0.5rem 1rem', background: 'color-mix(in srgb, var(--success) 12.5%, transparent)', borderRadius: '0.5rem' }}>
@@ -191,7 +192,7 @@ export default function SalesPage() {
         );
       })()}
 
-      <div className="card" style={{ padding: 0, overflow: 'auto' }}>
+      <div className="card table-responsive sales-table" style={{ padding: 0, overflow: 'auto' }}>
         <table className="table" style={{ fontSize: '0.8rem', width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: 'var(--card)' }}>
@@ -241,12 +242,12 @@ export default function SalesPage() {
                   </span>
                 </td>
                 <td style={{ padding: '0.5rem', textAlign: 'center' }}>
-                  <button 
-                    onClick={() => setSelectedSale(sale)} 
-                    className="btn btn-secondary"
-                    style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }}
-                  >
-                    <Eye size={14} /> View
+                    <button 
+                      onClick={() => setSelectedSale(sale)} 
+                      className="btn btn-secondary view-btn"
+                      style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }}
+                    >
+                      <Eye size={14} /> View
                   </button>
                 </td>
               </tr>

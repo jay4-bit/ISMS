@@ -118,20 +118,20 @@ export default function OrdersPage() {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div>
+    <div className="orders-page">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Order Management</h1>
           <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>Track and manage orders</p>
         </div>
-        <button onClick={fetchSales} className="btn btn-secondary" style={{ padding: '0.4rem 0.75rem' }}>
+        <button onClick={fetchSales} className="btn btn-secondary refresh-btn" style={{ padding: '0.4rem 0.75rem' }}>
           <RefreshCw size={16} /> Refresh
         </button>
       </div>
 
       <div className="card" style={{ marginBottom: '1rem', padding: '0.75rem' }}>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
+          <div className="search-box" style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
             <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-foreground)' }} />
             <input
               type="text"
@@ -139,13 +139,13 @@ export default function OrdersPage() {
               placeholder="Search by receipt, customer, phone, tracking..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              style={{ paddingLeft: '34px', padding: '0.5rem', fontSize: '0.85rem' }}
+              style={{ padding: '0.5rem', paddingLeft: '34px', fontSize: '0.85rem' }}
             />
           </div>
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="select"
+            className="select filter-tab"
             style={{ padding: '0.5rem', fontSize: '0.85rem' }}
           >
             <option value="all">All Statuses</option>
@@ -163,7 +163,7 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      <div className="card" style={{ padding: 0, overflow: 'auto' }}>
+      <div className="card table-responsive orders-table" style={{ padding: 0, overflow: 'auto' }}>
         <table className="table" style={{ fontSize: '0.8rem', width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: 'var(--card)' }}>
@@ -223,6 +223,7 @@ export default function OrdersPage() {
                   <td style={{ padding: '0.5rem', textAlign: 'center' }}>
                     <button 
                       onClick={() => setShowDetails(sale)} 
+                      className="edit-btn" 
                       style={{ padding: '0.3rem 0.5rem', background: '#3b82f6', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer', fontSize: '0.7rem' }}
                     >
                       <Edit size={12} /> Manage
