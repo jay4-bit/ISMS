@@ -566,7 +566,7 @@ export default function POSPage() {
             </div>
           ) : (
             <div>
-              <div style={styles.cartListHeader}>
+              <div style={styles.cartListHeader} className="cart-list-header">
                 <span>#</span>
                 <span>Item</span>
                 <span>Qty</span>
@@ -576,7 +576,7 @@ export default function POSPage() {
               
               <div className="cart-items-scroll" style={styles.cartItemsContainer}>
                 {cart.map((item) => (
-                  <div key={item.product.id} style={styles.cartItemBox}>
+                  <div key={item.product.id} style={styles.cartItemBox} className="cart-item-box">
                     <div style={styles.itemNumber}>{cart.indexOf(item) + 1}</div>
                     <div style={styles.itemInfo}>
                       <div style={styles.itemName}>{item.product.name}</div>
