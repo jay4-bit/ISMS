@@ -1215,10 +1215,25 @@ body {
   .profit-loss-page table td { padding: 0.25rem 0.4rem !important; font-size: 0.65rem !important; }
 }
 @media (max-width: 768px) {
-  .profit-loss-page .stats-grid { grid-template-columns: 1fr 1fr !important; }
-  .profit-loss-page .profit-value { font-size: 1.75rem !important; }
-  .profit-loss-page .period-selector { flex-wrap: wrap !important; }
-  .profit-loss-page .period-btn { flex: 1 !important; min-width: 80px !important; text-align: center !important; }
+  .profit-loss-page { padding: 0.75rem !important; }
+  .profit-loss-page .main-card { padding: 0.75rem !important; }
+  .profit-loss-page .profit-header { padding: 0.75rem !important; gap: 0.5rem !important; }
+  .profit-loss-page .profit-header svg { width: 28px !important; height: 28px !important; }
+  .profit-loss-page .profit-value { font-size: 1.4rem !important; }
+  .profit-loss-page .stats-grid { grid-template-columns: 1fr !important; gap: 0.5rem !important; }
+  .profit-loss-page .stat-box { padding: 0.625rem !important; gap: 0.5rem !important; }
+  .profit-loss-page .stat-icon { width: 28px !important; height: 28px !important; }
+  .profit-loss-page .stat-icon svg { width: 14px !important; height: 14px !important; }
+  .profit-loss-page .stat-value { font-size: 0.9rem !important; }
+  .profit-loss-page .stat-label { font-size: 0.65rem !important; }
+  .profit-loss-page .period-selector { gap: 0.25rem !important; }
+  .profit-loss-page .period-btn { padding: 0.35rem 0.4rem !important; font-size: 0.7rem !important; flex: 1 0 auto !important; min-width: 0 !important; }
+  .profit-loss-page table { font-size: 0.7rem !important; }
+  .profit-loss-page .summary-box { padding: 0.625rem !important; }
+  .profit-loss-page .summary-row { font-size: 0.75rem !important; }
+  .profit-loss-page .section-title { font-size: 0.85rem !important; }
+  .profit-loss-page .sub-section { padding: 0.5rem !important; }
+  .profit-loss-page .section-header { padding: 0.25rem 0 !important; }
 }
 
 /* Responsive POS page */

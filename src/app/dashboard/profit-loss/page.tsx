@@ -93,12 +93,12 @@ export default function ProfitLossPage() {
           <h1 style={styles.title}><PieChart size={28} /> Profit & Loss Report</h1>
           <p style={styles.subtitle}>Track your business profitability</p>
         </div>
-        <div style={styles.periodSelector}>
+        <div style={styles.periodSelector} className="period-selector">
           {periodOptions.map(opt => (
             <button
               key={opt.value}
               onClick={() => setPeriod(opt.value)}
-              className="filter-tab"
+              className="filter-tab period-btn"
               style={{
                 ...styles.periodBtn,
                 ...(period === opt.value ? styles.periodBtnActive : {})
@@ -110,8 +110,8 @@ export default function ProfitLossPage() {
         </div>
       </div>
 
-      <div style={styles.mainCard}>
-        <div style={styles.profitHeader}>
+        <div style={styles.mainCard} className="main-card">
+        <div style={styles.profitHeader} className="profit-header">
           <div>
             <div style={styles.profitLabel}>Net Profit</div>
             <div className="profit-value" style={{
@@ -132,42 +132,42 @@ export default function ProfitLossPage() {
 
         {/* Stats Grid */}
         <div className="stats-grid" style={styles.statsGrid}>
-          <div style={styles.statBox}>
+          <div style={styles.statBox} className="stat-box">
             <div className="stat-icon" style={styles.statIcon}><ShoppingCart size={20} /></div>
             <div>
               <div className="stat-value" style={styles.statValue}>{data?.salesCount || 0}</div>
               <div className="stat-label" style={styles.statLabel}>Total Sales</div>
             </div>
           </div>
-          <div style={styles.statBox}>
+          <div style={styles.statBox} className="stat-box">
             <div className="stat-icon" style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}><DollarSign size={20} /></div>
             <div>
               <div className="stat-value" style={{ ...styles.statValue, color: '#22c55e' }}>{data ? formatCurr(data.totalRevenue) : '-'}</div>
               <div className="stat-label" style={styles.statLabel}>Total Revenue</div>
             </div>
           </div>
-          <div style={styles.statBox}>
+          <div style={styles.statBox} className="stat-box">
             <div className="stat-icon" style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}><ArrowDownRight size={20} /></div>
             <div>
               <div className="stat-value" style={{ ...styles.statValue, color: '#f59e0b' }}>{data ? formatCurr(data.totalCost) : '-'}</div>
               <div className="stat-label" style={styles.statLabel}>Cost of Goods</div>
             </div>
           </div>
-          <div style={styles.statBox}>
+          <div style={styles.statBox} className="stat-box">
             <div className="stat-icon" style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #3b82f6, #2563eb)' }}><ArrowUpRight size={20} /></div>
             <div>
               <div className="stat-value" style={{ ...styles.statValue, color: '#3b82f6' }}>{data ? formatCurr(data.totalProfit) : '-'}</div>
               <div className="stat-label" style={styles.statLabel}>Gross Profit</div>
             </div>
           </div>
-          <div style={styles.statBox}>
+          <div style={styles.statBox} className="stat-box">
             <div className="stat-icon" style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}><Undo2 size={20} /></div>
             <div>
               <div className="stat-value" style={{ ...styles.statValue, color: '#ef4444' }}>{data ? formatCurr(data.totalReturnLoss || 0) : '-'}</div>
               <div className="stat-label" style={styles.statLabel}>Returns (Loss)</div>
             </div>
           </div>
-          <div style={styles.statBox}>
+          <div style={styles.statBox} className="stat-box">
             <div className="stat-icon" style={{ ...styles.statIcon, background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}><TrendingUp size={20} /></div>
             <div>
               <div className="stat-value" style={{ ...styles.statValue, color: '#22c55e' }}>{data ? formatCurr(data.totalReturnProfit || 0) : '-'}</div>
@@ -183,8 +183,9 @@ export default function ProfitLossPage() {
           <button 
             onClick={() => setShowReturns(!showReturns)} 
             style={styles.sectionHeader}
+            className="section-header"
           >
-            <h3 style={styles.sectionTitle}>
+            <h3 style={styles.sectionTitle} className="section-title">
               <Undo2 size={18} /> Returns & Refunds ({data?.returnExpensesList?.reduce((sum, r) => sum + r.count, 0) || 0} returns)
             </h3>
             {showReturns ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -253,8 +254,9 @@ export default function ProfitLossPage() {
           <button 
             onClick={() => setShowProducts(!showProducts)} 
             style={styles.sectionHeader}
+            className="section-header"
           >
-            <h3 style={styles.sectionTitle}>
+            <h3 style={styles.sectionTitle} className="section-title">
               <ShoppingCart size={18} /> Products Breakdown ({data?.productList.length || 0} products)
             </h3>
             {showProducts ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -264,7 +266,7 @@ export default function ProfitLossPage() {
             <div>
               {/* Profitable Products */}
               {profitableProducts.length > 0 && (
-                <div style={styles.subSection}>
+                <div style={styles.subSection} className="sub-section">
                   <div style={styles.subSectionHeader}>
                     <span style={{ color: '#22c55e', fontWeight: '600' }}>Profitable Products ({profitableProducts.length})</span>
                     <span style={{ color: '#22c55e' }}>{formatCurr(profitableProducts.reduce((sum, p) => sum + p.profit, 0))}</span>
@@ -303,7 +305,7 @@ export default function ProfitLossPage() {
 
               {/* Loss Products */}
               {lossProducts.length > 0 && (
-                <div style={styles.subSection}>
+                <div style={styles.subSection} className="sub-section">
                   <div style={styles.subSectionHeader}>
                     <span style={{ color: '#ef4444', fontWeight: '600' }}>Products with Loss ({lossProducts.length})</span>
                     <span style={{ color: '#ef4444' }}>{formatCurr(lossProducts.reduce((sum, p) => sum + p.profit, 0))}</span>
@@ -349,8 +351,9 @@ export default function ProfitLossPage() {
           <button 
             onClick={() => setShowExpenses(!showExpenses)} 
             style={styles.sectionHeader}
+            className="section-header"
           >
-            <h3 style={styles.sectionTitle}>
+            <h3 style={styles.sectionTitle} className="section-title">
               <DollarSign size={18} /> Expenses Breakdown ({data?.expenseList.length || 0} categories)
             </h3>
             {showExpenses ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -391,32 +394,32 @@ export default function ProfitLossPage() {
         <div style={styles.divider}></div>
 
         {/* Summary Box */}
-        <div style={styles.summaryBox}>
-          <div style={styles.summaryRow}>
+        <div style={styles.summaryBox} className="summary-box">
+          <div style={styles.summaryRow} className="summary-row">
             <span>Total Revenue</span>
             <span style={{ color: '#22c55e' }}>{data ? formatCurr(data.totalRevenue) : '-'}</span>
           </div>
-          <div style={styles.summaryRow}>
+          <div style={styles.summaryRow} className="summary-row">
             <span>Cost of Goods Sold</span>
             <span style={{ color: '#ef4444' }}>- {data ? formatCurr(data.totalCost) : '-'}</span>
           </div>
-          <div style={{ ...styles.summaryRow, borderTop: '1px solid #334155', paddingTop: '0.5rem', marginTop: '0.5rem' }}>
+          <div style={{ ...styles.summaryRow, borderTop: '1px solid #334155', paddingTop: '0.5rem', marginTop: '0.5rem' }} className="summary-row">
             <span>Gross Profit</span>
             <span style={{ color: '#3b82f6' }}>{data ? formatCurr(data.totalProfit) : '-'}</span>
           </div>
-          <div style={styles.summaryRow}>
+          <div style={styles.summaryRow} className="summary-row">
             <span>Total Expenses</span>
             <span style={{ color: '#ef4444' }}>- {data ? formatCurr(data.totalExpenses) : '-'}</span>
           </div>
-          <div style={styles.summaryRow}>
+          <div style={styles.summaryRow} className="summary-row">
             <span>Returns (Loss)</span>
             <span style={{ color: '#ef4444' }}>- {data ? formatCurr(data.totalReturnLoss) : '-'}</span>
           </div>
-          <div style={styles.summaryRow}>
+          <div style={styles.summaryRow} className="summary-row">
             <span>Returns (Profit)</span>
             <span style={{ color: '#22c55e' }}>+ {data ? formatCurr(data.totalReturnProfit) : '-'}</span>
           </div>
-          <div style={{ ...styles.summaryRow, borderTop: '2px solid #334155', paddingTop: '0.75rem', marginTop: '0.5rem', fontWeight: '700', fontSize: '1.1rem' }}>
+          <div style={{ ...styles.summaryRow, borderTop: '2px solid #334155', paddingTop: '0.75rem', marginTop: '0.5rem', fontWeight: '700', fontSize: '1.1rem' }} className="summary-row">
             <span>Net Profit</span>
             <span style={{ color: (data?.netProfit || 0) >= 0 ? '#22c55e' : '#ef4444' }}>
               {data ? formatCurr(data.netProfit) : '-'}
