@@ -802,11 +802,12 @@ export default function InventoryPage() {
 
   return (
     <div className="inventory-page">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
         <div>
           <h1 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Inventory</h1>
           <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>Manage products</p>
         </div>
+        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
           {!isReadOnly && (
             <>
               <button onClick={() => setShowScanner(true)} className="btn btn-secondary" title="Scan Barcode" style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}>
@@ -905,6 +906,7 @@ export default function InventoryPage() {
               </button>
             </>
           )}
+          </div>
           {isWinger && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.75rem', background: 'color-mix(in srgb, var(--success) 12.5%, transparent)', borderRadius: '0.375rem', color: 'var(--success)' }}>
               <Eye size={14} />
