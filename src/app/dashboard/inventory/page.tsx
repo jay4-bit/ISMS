@@ -1044,8 +1044,8 @@ export default function InventoryPage() {
       )}
 
       <div className="card" style={{ marginBottom: '0.75rem', padding: '0.75rem' }}>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <div style={{ position: 'relative', flex: 1 }}>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative', flex: '1 1 200px' }}>
             <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-foreground)' }} />
             <input
               type="text"
@@ -1680,7 +1680,7 @@ export default function InventoryPage() {
                       </select>
                     </div>
                     {isClothing && (
-                      <div>
+    <div className="inventory-page">
                         <label className="label">Stock Quantity</label>
                         <input type="number" className="input" value={formData.stockQuantity} onChange={e => setFormData({ ...formData, stockQuantity: e.target.value })} />
                       </div>

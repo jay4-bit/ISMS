@@ -157,7 +157,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
 
-      <div className="dash-main" style={styles.main}>
+      <div className="dash-main" style={{...styles.main, marginLeft: collapsed ? '80px' : '260px'}}>
         <header style={styles.header}>
           <button className="dash-menu-btn" onClick={() => setMobileOpen(!mobileOpen)} style={styles.menuBtn}>
             {mobileOpen ? <X size={24} /> : <Menu size={24} />}
