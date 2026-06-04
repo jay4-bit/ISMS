@@ -40,6 +40,8 @@ model Shop {
   currencySymbol String @default("TSh")
   isActive    Boolean   @default(true)
   logo        String?
+  deletionCode        String?
+  deletionCodeExpires DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   

@@ -5,7 +5,7 @@ import {
   Settings as SettingsIcon, Building2, Phone, Mail, MapPin, DollarSign, 
   Users, UserPlus, Edit, Trash2, X, Save, Bell, Shield, Palette,
   Check, AlertTriangle, Key, User, Sun, Moon, RotateCcw,
-  Eye, Lock, Plus, Clock, CalendarDays, Upload, Image as ImageIcon
+  Eye, Lock, Plus, Clock, CalendarDays, Upload, Image as ImageIcon, Database, Download
 } from 'lucide-react';
 import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
 import { CURRENCIES, useSettings } from '@/context/SettingsContext';
@@ -37,7 +37,7 @@ interface Settings {
 export default function SettingsPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'business' | 'users' | 'alerts' | 'permissions' | 'types' | 'profile' | 'theme' | 'reminders'>('business');
+  const [activeTab, setActiveTab] = useState<'business' | 'users' | 'alerts' | 'permissions' | 'types' | 'profile' | 'theme' | 'reminders' | 'data'>('business');
   const [showUserModal, setShowUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -88,6 +88,12 @@ export default function SettingsPage() {
   const [showReminderModal, setShowReminderModal] = useState(false);
   const [editingReminder, setEditingReminder] = useState<any>(null);
   const [reminderForm, setReminderForm] = useState({ title: '', description: '', dueDate: '' });
+
+  const [deleteStep, setDeleteStep] = useState<'idle' | 'code-sent' | 'verifying' | 'done'>('idle');
+  const [deleteCode, setDeleteCode] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => { if (shop?.id) { fetchData(); fetchRoles(); fetchReminders(); } }, [shop?.id]);
 
@@ -459,6 +465,7 @@ export default function SettingsPage() {
     { id: 'alerts', label: 'Alerts', icon: Bell },
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'theme', label: 'Theme', icon: Sun },
+    ...(authUser?.role === 'OWNER' ? [{ id: 'data' as const, label: 'Data', icon: Database }] : []),
   ];
 
   const roles = [
@@ -1179,6 +1186,171 @@ export default function SettingsPage() {
                   Theme preference is saved locally and persists across sessions.
                 </span>
               </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'data' && (
+        <div style={styles.section}>
+          <div style={styles.sectionHeader}>
+            <Database size={20} />
+            <h2>Data Management</h2>
+          </div>
+          <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+            Export or delete all your shop data. These actions are irreversible.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ padding: '1.25rem', background: 'var(--background)', borderRadius: '0.75rem', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <Download size={20} style={{ color: 'var(--primary)' }} />
+                <h3 style={{ fontSize: '1rem', fontWeight: '600', margin: 0 }}>Export All Data</h3>
+              </div>
+              <p style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', marginBottom: '1rem' }}>
+                Download a JSON file containing all your products, sales, expenses, customers, and more.
+              </p>
+              <button
+                onClick={async () => {
+                  setDownloading(true);
+                  try {
+                    const res = await fetch('/api/shop/export-data', {
+                      headers: { 'x-shop-id': shop?.id || '', 'x-user-id': authUser?.id || '' },
+                    });
+                    if (!res.ok) throw new Error('Export failed');
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = res.headers.get('Content-Disposition')?.split('filename="')[1]?.replace('"', '') || 'shop-data.json';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                  } catch (e) {
+                    showNotification('Failed to export data', 'error');
+                  } finally {
+                    setDownloading(false);
+                  }
+                }}
+                disabled={downloading}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.625rem 1rem', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', border: 'none', borderRadius: '0.5rem', color: 'white', fontWeight: '600', cursor: 'pointer', opacity: downloading ? 0.6 : 1 }}
+              >
+                <Download size={16} /> {downloading ? 'Exporting...' : 'Download Data (JSON)'}
+              </button>
+            </div>
+
+            <div style={{ padding: '1.25rem', background: 'var(--background)', borderRadius: '0.75rem', border: '1px solid #ef4444' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <AlertTriangle size={20} style={{ color: '#ef4444' }} />
+                <h3 style={{ fontSize: '1rem', fontWeight: '600', margin: 0, color: '#ef4444' }}>Danger Zone - Delete All Data</h3>
+              </div>
+              <p style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', marginBottom: '1rem' }}>
+                Permanently delete all products, sales, expenses, users (except yourself), and other data. 
+                The shop will be reset to an empty state. This action cannot be undone.
+              </p>
+
+              {!settings.businessEmail ? (
+                <div style={{ padding: '1rem', background: '#f59e0b20', borderRadius: '0.5rem', border: '1px solid #f59e0b', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <AlertTriangle size={20} style={{ color: '#f59e0b', flexShrink: 0 }} />
+                  <span style={{ fontSize: '0.85rem', color: 'var(--foreground)', flex: 1 }}>
+                    You must configure a <strong>business email</strong> in the Business settings first. The verification code will be sent there.
+                  </span>
+                  <button onClick={() => setActiveTab('business')} style={{ padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', border: 'none', borderRadius: '0.5rem', color: 'white', fontWeight: '600', cursor: 'pointer', fontSize: '0.85rem', flexShrink: 0 }}>
+                    Go to Business Settings
+                  </button>
+                </div>
+              ) : deleteStep === 'idle' && (
+                <div>
+                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <button
+                      onClick={async () => {
+                        setDeleteLoading(true);
+                        setDeleteError('');
+                        try {
+                          const res = await fetch('/api/shop/delete-code', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '', 'x-user-id': authUser?.id || '' },
+                          });
+                          const data = await res.json();
+                          if (!res.ok) throw new Error(data.error || 'Failed to send code');
+                          setDeleteStep('code-sent');
+                          showNotification('Verification code sent to business email', 'success');
+                        } catch (e: any) {
+                          setDeleteError(e.message);
+                        } finally {
+                          setDeleteLoading(false);
+                        }
+                      }}
+                      disabled={deleteLoading}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', background: '#ef4444', border: 'none', borderRadius: '0.5rem', color: 'white', fontWeight: '600', cursor: 'pointer', opacity: deleteLoading ? 0.6 : 1 }}
+                    >
+                      <Trash2 size={16} /> {deleteLoading ? 'Sending Code...' : 'Delete All Shop Data'}
+                    </button>
+                  </div>
+                  {deleteError && <p style={{ fontSize: '0.85rem', color: '#ef4444', marginTop: '0.75rem' }}>{deleteError}</p>}
+                </div>
+              )}
+
+              {deleteStep === 'code-sent' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)' }}>
+                    A 6-digit verification code has been sent to <strong>{settings.businessEmail}</strong>.
+                    Please open your email, copy the code, and enter it below to confirm deletion.
+                  </p>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <input
+                      type="text"
+                      maxLength={6}
+                      value={deleteCode}
+                      onChange={(e) => setDeleteCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="000000"
+                      style={{ padding: '0.75rem', width: '140px', textAlign: 'center', fontSize: '1.25rem', letterSpacing: '0.5rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--foreground)', outline: 'none' }}
+                    />
+                    <button
+                      onClick={async () => {
+                        if (deleteCode.length !== 6) return;
+                        setDeleteLoading(true);
+                        setDeleteError('');
+                        try {
+                          const res = await fetch('/api/shop/verify-delete', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '', 'x-user-id': authUser?.id || '' },
+                            body: JSON.stringify({ code: deleteCode }),
+                          });
+                          const data = await res.json();
+                          if (!res.ok) throw new Error(data.error || 'Verification failed');
+                          setDeleteStep('done');
+                          showNotification('All shop data has been deleted', 'success');
+                        } catch (e: any) {
+                          setDeleteError(e.message);
+                        } finally {
+                          setDeleteLoading(false);
+                        }
+                      }}
+                      disabled={deleteLoading || deleteCode.length !== 6}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.25rem', background: '#ef4444', border: 'none', borderRadius: '0.5rem', color: 'white', fontWeight: '600', cursor: deleteLoading || deleteCode.length !== 6 ? 'not-allowed' : 'pointer', opacity: deleteLoading || deleteCode.length !== 6 ? 0.6 : 1 }}
+                    >
+                      {deleteLoading ? 'Verifying...' : 'Confirm Deletion'}
+                    </button>
+                    <button
+                      onClick={() => { setDeleteStep('idle'); setDeleteCode(''); setDeleteError(''); }}
+                      style={{ padding: '0.75rem 1rem', background: 'none', border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--muted-foreground)', cursor: 'pointer' }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  {deleteError && <p style={{ fontSize: '0.85rem', color: '#ef4444' }}>{deleteError}</p>}
+                </div>
+              )}
+
+              {deleteStep === 'done' && (
+                <div style={{ padding: '1rem', background: '#22c55e20', borderRadius: '0.5rem', border: '1px solid #22c55e' }}>
+                  <p style={{ color: '#22c55e', fontWeight: '600', margin: 0 }}>
+                    All shop data has been successfully deleted. The shop has been reset.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
