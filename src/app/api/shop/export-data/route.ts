@@ -14,19 +14,32 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Only the shop owner can export all data' }, { status: 403 });
     }
 
+    const products = await prisma.product.findMany({
+      where: { shopId },
+      include: {
+        variants: true,
+        priceTags: true,
+        pharmacyFields: true,
+        liquorFields: true,
+        electronicsFields: true,
+        clothingFields: true,
+      },
+    });
+    const sales = await prisma.sale.findMany({
+      where: { shopId },
+      include: { items: true, installmentPayments: true },
+    });
+
     const [
-      products, categories, suppliers, brands, customers,
-      sales, saleItems, returns, returnItems, expenses,
+      categories, suppliers, brands, customers,
+      returns, returnItems, expenses,
       users, shop, settings, activities,
     ] = await Promise.all([
-      prisma.product.findMany({ where: { shopId } }),
       prisma.category.findMany({ where: { shopId } }),
       prisma.supplier.findMany({ where: { shopId } }),
       prisma.brand.findMany({ where: { shopId } }),
       prisma.customer.findMany({ where: { shopId } }),
-      prisma.sale.findMany({ where: { shopId }, include: { items: true } }),
-      prisma.saleItem.findMany({ where: { sale: { shopId } } }),
-      prisma.return.findMany({ where: { shopId } }),
+      prisma.return.findMany({ where: { shopId }, include: { items: true } }),
       prisma.returnItem.findMany({ where: { return: { shopId } } }),
       prisma.expense.findMany({ where: { shopId } }),
       prisma.user.findMany({ where: { shopId }, select: { id: true, name: true, email: true, role: true, createdAt: true } }),
@@ -45,7 +58,6 @@ export async function GET(request: NextRequest) {
       customers,
       products,
       sales,
-      saleItems,
       returns,
       returnItems,
       expenses,

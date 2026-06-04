@@ -93,6 +93,8 @@ export default function SettingsPage() {
   const [deleteCode, setDeleteCode] = useState('');
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [importError, setImportError] = useState('');
+  const [importLoading, setImportLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
   useEffect(() => { if (shop?.id) { fetchData(); fetchRoles(); fetchReminders(); } }, [shop?.id]);
@@ -1237,6 +1239,51 @@ export default function SettingsPage() {
               >
                 <Download size={16} /> {downloading ? 'Exporting...' : 'Download Data (JSON)'}
               </button>
+            </div>
+
+            <div style={{ padding: '1.25rem', background: 'var(--background)', borderRadius: '0.75rem', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <Upload size={20} style={{ color: '#22c55e' }} />
+                <h3 style={{ fontSize: '1rem', fontWeight: '600', margin: 0 }}>Import Data</h3>
+              </div>
+              <p style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', marginBottom: '1rem' }}>
+                Upload a previously exported JSON file to restore your data. Existing records (matching SKU, email, or name) will be skipped.
+              </p>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.625rem 1rem', background: 'linear-gradient(135deg, #22c55e, #16a34a)', border: 'none', borderRadius: '0.5rem', color: 'white', fontWeight: '600', cursor: 'pointer' }}>
+                  <Upload size={16} /> Choose JSON File
+                  <input
+                    type="file"
+                    accept=".json"
+                    style={{ display: 'none' }}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try {
+                        const text = await file.text();
+                        const data = JSON.parse(text);
+                        setImportLoading(true);
+                        setImportError('');
+                        const res = await fetch('/api/shop/import-data', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '', 'x-user-id': authUser?.id || '' },
+                          body: JSON.stringify(data),
+                        });
+                        const resp = await res.json();
+                        if (!res.ok) throw new Error(resp.error || 'Import failed');
+                        const r = resp.result;
+                        showNotification(`Import complete: ${r.imported} imported, ${r.skipped} skipped`, 'success');
+                      } catch (e: any) {
+                        setImportError(e.message);
+                      } finally {
+                        setImportLoading(false);
+                      }
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+                {importError && <p style={{ fontSize: '0.85rem', color: '#ef4444', margin: 0 }}>{importError}</p>}
+              </div>
             </div>
 
             <div style={{ padding: '1.25rem', background: 'var(--background)', borderRadius: '0.75rem', border: '1px solid #ef4444' }}>
