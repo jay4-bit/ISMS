@@ -189,6 +189,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: true };
       }
 
+      // New flow: email verification required
+      if (data.success && data.emailVerified === false) {
+        return { success: true };
+      }
+
       return { success: false, error: 'Invalid response' };
     } catch {
       return { success: false, error: 'Connection error' };

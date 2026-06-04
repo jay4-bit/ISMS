@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
-import { Package, Eye, EyeOff, AlertCircle, LogIn, UserPlus } from 'lucide-react';
+import { Package, Eye, EyeOff, AlertCircle, LogIn, UserPlus, Mail, CheckCircle, RefreshCw } from 'lucide-react';
 
 const SHOP_TYPES = [
   { type: 'PHARMACY', icon: '💊', name: 'Pharmacy', color: '#22c55e' },
@@ -23,6 +23,14 @@ export default function HomePage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Verification state
+  const [verifyEmail, setVerifyEmail] = useState('');
+  const [verifyCode, setVerifyCode] = useState('');
+  const [verifying, setVerifying] = useState(false);
+  const [verified, setVerified] = useState(false);
+  const [resent, setResent] = useState(false);
+
   const [registerData, setRegisterData] = useState({
     shopName: '',
     ownerName: '',
@@ -41,6 +49,10 @@ export default function HomePage() {
     if (result.success) {
       router.push('/dashboard');
     } else {
+      if (result.error?.includes('verify your email')) {
+        setVerifyEmail(email);
+        setVerified(false);
+      }
       setError(result.error || 'Login failed');
     }
     setLoading(false);
@@ -63,11 +75,56 @@ export default function HomePage() {
     });
 
     if (result.success) {
-      router.push('/dashboard');
+      setVerifyEmail(registerData.ownerEmail);
+      setVerified(false);
+      setMode('login');
     } else {
       setError(result.error || 'Registration failed');
     }
     setLoading(false);
+  };
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setVerifying(true);
+    try {
+      const res = await fetch('/api/auth/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: verifyEmail, code: verifyCode }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Verification failed');
+      setVerified(true);
+      // Auto-login after verification
+      const loginResult = await login(verifyEmail, registerData.ownerPassword || '');
+      if (loginResult.success) {
+        router.push('/dashboard');
+      }
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    setError('');
+    setResent(false);
+    try {
+      const res = await fetch('/api/auth/resend-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: verifyEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to resend');
+      setResent(true);
+      setTimeout(() => setResent(false), 3000);
+    } catch (e: any) {
+      setError(e.message);
+    }
   };
 
   return (
@@ -111,7 +168,50 @@ export default function HomePage() {
           </div>
         )}
 
-        {mode === 'login' ? (
+        {verifyEmail && !verified ? (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
+              <button onClick={() => { setVerifyEmail(''); setVerifyCode(''); setError(''); }} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.8rem' }}>
+                ← Back to login
+              </button>
+            </div>
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+              <div style={{ ...styles.logoIcon, background: 'linear-gradient(135deg, #22c55e, #16a34a)', width: '56px', height: '56px', margin: '0 auto 1rem' }}>
+                <Mail size={28} color="white" />
+              </div>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#f1f5f9', margin: '0 0 0.5rem' }}>Verify Your Email</h2>
+              <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 0 }}>
+                We sent a 6-digit code to <strong style={{ color: '#f1f5f9' }}>{verifyEmail}</strong>.<br />
+                Enter it below to activate your account.
+              </p>
+            </div>
+            <form onSubmit={handleVerify} style={styles.form}>
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Verification Code</label>
+                <input
+                  type="text"
+                  maxLength={6}
+                  value={verifyCode}
+                  onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  style={{ ...styles.input, textAlign: 'center', fontSize: '1.5rem', letterSpacing: '0.5rem' }}
+                  placeholder="000000"
+                  required
+                />
+              </div>
+              <button type="submit" disabled={verifying || verifyCode.length !== 6} style={{ ...styles.button, opacity: verifying || verifyCode.length !== 6 ? 0.6 : 1 }}>
+                {verifying ? 'Verifying...' : <><CheckCircle size={18} /> Verify & Activate</>}
+              </button>
+            </form>
+            <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+              <button onClick={handleResendCode} style={{ background: 'none', border: 'none', color: resent ? '#22c55e' : '#3b82f6', cursor: 'pointer', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                <RefreshCw size={14} /> {resent ? 'Code resent!' : 'Resend code'}
+              </button>
+              <p style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '0.75rem' }}>
+                Didn&apos;t receive the email? Check your spam folder.
+              </p>
+            </div>
+          </div>
+        ) : mode === 'login' ? (
           <form onSubmit={handleLogin} style={styles.form}>
             <div style={styles.inputGroup}>
               <label style={styles.label}>Email Address</label>

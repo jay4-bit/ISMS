@@ -22,6 +22,30 @@ function getTransporter() {
 const fromName = process.env.SMTP_FROM_NAME || 'ISMS Pro';
 const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@ismspro.co.tz';
 
+export async function sendVerificationCode(email: string, code: string, userName: string): Promise<void> {
+  const transporter = getTransporter();
+  await transporter.sendMail({
+    from: `"${fromName}" <${fromEmail}>`,
+    to: email,
+    subject: 'Verify Your Email - ISMS Pro',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #f9fafb; border-radius: 12px;">
+        <h2 style="color: #1e293b; margin: 0 0 8px;">Welcome to ISMS Pro!</h2>
+        <p style="color: #374151; font-size: 14px; margin: 0 0 16px;">
+          Hi <strong>${userName}</strong>, please verify your email address to activate your account.
+        </p>
+        <div style="text-align: center; background: #fff; padding: 24px; border-radius: 8px; border: 1px solid #e5e7eb;">
+          <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">Your verification code</div>
+          <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #3b82f6;">${code}</div>
+        </div>
+        <p style="color: #6b7280; font-size: 12px; margin: 16px 0 0;">
+          This code expires in 10 minutes. If you did not create this account, please ignore this email.
+        </p>
+      </div>
+    `,
+  });
+}
+
 export async function sendDeletionCode(email: string, code: string, shopName: string): Promise<void> {
   const transporter = getTransporter();
   await transporter.sendMail({

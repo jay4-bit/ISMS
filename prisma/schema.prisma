@@ -72,6 +72,8 @@ model User {
   name         String
   role         String   @default("CASHIER")
   isActive     Boolean  @default(true)
+  emailVerified Boolean @default(false)
+  emailVerificationCode String?
   shopId       String
   shop         Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   createdAt    DateTime @default(now())

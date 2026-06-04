@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { hashPassword, verifyPassword } from '@/lib/auth';
 import { ShopType } from '@prisma/client';
+import { sendVerificationCode } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,6 +38,7 @@ export async function POST(request: NextRequest) {
       }
 
       const hashedPassword = await hashPassword(ownerPassword);
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
       const shop = await prisma.shop.create({
         data: {
@@ -50,7 +52,9 @@ export async function POST(request: NextRequest) {
               email: ownerEmail.toLowerCase(),
               password: hashedPassword,
               name: ownerName,
-              role: 'OWNER'
+              role: 'OWNER',
+              emailVerified: false,
+              emailVerificationCode: verificationCode,
             }
           },
           settings: {
@@ -69,22 +73,17 @@ export async function POST(request: NextRequest) {
         }
       });
 
-      const token = Buffer.from(`${shop.id}:${shop.users[0].id}`).toString('base64');
+      try {
+        await sendVerificationCode(ownerEmail, verificationCode, ownerName);
+      } catch {
+        // Email sending failed, but account was created - still notify user
+      }
 
       return NextResponse.json({
         success: true,
-        shop: {
-          id: shop.id,
-          name: shop.name,
-          shopType: shop.shopType
-        },
-        user: {
-          id: shop.users[0].id,
-          email: shop.users[0].email,
-          name: shop.users[0].name,
-          role: shop.users[0].role
-        },
-        token
+        emailVerified: false,
+        message: 'Account created! Please check your email for the verification code.',
+        ownerEmail: ownerEmail.toLowerCase(),
       });
     }
 
@@ -105,6 +104,7 @@ export async function POST(request: NextRequest) {
       }
 
       const hashedPassword = await hashPassword(ownerPassword);
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
       const user = await prisma.user.create({
         data: {
@@ -112,26 +112,23 @@ export async function POST(request: NextRequest) {
           password: hashedPassword,
           name: ownerName,
           role: 'OWNER',
-          shopId
+          shopId,
+          emailVerified: false,
+          emailVerificationCode: verificationCode,
         }
       });
 
-      const token = Buffer.from(`${shopId}:${user.id}`).toString('base64');
+      try {
+        await sendVerificationCode(ownerEmail, verificationCode, ownerName);
+      } catch {
+        // Email sending is optional for this flow
+      }
 
       return NextResponse.json({
         success: true,
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role
-        },
-        shop: {
-          id: shop.id,
-          name: shop.name,
-          shopType: shop.shopType
-        },
-        token
+        emailVerified: false,
+        message: 'Account created! Please check your email for the verification code.',
+        ownerEmail: ownerEmail.toLowerCase(),
       });
     }
 

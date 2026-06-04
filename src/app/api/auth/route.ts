@@ -30,6 +30,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Account is disabled' }, { status: 401 });
     }
 
+    if (!user.emailVerified) {
+      return NextResponse.json({ error: 'Please verify your email first. Check your inbox for the verification code.' }, { status: 401 });
+    }
+
     const isValid = await verifyPassword(password, user.password);
     if (!isValid) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
