@@ -30,7 +30,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { shop } = useAuth();
+  const { shop, hasPermission, user } = useAuth();
   const { settings } = useSettings();
 
   useEffect(() => {
@@ -54,6 +54,18 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (!hasPermission('dashboard', 'read') && user?.role !== 'OWNER') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px', gap: '1rem', textAlign: 'center' }}>
+        <AlertTriangle size={48} color="#f59e0b" />
+        <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--foreground)' }}>Access Restricted</h2>
+        <p style={{ color: 'var(--muted-foreground)', maxWidth: '400px' }}>
+          You don't have permission to view the Dashboard. Ask the shop owner to grant you access in Settings.
+        </p>
+      </div>
+    );
   }
 
   if (error) {

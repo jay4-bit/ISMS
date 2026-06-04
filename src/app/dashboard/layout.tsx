@@ -78,7 +78,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Reports', href: '/dashboard/reports', icon: BarChart3, permission: 'reports' },
     { name: 'Users', href: '/dashboard/users', icon: Users, permission: 'users' },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings, permission: 'settings' },
-  ].filter(item => hasPermission(item.permission, 'read') || item.permission === 'dashboard');
+  ].filter(item => hasPermission(item.permission, 'read'));
 
   const shopIcons: Record<string, string> = {
     PHARMACY: '💊',
