@@ -2,8 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import bcrypt from 'bcryptjs';
 
-function generateReceiptNumber(): string {
-  return 'RCP' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
+async function generateReceiptNumber(shopId: string): Promise<string> {
+  const lastSale = await prisma.sale.findFirst({
+    where: { shopId },
+    orderBy: { createdAt: 'desc' },
+    select: { receiptNumber: true },
+  });
+  let nextNum = 1;
+  if (lastSale?.receiptNumber) {
+    const match = lastSale.receiptNumber.match(/(\d+)$/);
+    if (match) nextNum = parseInt(match[1], 10) + 1;
+  }
+  return 'RCP' + String(nextNum).padStart(5, '0');
 }
 
 async function getCashierId(shopId: string) {
@@ -103,9 +113,11 @@ export async function POST(request: NextRequest) {
     const total = subtotal - (discount || 0);
     const paid = isCredit ? amountPaid : total;
     const change = paymentMethod === 'CASH' ? Math.max(0, amountPaid - total) : 0;
-    
+
+    const receiptNumber = await generateReceiptNumber(shopId);
+
 const saleData: any = {
-      receiptNumber: generateReceiptNumber(),
+      receiptNumber,
       shopId,
       subtotal,
       discount: discount || 0,
@@ -221,17 +233,71 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ sales });
     }
 
-    const sales = await prisma.sale.findMany({
-      where: { shopId },
-      include: { 
-        items: { include: { product: { include: { electronicsFields: true } } } }, 
-        cashier: { select: { name: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 100,
-    });
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '10')));
+    const search = searchParams.get('search') || '';
+    const timeFilter = searchParams.get('timeFilter') || 'ALL';
+    const skip = (page - 1) * limit;
 
-    return NextResponse.json({ sales });
+    const where: any = { shopId };
+
+    if (search) {
+      where.OR = [
+        { receiptNumber: { contains: search, mode: 'insensitive' } },
+        { customerName: { contains: search, mode: 'insensitive' } },
+        { customerPhone: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (timeFilter !== 'ALL') {
+      const now = new Date();
+      let startDate: Date;
+      switch (timeFilter) {
+        case 'TODAY':
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          break;
+        case 'WEEK':
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case 'MONTH':
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+        case '3MONTHS':
+          startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+          break;
+        case '6MONTHS':
+          startDate = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
+          break;
+        case 'YEAR':
+          startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+          break;
+        default:
+          startDate = new Date(0);
+      }
+      where.createdAt = { gte: startDate };
+    }
+
+    const [sales, total] = await Promise.all([
+      prisma.sale.findMany({
+        where,
+        include: { 
+          items: { include: { product: { include: { electronicsFields: true } } } }, 
+          cashier: { select: { name: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.sale.count({ where }),
+    ]);
+
+    return NextResponse.json({
+      sales,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     console.error('Get sales error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

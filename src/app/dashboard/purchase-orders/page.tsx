@@ -29,6 +29,7 @@ interface Product {
   name: string;
   sku: string;
   purchaseCost: number;
+  sellingPrice: number;
   stockQuantity: number;
   supplier?: { id: string; name: string };
   electronicsFields?: { imei?: string | null; brand?: string | null; model?: string | null; color?: string | null; storage?: string | null; condition?: string | null } | null;
@@ -346,7 +347,15 @@ export default function PurchaseOrdersPage() {
 
       if (isElectronics) {
         poItems = orderItems.map((item: any) => {
-          if (item.type === 'PHONE') {
+          if (item.type === 'EXISTING') {
+            return {
+              productId: item.productId,
+              quantity: item.quantity || 1,
+              unitCost: item.purchaseCost,
+              productName: item.productName,
+              sellingPrice: item.sellingPrice || item.purchaseCost * 1.2,
+            };
+          } else if (item.type === 'PHONE') {
             return {
               productId: null,
               quantity: 1,
@@ -1029,7 +1038,7 @@ export default function PurchaseOrdersPage() {
                       <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
                         <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>Select the type of item to add to this order</p>
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                         <button onClick={() => setElectronicsMode('PHONES')} style={{ padding: '1.5rem', background: 'var(--card)', border: '2px solid #3b82f6', borderRadius: '0.75rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
                           <Smartphone size={40} color="#3b82f6" />
                           <span style={{ color: 'var(--foreground)', fontWeight: '600' }}>Phones</span>
@@ -1039,6 +1048,11 @@ export default function PurchaseOrdersPage() {
                           <Headphones size={40} color="#22c55e" />
                           <span style={{ color: 'var(--foreground)', fontWeight: '600' }}>Accessories</span>
                           <span style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Chargers, Cases, etc.</span>
+                        </button>
+                        <button onClick={() => setElectronicsMode('EXISTING')} style={{ padding: '1.5rem', background: 'var(--card)', border: '2px solid #f59e0b', borderRadius: '0.75rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                          <Package size={40} color="#f59e0b" />
+                          <span style={{ color: 'var(--foreground)', fontWeight: '600' }}>Existing Products</span>
+                          <span style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>From inventory</span>
                         </button>
                       </div>
                     </div>
@@ -1070,7 +1084,7 @@ export default function PurchaseOrdersPage() {
                           <label className="label">Condition</label>
                           <div style={{ display: 'flex', gap: '0.25rem' }}>
                             {['NEW', 'USED', 'REFURBISHED'].map(c => (
-                              <button type="button" key={c} onClick={() => setPhoneCondition(c)} disabled={orderItems.some((i: any) => i.type === 'PHONE')} style={{ padding: '0.3rem 0.6rem', borderRadius: '0.375rem', border: '1px solid', borderColor: phoneCondition === c ? 'var(--primary)' : 'var(--border)', background: phoneCondition === c ? 'var(--primary)' : orderItems.some((i: any) => i.type === 'PHONE') ? 'var(--background)' : 'var(--card)', color: orderItems.some((i: any) => i.type === 'PHONE') ? 'var(--muted-foreground)' : 'white', cursor: orderItems.some((i: any) => i.type === 'PHONE') ? 'not-allowed' : 'pointer', fontWeight: '500', fontSize: '0.75rem', opacity: orderItems.some((i: any) => i.type === 'PHONE') ? 0.5 : 1 }}>{c}</button>
+                              <button type="button" key={c} onClick={() => setPhoneCondition(c)} disabled={orderItems.some((i: any) => i.type === 'PHONE')} style={{ padding: '0.3rem 0.6rem', borderRadius: '0.375rem', border: '1px solid', borderColor: phoneCondition === c ? 'var(--primary)' : 'var(--border)', background: phoneCondition === c ? 'var(--primary)' : orderItems.some((i: any) => i.type === 'PHONE') ? 'var(--background)' : 'var(--card)', color: phoneCondition === c ? 'white' : orderItems.some((i: any) => i.type === 'PHONE') ? 'var(--muted-foreground)' : 'var(--foreground)', cursor: orderItems.some((i: any) => i.type === 'PHONE') ? 'not-allowed' : 'pointer', fontWeight: '500', fontSize: '0.75rem', opacity: orderItems.some((i: any) => i.type === 'PHONE') ? 0.5 : 1 }}>{c}</button>
                             ))}
                           </div>
                         </div>
@@ -1192,6 +1206,58 @@ export default function PurchaseOrdersPage() {
                             <Plus size={16} /> {orderItems.some((i: any) => i.type === 'ACCESSORY') ? 'Add Another Accessory' : 'Add Accessory to Order'}
                           </button>
                         )}
+                      </div>
+                    </div>
+                  ) : electronicsMode === 'EXISTING' ? (
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.75rem' }}>
+                        <button onClick={() => setElectronicsMode('')} className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', marginRight: '0.5rem' }}>← Back</button>
+                        <span style={{ color: '#f59e0b', fontWeight: '600', fontSize: '0.9rem' }}>Add Existing Products</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.75rem' }}>
+                        <select
+                          style={{ flex: 1, padding: '0.5rem', background: 'var(--background)', border: '1px solid #475569', borderRadius: '0.35rem', color: 'var(--foreground)' }}
+                          value=""
+                          onChange={(e) => {
+                            if (!e.target.value) return;
+                            const product = products.find(p => p.id === e.target.value);
+                            if (!product) return;
+                            setOrderItems([...orderItems, {
+                              type: 'EXISTING',
+                              productId: product.id,
+                              productName: product.name,
+                              purchaseCost: product.purchaseCost || 0,
+                              sellingPrice: product.sellingPrice || 0,
+                              quantity: 1,
+                              totalCost: product.purchaseCost || 0,
+                            }]);
+                          }}
+                        >
+                          <option value="">Select a product...</option>
+                          {products.filter(p => !orderItems.some((oi: any) => oi.productId === p.id && oi.type === 'EXISTING')).map(p => (
+                            <option key={p.id} value={p.id} style={{ background: 'var(--background)', color: 'var(--foreground)' }}>{p.name} (Qty: {p.stockQuantity})</option>
+                          ))}
+                        </select>
+                      </div>
+                      {orderItems.filter((i: any) => i.type === 'EXISTING').length > 0 && (
+                        <div style={{ marginBottom: '0.75rem' }}>
+                          <label className="label" style={{ marginBottom: '0.5rem' }}>Selected Products</label>
+                          {orderItems.filter((i: any) => i.type === 'EXISTING').map((item: any, idx: number) => (
+                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.5rem', background: 'var(--background)', borderRadius: '0.4rem', marginBottom: '0.35rem', border: '1px solid var(--border)' }}>
+                              <span style={{ flex: 1, fontSize: '0.85rem', color: 'var(--foreground)' }}>{item.productName}</span>
+                              <input type="number" style={{ width: '60px', padding: '0.2rem 0.4rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '0.3rem', color: 'var(--foreground)', fontSize: '0.8rem' }} value={item.quantity} min="1" onChange={(e) => {
+                                const newItems = orderItems.filter((i: any) => !(i.type === 'EXISTING' && i.productId === item.productId));
+                                newItems.push({ ...item, quantity: parseInt(e.target.value) || 1, totalCost: (parseInt(e.target.value) || 1) * item.purchaseCost });
+                                setOrderItems(newItems);
+                              }} />
+                              <span style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)', width: '80px', textAlign: 'right' }}>{formatCurr(item.quantity * item.purchaseCost)}</span>
+                              <button type="button" onClick={() => setOrderItems(orderItems.filter((i: any) => !(i.type === 'EXISTING' && i.productId === item.productId)))} style={{ background: 'none', border: 'none', color: 'var(--destructive)', cursor: 'pointer', padding: '0.2rem' }}><X size={14} /></button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <button type="button" onClick={() => setElectronicsMode('')} className="btn btn-secondary" style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}>Done</button>
                       </div>
                     </div>
                   ) : null}

@@ -530,6 +530,19 @@ body {
   }
 }
 
+/* Compact reports page — base level */
+.reports-page .table thead th,
+.reports-page .table tbody td {
+  padding: 0.4rem 0.5rem;
+  font-size: 0.75rem;
+}
+.reports-page .stat-card .stat-value {
+  font-size: 1.25rem;
+}
+.reports-page .stat-card .stat-label {
+  font-size: 0.7rem;
+}
+
 /* Compact reports page on smaller laptop screens (≤14" / 1366px) */
 @media (max-width: 1400px) {
   .reports-page h1 {
@@ -544,19 +557,19 @@ body {
     font-size: 0.7rem;
   }
   .reports-page .stat-card .stat-value {
-    font-size: 1.15rem;
+    font-size: 1rem;
   }
   .reports-page .stat-card .stat-label {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
   }
   .reports-page .grid-cols-4,
   .reports-page .grid-cols-3,
   .reports-page .grid-cols-2 {
-    gap: 0.75rem;
+    gap: 0.5rem;
   }
   .reports-page .btn {
-    padding: 0.3rem 0.5rem;
-    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.65rem;
   }
   .reports-page select {
     width: 160px !important;
@@ -1430,4 +1443,122 @@ body {
   50% {
     top: 80%;
   }
+}
+
+@keyframes reminderSlideDown {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.reminder-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  padding-top: 1rem;
+}
+
+.reminder-popup {
+  pointer-events: auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  max-width: 480px;
+  width: 100%;
+  animation: reminderSlideDown 0.3s ease-out;
+}
+
+.reminder-popup-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(251, 191, 36, 0.15);
+  color: #f59e0b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.reminder-popup-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.reminder-popup-body h4 {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.reminder-popup-body p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  line-height: 1.4;
+}
+
+.reminder-popup-due {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  color: #f59e0b;
+  margin-top: 0.4rem;
+}
+
+.reminder-popup-overdue {
+  color: #ef4444;
+  font-weight: 600;
+  margin-left: 0.25rem;
+}
+
+.reminder-popup-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.reminder-popup-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: none;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.reminder-popup-btn:hover {
+  opacity: 0.85;
+}
+
+.reminder-popup-btn.accept {
+  background: #22c55e;
+  color: white;
+}
+
+.reminder-popup-btn.skip {
+  background: var(--muted);
+  color: var(--foreground);
 }

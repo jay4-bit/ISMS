@@ -1,4 +1,4 @@
-import { PrismaClient, ShopType, Role } from '@prisma/client';
+import { PrismaClient, ShopType } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -8,31 +8,31 @@ const SHOP_TYPES = [
     type: ShopType.PHARMACY,
     name: 'HealthPlus Pharmacy',
     categories: ['Prescription Drugs', 'OTC Medicines', 'Vitamins & Supplements', 'First Aid Supplies', 'Medical Devices', 'Baby Care', 'Skincare'],
-    roles: [Role.PHARMACIST, Role.CASHIER, Role.ASSISTANT]
+    roles: ['PHARMACIST', 'CASHIER', 'ASSISTANT']
   },
   {
     type: ShopType.GENERAL,
     name: 'Daily Needs Store',
     categories: ['Food & Beverages', 'Household Items', 'Personal Care', 'Stationery', 'Cleaning Supplies'],
-    roles: [Role.MANAGER, Role.CASHIER, Role.ASSISTANT]
+    roles: ['MANAGER', 'CASHIER', 'ASSISTANT']
   },
   {
     type: ShopType.LIQUOR,
     name: 'Spirits & Wines',
     categories: ['Whisky', 'Beer', 'Wine', 'Vodka', 'Gin', 'Rum', 'Brandy', 'Cocktail Mixers', 'Accessories'],
-    roles: [Role.MANAGER, Role.CASHIER, Role.WINGER]
+    roles: ['MANAGER', 'CASHIER', 'WINGER']
   },
   {
     type: ShopType.ELECTRONICS,
     name: 'TechZone Electronics',
     categories: ['Phones & Tablets', 'Accessories', 'Networking', 'Audio', 'Power Solutions'],
-    roles: [Role.MANAGER, Role.CASHIER, Role.WINGER]
+    roles: ['MANAGER', 'CASHIER', 'WINGER']
   },
   {
     type: ShopType.CLOTHING,
     name: 'Fashion Hub',
     categories: ['Men\'s Wear', 'Women\'s Wear', 'Kids Wear', 'Accessories', 'Footwear'],
-    roles: [Role.MANAGER, Role.CASHIER, Role.ASSISTANT]
+    roles: ['MANAGER', 'CASHIER', 'ASSISTANT']
   }
 ];
 
@@ -77,7 +77,7 @@ async function main() {
         email: `owner@${shop.id.slice(0,8)}.com`,
         password: hashedPassword,
         name: `${shopData.type} Owner`,
-        role: Role.OWNER,
+        role: 'OWNER',
         shopId: shop.id
       }
     });
@@ -90,7 +90,7 @@ async function main() {
         email: `cashier@${shop.id.slice(0,8)}.com`,
         password: hashedPassword,
         name: 'John Cashier',
-        role: Role.CASHIER,
+        role: 'CASHIER',
         shopId: shop.id
       }
     });

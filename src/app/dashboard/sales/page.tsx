@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { ShoppingCart, Search, Eye, Printer, X, Package, Calendar, Clock, CalendarDays, CalendarCheck, List, TrendingUp } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { ShoppingCart, Search, Eye, Printer, X, Package, Calendar, Clock, CalendarDays, CalendarCheck, List, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useAuth } from '@/components/AuthProvider';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
@@ -35,73 +35,40 @@ export default function SalesPage() {
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [timeFilter, setTimeFilter] = useState('ALL');
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const limit = 10;
 
-  useEffect(() => { fetchSales(); }, [shop]);
-
-  useEffect(() => {
-    const interval = setInterval(fetchSales, 15000);
-    return () => clearInterval(interval);
-  }, [shop]);
-
-  useEffect(() => { setPage(1); }, [search, timeFilter]);
-
-  function isInPeriod(dateStr: string, period: string): boolean {
-    const d = new Date(dateStr);
-    const now = new Date();
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
-    switch (period) {
-      case 'TODAY':
-        return d >= startOfDay;
-      case 'WEEK': {
-        const startOfWeek = new Date(startOfDay);
-        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
-        return d >= startOfWeek;
-      }
-      case 'MONTH':
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-      case '3MONTHS': {
-        const start = new Date(now.getFullYear(), now.getMonth() - 3, 1);
-        return d >= start;
-      }
-      case '6MONTHS': {
-        const start = new Date(now.getFullYear(), now.getMonth() - 6, 1);
-        return d >= start;
-      }
-      case 'YEAR':
-        return d.getFullYear() === now.getFullYear();
-      default:
-        return true;
-    }
-  }
-
-  async function fetchSales() {
+  const fetchSales = useCallback(async () => {
+    if (!shop?.id) return;
     try {
-      const res = await fetch('/api/sales', {
-        headers: { 'x-shop-id': shop?.id || '' }
+      const params = new URLSearchParams({ page: String(page), limit: String(limit), search, timeFilter });
+      const res = await fetch(`/api/sales?${params}`, {
+        headers: { 'x-shop-id': shop.id }
       });
       const data = await res.json();
       setSales(data.sales || []);
+      setTotal(data.total || 0);
+      setTotalPages(data.totalPages || 1);
     } catch (error) {
       console.error('Failed to fetch sales:', error);
     } finally {
       setLoading(false);
     }
-  }
+  }, [shop?.id, page, search, timeFilter]);
 
-  const filteredSales = sales.filter(s => 
-    isInPeriod(s.createdAt, timeFilter) &&
-    (!search || 
-    s.receiptNumber.toLowerCase().includes(search.toLowerCase()) ||
-    s.customerName?.toLowerCase().includes(search.toLowerCase()) ||
-    s.customerPhone?.includes(search))
-  ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  useEffect(() => { fetchSales(); }, [fetchSales]);
 
-  const pageSize = 15;
-  const totalPages = Math.ceil(filteredSales.length / pageSize);
-  const paginatedSales = filteredSales.slice((page - 1) * pageSize, page * pageSize);
+  useEffect(() => {
+    const interval = setInterval(fetchSales, 15000);
+    return () => clearInterval(interval);
+  }, [fetchSales]);
 
-  const totalSales = filteredSales.reduce((sum, s) => sum + s.total, 0);
+  useEffect(() => {
+    setPage(1);
+  }, [search, timeFilter]);
+
+  const totalSales = sales.reduce((sum, s) => sum + s.total, 0);
 
   if (loading) return <div>Loading...</div>;
 
@@ -162,13 +129,13 @@ export default function SalesPage() {
 
       {(() => {
         const dailyMap: Record<string, { date: string; total: number; sortKey: string }> = {};
-        filteredSales.forEach(s => {
+        sales.forEach(s => {
           const day = new Date(s.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
           const key = new Date(s.createdAt).toISOString().slice(0, 10);
           if (!dailyMap[key]) dailyMap[key] = { date: day, total: 0, sortKey: key };
           dailyMap[key].total += s.total;
         });
-        const chartData = Object.values(dailyMap).sort((a, b) => a.sortKey.localeCompare(b.sortKey)).slice(-30);
+        const chartData = Object.values(dailyMap).sort((a, b) => a.sortKey.localeCompare(b.sortKey));
 
         if (chartData.length < 1) return null;
 
@@ -213,7 +180,7 @@ export default function SalesPage() {
             </tr>
           </thead>
           <tbody>
-            {paginatedSales.map((sale, index) => (
+            {sales.map((sale, index) => (
               <tr key={sale.id} style={{ background: index % 2 === 0 ? 'var(--card)' : 'var(--background)' }}>
                 <td style={{ padding: '0.5rem' }}>
                   <div style={{ fontWeight: '600', color: 'var(--foreground)', fontSize: '0.75rem' }}>{sale.receiptNumber}</div>
@@ -261,8 +228,8 @@ export default function SalesPage() {
             ))}
           </tbody>
         </table>
-        
-        {filteredSales.length === 0 && (
+
+        {sales.length === 0 && (
           <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted-foreground)' }}>
             <ShoppingCart size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
             <p>No sales found</p>
@@ -270,53 +237,29 @@ export default function SalesPage() {
         )}
       </div>
 
-      {totalPages > 1 && (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', fontSize: '0.8rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 0' }}>
+        <span style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>
+          Showing page {page} of {totalPages} ({total} total sales)
+        </span>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="filter-tab"
-            style={{
-              padding: '0.35rem 0.75rem', borderRadius: '0.375rem', border: '1px solid var(--border)',
-              background: 'transparent', color: page === 1 ? 'var(--muted-foreground)' : 'var(--foreground)',
-              cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.5 : 1,
-            }}
+            disabled={page <= 1}
+            className="btn btn-secondary"
+            style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
           >
-            Previous
+            <ChevronLeft size={14} /> Previous
           </button>
-
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-            <button
-              key={p}
-              onClick={() => setPage(p)}
-              className="filter-tab"
-              style={{
-                padding: '0.35rem 0.65rem', borderRadius: '0.375rem', border: '1px solid',
-                borderColor: page === p ? 'var(--primary)' : 'var(--border)',
-                background: page === p ? 'var(--primary)' : 'transparent',
-                color: page === p ? 'white' : 'var(--muted-foreground)',
-                cursor: 'pointer', fontWeight: page === p ? '600' : '400',
-                minWidth: '2rem',
-              }}
-            >
-              {p}
-            </button>
-          ))}
-
           <button
             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="filter-tab"
-            style={{
-              padding: '0.35rem 0.75rem', borderRadius: '0.375rem', border: '1px solid var(--border)',
-              background: 'transparent', color: page === totalPages ? 'var(--muted-foreground)' : 'var(--foreground)',
-              cursor: page === totalPages ? 'not-allowed' : 'pointer', opacity: page === totalPages ? 0.5 : 1,
-            }}
+            disabled={page >= totalPages}
+            className="btn btn-secondary"
+            style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
           >
-            Next
+            Next <ChevronRight size={14} />
           </button>
         </div>
-      )}
+      </div>
 
       {selectedSale && (
         <div className="modal-overlay" onClick={() => setSelectedSale(null)}>
@@ -399,3 +342,5 @@ export default function SalesPage() {
     </div>
   );
 }
+
+

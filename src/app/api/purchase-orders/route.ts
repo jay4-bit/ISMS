@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 
+async function generateOrderNumber(shopId: string): Promise<string> {
+  const lastOrder = await prisma.purchaseOrder.findFirst({
+    where: { shopId },
+    orderBy: { createdAt: 'desc' },
+    select: { orderNumber: true },
+  });
+  let nextNum = 1;
+  if (lastOrder?.orderNumber) {
+    const match = lastOrder.orderNumber.match(/(\d+)$/);
+    if (match) nextNum = parseInt(match[1], 10) + 1;
+  }
+  return 'PO' + String(nextNum).padStart(5, '0');
+}
+
 export async function GET(request: NextRequest) {
   try {
     const shopId = request.headers.get('x-shop-id') || undefined;
@@ -70,7 +84,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { supplierId, items, notes, expectedDelivery } = body;
 
-    const orderNumber = 'PO' + Date.now().toString(36).toUpperCase();
+    const orderNumber = await generateOrderNumber(shopId);
     const totalAmount = items.reduce((sum: number, item: any) => sum + item.quantity * item.unitCost, 0);
 
     const order = await prisma.purchaseOrder.create({

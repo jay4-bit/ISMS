@@ -16,13 +16,17 @@ enum ShopType {
   CLOTHING
 }
 
-enum Role {
-  OWNER
-  MANAGER
-  CASHIER
-  PHARMACIST
-  WINGER
-  ASSISTANT
+model CustomRole {
+  id          String   @id @default(cuid())
+  name        String
+  description String   @default("")
+  color       String   @default("#6b7280")
+  shopId      String
+  shop        Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([name, shopId])
 }
 
 model Shop {
@@ -35,6 +39,7 @@ model Shop {
   currency    String    @default("TZS")
   currencySymbol String @default("TSh")
   isActive    Boolean   @default(true)
+  logo        String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   
@@ -51,6 +56,8 @@ model Shop {
   stockCounts StockCount[]
   settings    ShopSettings?
   permissions Permission[]
+  customRoles CustomRole[]
+  reminders   Reminder[]
   
   @@unique([name, shopType])
 }
@@ -60,7 +67,7 @@ model User {
   email        String
   password     String
   name         String
-  role         Role     @default(CASHIER)
+  role         String   @default("CASHIER")
   isActive     Boolean  @default(true)
   shopId       String
   shop         Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
@@ -602,4 +609,17 @@ model Permission {
   updatedAt DateTime @updatedAt
 
   @@unique([role, module, shopId])
+}
+
+model Reminder {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @default("")
+  dueDate     DateTime?
+  isActive    Boolean  @default(true)
+  shopId      String
+  shop        Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  createdBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

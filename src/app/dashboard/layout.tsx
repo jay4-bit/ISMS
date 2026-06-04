@@ -30,11 +30,13 @@ import {
   RefreshCw,
   PackagePlus,
   Sun,
-  Moon
+  Moon,
+  Clock
 } from 'lucide-react';
 import { SHOP_TYPE_CONFIG } from '@/lib/auth';
 import { useSettings } from '@/context/SettingsContext';
 import { useTheme } from '@/context/ThemeContext';
+import ReminderPopup from '@/components/ReminderPopup';
 
 const DASHBOARD_PATHS = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, permission: 'dashboard' },
@@ -55,13 +57,19 @@ const DASHBOARD_PATHS = [
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, shop, logout, hasPermission } = useAuth();
-  const { settings } = useSettings();
+  const { settings, logo } = useSettings();
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const redirectAttempted = useRef(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -121,7 +129,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       >
         <div style={styles.sidebarHeader}>
           <div style={styles.shopBadge}>
-            <span style={styles.shopIcon}>{shopIcons[shop.shopType]}</span>
+            <span style={styles.shopIcon}>
+              {logo ? <img src={logo} alt={shop.name} style={styles.shopLogoImg} /> : shopIcons[shop.shopType]}
+            </span>
             {!collapsed && (
               <div style={styles.shopInfo}>
                 <span style={styles.shopName}>{settings.businessName || shop.name}</span>
@@ -159,17 +169,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         <div style={styles.sidebarFooter}>
-          <div style={styles.userInfo}>
-            <div style={styles.userAvatar}>
-              {user.name.charAt(0).toUpperCase()}
-            </div>
-            {!collapsed && (
-              <div style={styles.userDetails}>
-                <span style={styles.userName}>{user.name}</span>
-                <span style={styles.userRole}>{user.role}</span>
+          <Link href="/dashboard/profile" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <div style={styles.userInfo}>
+              <div style={styles.userAvatar}>
+                {user.name.charAt(0).toUpperCase()}
               </div>
-            )}
-          </div>
+              {!collapsed && (
+                <div style={styles.userDetails}>
+                  <span style={styles.userName}>{user.name}</span>
+                  <span style={styles.userRole}>{user.role}</span>
+                </div>
+              )}
+            </div>
+          </Link>
           <button onClick={logout} style={styles.logoutBtn}>
             <LogOut size={18} />
             {!collapsed && <span>Logout</span>}
@@ -188,16 +200,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </h1>
           </div>
           <div style={styles.headerRight}>
+            <div style={styles.clock}>
+              <Clock size={16} />
+              <span>{currentTime.toLocaleTimeString()}</span>
+            </div>
             <button onClick={toggleTheme} style={styles.themeBtn} title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <span style={styles.currencyBadge}>{shop.currencySymbol}</span>
           </div>
         </header>
 
-        <main style={styles.content}>
-          {children}
-        </main>
+          <main style={styles.content}>
+            <ReminderPopup shopId={shop?.id} />
+            {children}
+          </main>
       </div>
     </div>
   );
@@ -234,6 +250,17 @@ const styles: Record<string, React.CSSProperties> = {
   },
   shopIcon: {
     fontSize: '1.75rem',
+    width: '36px',
+    height: '36px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shopLogoImg: {
+    width: '36px',
+    height: '36px',
+    borderRadius: '0.5rem',
+    objectFit: 'cover',
   },
   shopInfo: {
     display: 'flex',
@@ -358,18 +385,24 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'var(--foreground)',
     margin: 0,
   },
+  headerLogo: {
+    height: '36px',
+    maxWidth: '180px',
+    objectFit: 'contain',
+    borderRadius: '0.375rem',
+  },
   headerRight: {
     display: 'flex',
     alignItems: 'center',
     gap: '1rem',
   },
-  currencyBadge: {
-    background: '#3b82f6',
-    color: 'white',
-    padding: '0.25rem 0.75rem',
-    borderRadius: '0.5rem',
-    fontSize: '0.75rem',
-    fontWeight: '600',
+  clock: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.4rem',
+    color: 'var(--muted-foreground)',
+    fontSize: '0.85rem',
+    fontWeight: '500',
   },
   themeBtn: {
     background: 'transparent',

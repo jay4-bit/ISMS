@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Settings as SettingsIcon, Building2, Phone, Mail, MapPin, DollarSign, 
   Users, UserPlus, Edit, Trash2, X, Save, Bell, Shield, Palette,
-  Check, AlertTriangle, Key, Plus, User, Sun, Moon, RotateCcw,
-  Eye, Lock
+  Check, AlertTriangle, Key, User, Sun, Moon, RotateCcw,
+  Eye, Lock, Plus, Clock, CalendarDays, Upload, Image as ImageIcon
 } from 'lucide-react';
 import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
 import { CURRENCIES, useSettings } from '@/context/SettingsContext';
@@ -37,11 +37,12 @@ interface Settings {
 export default function SettingsPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'business' | 'users' | 'alerts' | 'permissions' | 'types' | 'profile' | 'theme'>('business');
+  const [activeTab, setActiveTab] = useState<'business' | 'users' | 'alerts' | 'permissions' | 'types' | 'profile' | 'theme' | 'reminders'>('business');
   const [showUserModal, setShowUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const { refreshSettings } = useSettings();
+  const { logo } = useSettings();
   const { user: authUser, shop } = useAuth();
   const { theme, toggleTheme } = useTheme();
   
@@ -78,8 +79,17 @@ export default function SettingsPage() {
   const [permSelectedRole, setPermSelectedRole] = useState('CASHIER');
   const [permissions, setPermissions] = useState<any[]>([]);
   const [permSaving, setPermSaving] = useState(false);
+  const [allRoles, setAllRoles] = useState<any[]>([]);
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [editingRole, setEditingRole] = useState<any>(null);
+  const [roleForm, setRoleForm] = useState({ name: '', description: '', color: '#6b7280' });
 
-  useEffect(() => { if (shop?.id) fetchData(); }, [shop?.id]);
+  const [reminders, setReminders] = useState<any[]>([]);
+  const [showReminderModal, setShowReminderModal] = useState(false);
+  const [editingReminder, setEditingReminder] = useState<any>(null);
+  const [reminderForm, setReminderForm] = useState({ title: '', description: '', dueDate: '' });
+
+  useEffect(() => { if (shop?.id) { fetchData(); fetchRoles(); fetchReminders(); } }, [shop?.id]);
 
   async function fetchData() {
     try {
@@ -216,7 +226,7 @@ export default function SettingsPage() {
       const res = await fetch('/api/users', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
-        body: JSON.stringify({ name: profileForm.name, phone: profileForm.phone, id: authUser?.id }),
+        body: JSON.stringify({ name: profileForm.name, id: authUser?.id }),
       });
       if (res.ok) {
         const data = await res.json();
@@ -282,24 +292,196 @@ export default function SettingsPage() {
     }
   }
 
+  async function fetchRoles() {
+    try {
+      const res = await fetch('/api/roles', { headers: { 'x-shop-id': shop?.id || '' } });
+      const data = await res.json();
+      setAllRoles(data.roles || []);
+    } catch (error) {
+      console.error('Failed to fetch roles:', error);
+    }
+  }
+
+  function openRoleModal(role?: any) {
+    if (role && !role.builtIn) {
+      setEditingRole(role);
+      setRoleForm({ name: role.name, description: role.description || '', color: role.color || '#6b7280' });
+    } else {
+      setEditingRole(null);
+      setRoleForm({ name: '', description: '', color: '#6b7280' });
+    }
+    setShowRoleModal(true);
+  }
+
+  async function handleSaveRole() {
+    if (!roleForm.name.trim()) { showNotification('Role name is required', 'error'); return; }
+    try {
+      const url = '/api/roles';
+      const method = editingRole ? 'PUT' : 'POST';
+      const body = editingRole
+        ? { id: editingRole.id, name: roleForm.name, description: roleForm.description, color: roleForm.color }
+        : { name: roleForm.name, description: roleForm.description, color: roleForm.color };
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        showNotification(editingRole ? 'Role updated!' : 'Role created!', 'success');
+        setShowRoleModal(false);
+        fetchRoles();
+      } else {
+        const data = await res.json();
+        showNotification(data.error || 'Failed to save role', 'error');
+      }
+    } catch (error) {
+      showNotification('Failed to save role', 'error');
+    }
+  }
+
+  async function handleDeleteRole(role: any) {
+    if (!confirm(`Delete role "${role.label}"? Users with this role will be reassigned to CASHIER.`)) return;
+    try {
+      const res = await fetch(`/api/roles?id=${role.id}`, { method: 'DELETE', headers: { 'x-shop-id': shop?.id || '' } });
+      if (res.ok) {
+        showNotification('Role deleted', 'success');
+        if (permSelectedRole === role.name) setPermSelectedRole('CASHIER');
+        fetchRoles();
+        fetchData();
+      }
+    } catch (error) {
+      showNotification('Failed to delete role', 'error');
+    }
+  }
+
+  async function handleUpdateUserRole(userId: string, newRole: string) {
+    try {
+      const res = await fetch('/api/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
+        body: JSON.stringify({ id: userId, role: newRole }),
+      });
+      if (res.ok) {
+        showNotification('User role updated', 'success');
+        fetchData();
+      } else {
+        const data = await res.json();
+        showNotification(data.error || 'Failed to update role', 'error');
+      }
+    } catch (error) {
+      showNotification('Failed to update role', 'error');
+    }
+  }
+
+  async function fetchReminders() {
+    try {
+      const res = await fetch('/api/reminders', { headers: { 'x-shop-id': shop?.id || '' } });
+      const data = await res.json();
+      setReminders(data.reminders || []);
+    } catch (error) {
+      console.error('Failed to fetch reminders:', error);
+    }
+  }
+
+  function openReminderModal(reminder?: any) {
+    if (reminder) {
+      setEditingReminder(reminder);
+      setReminderForm({
+        title: reminder.title,
+        description: reminder.description || '',
+        dueDate: reminder.dueDate ? new Date(reminder.dueDate).toISOString().slice(0, 16) : '',
+      });
+    } else {
+      setEditingReminder(null);
+      setReminderForm({ title: '', description: '', dueDate: '' });
+    }
+    setShowReminderModal(true);
+  }
+
+  async function handleSaveReminder() {
+    if (!reminderForm.title.trim()) { showNotification('Title is required', 'error'); return; }
+    try {
+      const url = '/api/reminders';
+      const method = editingReminder ? 'PUT' : 'POST';
+      const body = editingReminder
+        ? { id: editingReminder.id, title: reminderForm.title, description: reminderForm.description, dueDate: reminderForm.dueDate || null }
+        : { title: reminderForm.title, description: reminderForm.description, dueDate: reminderForm.dueDate || null };
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        showNotification(editingReminder ? 'Reminder updated!' : 'Reminder created!', 'success');
+        setShowReminderModal(false);
+        fetchReminders();
+      } else {
+        const data = await res.json();
+        showNotification(data.error || 'Failed to save reminder', 'error');
+      }
+    } catch (error) {
+      showNotification('Failed to save reminder', 'error');
+    }
+  }
+
+  async function handleDeleteReminder(id: string) {
+    if (!confirm('Delete this reminder?')) return;
+    try {
+      const res = await fetch(`/api/reminders?id=${id}`, { method: 'DELETE', headers: { 'x-shop-id': shop?.id || '' } });
+      if (res.ok) {
+        showNotification('Reminder deleted', 'success');
+        fetchReminders();
+      }
+    } catch (error) {
+      showNotification('Failed to delete reminder', 'error');
+    }
+  }
+
+  async function handleToggleReminder(reminder: any) {
+    try {
+      const res = await fetch('/api/reminders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
+        body: JSON.stringify({ id: reminder.id, isActive: !reminder.isActive }),
+      });
+      if (res.ok) fetchReminders();
+    } catch (error) {
+      console.error('Toggle reminder error:', error);
+    }
+  }
+
   const tabs = [
     { id: 'business', label: 'Business', icon: Building2 },
     { id: 'types', label: 'Business Types', icon: Palette },
     { id: 'users', label: 'Users & Roles', icon: Users },
     { id: 'permissions', label: 'Permissions', icon: Shield },
+    { id: 'reminders', label: 'Reminders', icon: Clock },
     { id: 'alerts', label: 'Alerts', icon: Bell },
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'theme', label: 'Theme', icon: Sun },
   ];
 
   const roles = [
-    { value: 'OWNER', label: 'Owner', desc: 'Full control of the shop', color: '#ef4444' },
-    { value: 'MANAGER', label: 'Manager', desc: 'Can manage inventory and reports', color: '#f59e0b' },
-    { value: 'CASHIER', label: 'Cashier', desc: 'Can process sales and returns', color: '#3b82f6' },
-    { value: 'PHARMACIST', label: 'Pharmacist', desc: 'For pharmacy shop type', color: '#8b5cf6' },
-    { value: 'WINGER', label: 'Winger', desc: 'Can assist sales and inventory', color: '#22c55e' },
-    { value: 'ASSISTANT', label: 'Assistant', desc: 'Can process sales and manage stock', color: '#ec4899' },
+    { value: 'OWNER', label: 'Owner', desc: 'Full control of the shop', color: '#ef4444', builtIn: true },
+    { value: 'MANAGER', label: 'Manager', desc: 'Can manage inventory and reports', color: '#f59e0b', builtIn: true },
+    { value: 'CASHIER', label: 'Cashier', desc: 'Can process sales and returns', color: '#3b82f6', builtIn: true },
+    { value: 'PHARMACIST', label: 'Pharmacist', desc: 'For pharmacy shop type', color: '#8b5cf6', builtIn: true },
+    { value: 'WINGER', label: 'Winger', desc: 'Can assist sales and inventory', color: '#22c55e', builtIn: true },
+    { value: 'ASSISTANT', label: 'Assistant', desc: 'Can process sales and manage stock', color: '#ec4899', builtIn: true },
   ];
+
+  const displayRoles = React.useMemo(() => {
+    const builtIn = roles.map(r => ({ ...r, id: r.value }));
+    const custom = allRoles.filter(r => !r.builtIn).map(r => ({
+      value: r.name,
+      label: r.label || r.name,
+      desc: r.description || 'Custom role',
+      color: r.color || '#6b7280',
+      id: r.id,
+      builtIn: false,
+    }));
+    return [...builtIn, ...custom];
+  }, [allRoles]);
 
   useEffect(() => {
     if (shop?.id && permSelectedRole) fetchPermissions();
@@ -375,7 +557,7 @@ export default function SettingsPage() {
   }
 
   async function resetRolePermissions() {
-    if (!confirm(`Reset permissions for ${roles.find(r => r.value === permSelectedRole)?.label} to defaults?`)) return;
+    if (!confirm(`Reset permissions for ${displayRoles.find(r => r.value === permSelectedRole)?.label} to defaults?`)) return;
     try {
       const res = await fetch(`/api/permissions?role=${permSelectedRole}`, {
         method: 'PUT',
@@ -431,6 +613,66 @@ export default function SettingsPage() {
               <Building2 size={20} />
               <h2>Business Information</h2>
             </div>
+
+            <div style={styles.logoSection}>
+              <div style={styles.logoPreview}>
+                {logo ? (
+                  <img src={logo} alt="Shop logo" style={styles.logoImg} />
+                ) : (
+                  <div style={styles.logoPlaceholder}>
+                    <ImageIcon size={32} />
+                  </div>
+                )}
+              </div>
+              <div style={styles.logoActions}>
+                <label style={styles.logoUploadLabel}>
+                  <Upload size={16} /> Upload Logo
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = async () => {
+                        const base64 = reader.result as string;
+                        const res = await fetch('/api/upload', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
+                          body: JSON.stringify({ image: base64 }),
+                        });
+                        if (res.ok) {
+                          refreshSettings();
+                          showNotification('Logo uploaded successfully!', 'success');
+                        } else {
+                          showNotification('Failed to upload logo', 'error');
+                        }
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                  />
+                </label>
+                {logo && (
+                  <button
+                    onClick={async () => {
+                      const res = await fetch('/api/upload', {
+                        method: 'DELETE',
+                        headers: { 'x-shop-id': shop?.id || '' },
+                      });
+                      if (res.ok) {
+                        refreshSettings();
+                        showNotification('Logo removed', 'success');
+                      }
+                    }}
+                    style={styles.logoRemoveBtn}
+                  >
+                    <Trash2 size={16} /> Remove
+                  </button>
+                )}
+              </div>
+            </div>
+
             <div style={styles.grid} className="settings-grid">
               <div style={styles.field}>
                 <label style={styles.label}>Business Name</label>
@@ -524,7 +766,9 @@ export default function SettingsPage() {
             </div>
 
             <div style={styles.usersList}>
-              {users.map(user => (
+              {users.map(user => {
+                const userRole = displayRoles.find(r => r.value === user.role) || { label: user.role, color: '#6b7280' };
+                return (
                 <div key={user.id} style={styles.userCard} className="settings-user-card">
                   <div style={styles.userAvatar}>
                     {user.name.charAt(0).toUpperCase()}
@@ -533,19 +777,20 @@ export default function SettingsPage() {
                     <div style={styles.userName}>{user.name}</div>
                     <div style={styles.userEmail}>{user.email}</div>
                   </div>
-                  <div style={{
-                    ...styles.userRole,
-                    background: user.role === 'ADMIN' ? 'rgba(239, 68, 68, 0.2)' :
-                               user.role === 'MANAGER' ? 'rgba(245, 158, 11, 0.2)' :
-                               user.role === 'ACCOUNTANT' ? 'rgba(139, 92, 246, 0.2)' :
-                               'rgba(59, 130, 246, 0.2)',
-                    color: user.role === 'ADMIN' ? '#ef4444' :
-                           user.role === 'MANAGER' ? '#f59e0b' :
-                           user.role === 'ACCOUNTANT' ? '#8b5cf6' :
-                           '#3b82f6',
-                  }}>
-                    {user.role}
-                  </div>
+                  <select
+                    value={user.role}
+                    onChange={(e) => handleUpdateUserRole(user.id, e.target.value)}
+                    style={{
+                      ...styles.userRoleSelect,
+                      background: `${userRole.color}20`,
+                      color: userRole.color,
+                      border: `1px solid ${userRole.color}40`,
+                    }}
+                  >
+                    {displayRoles.map(r => (
+                      <option key={r.value} value={r.value}>{r.label}</option>
+                    ))}
+                  </select>
                   <button 
                     onClick={() => openResetModal(user)}
                     style={{ ...styles.deleteBtn, color: 'var(--primary)', border: '1px solid #3b82f6' }}
@@ -561,7 +806,8 @@ export default function SettingsPage() {
                     <Trash2 size={16} />
                   </button>
                 </div>
-              ))}
+                );
+              })}
             </div>
 
             <div style={styles.rolesInfo}>
@@ -570,7 +816,7 @@ export default function SettingsPage() {
                 Configure module access for each role. Go to Settings → Permissions for full configuration.
               </p>
               <div style={styles.rolesGrid}>
-                {roles.map(role => (
+                {displayRoles.map(role => (
                   <div key={role.value} style={styles.roleCard}>
                     <div style={styles.roleName}>{role.label}</div>
                     <div style={styles.roleDesc}>{role.desc}</div>
@@ -592,7 +838,7 @@ export default function SettingsPage() {
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-              {roles.map(role => (
+              {displayRoles.map(role => (
                 <button
                   key={role.value}
                   onClick={() => setPermSelectedRole(role.value)}
@@ -600,6 +846,7 @@ export default function SettingsPage() {
                     ...permStyles.roleBtn,
                     borderColor: permSelectedRole === role.value ? role.color : 'var(--border)',
                     background: permSelectedRole === role.value ? `${role.color}15` : 'transparent',
+                    position: 'relative',
                   }}
                 >
                   <div style={{ ...permStyles.roleBadge, background: role.color }}>{role.label.charAt(0)}</div>
@@ -608,8 +855,30 @@ export default function SettingsPage() {
                     <div style={permStyles.roleDesc}>{role.desc}</div>
                   </div>
                   {permSelectedRole === role.value && <Check size={16} color={role.color} />}
+                  {!role.builtIn && (
+                    <div
+                      onClick={(e) => { e.stopPropagation(); openRoleModal(allRoles.find(r => r.name === role.value)); }}
+                      style={{ position: 'absolute', top: '2px', right: '2px', cursor: 'pointer', padding: '2px', color: '#94a3b8', lineHeight: 1 }}
+                      title="Edit role"
+                    >
+                      <Edit size={12} />
+                    </div>
+                  )}
                 </button>
               ))}
+              <button
+                onClick={() => { setEditingRole(null); setRoleForm({ name: '', description: '', color: '#6b7280' }); setShowRoleModal(true); }}
+                style={{
+                  ...permStyles.roleBtn,
+                  borderColor: 'var(--border)',
+                  borderStyle: 'dashed',
+                  minWidth: '120px',
+                  justifyContent: 'center',
+                }}
+              >
+                <Plus size={18} />
+                <span>Add Role</span>
+              </button>
             </div>
 
             <div style={{ border: '1px solid var(--border)', borderRadius: '0.75rem', overflow: 'hidden' }}>
@@ -787,16 +1056,6 @@ export default function SettingsPage() {
                   placeholder="Enter your name"
                 />
               </div>
-              <div style={styles.field}>
-                <label style={styles.label}>Phone Number</label>
-                <input
-                  type="text"
-                  value={profileForm.phone}
-                  onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
-                  style={styles.input}
-                  placeholder="Enter phone number"
-                />
-              </div>
             </div>
             <button
               onClick={handleSaveProfile}
@@ -920,10 +1179,201 @@ export default function SettingsPage() {
                   Theme preference is saved locally and persists across sessions.
                 </span>
               </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'reminders' && (
+        <div style={styles.section}>
+          <div style={styles.sectionHeader} className="settings-section-header">
+            <Clock size={20} />
+            <h2>Custom Reminders</h2>
+            <button onClick={() => openReminderModal()} style={styles.addBtn}>
+              <Plus size={18} /> Add Reminder
+            </button>
+          </div>
+
+          <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+            Create reminders for inventory checks, payment follow-ups, maintenance, or anything else.
+          </p>
+
+          {reminders.length === 0 ? (
+            <div style={{
+              textAlign: 'center', padding: '3rem', color: 'var(--muted-foreground)',
+              background: 'var(--background)', borderRadius: '0.75rem', border: '1px dashed var(--border)',
+            }}>
+              <Clock size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
+              <p>No reminders yet. Click "Add Reminder" to create one.</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {reminders.map(reminder => (
+                <div key={reminder.id} style={{
+                  display: 'flex', alignItems: 'center', gap: '1rem',
+                  padding: '1rem', background: 'var(--background)',
+                  borderRadius: '0.75rem', border: '1px solid var(--border)',
+                  opacity: reminder.isActive ? 1 : 0.5,
+                }}>
+                  <div
+                    onClick={() => handleToggleReminder(reminder)}
+                    style={{
+                      width: '24px', height: '24px', borderRadius: '50%', cursor: 'pointer',
+                      background: reminder.isActive ? '#22c55e' : 'var(--border)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: 'white', flexShrink: 0,
+                    }}
+                    title={reminder.isActive ? 'Active (click to pause)' : 'Paused (click to activate)'}
+                  >
+                    {reminder.isActive && <Check size={14} />}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{
+                      fontWeight: '600', color: 'var(--foreground)',
+                      textDecoration: reminder.isActive ? 'none' : 'line-through',
+                    }}>
+                      {reminder.title}
+                    </div>
+                    {reminder.description && (
+                      <div style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', marginTop: '0.25rem' }}>
+                        {reminder.description}
+                      </div>
+                    )}
+                    {reminder.dueDate && (
+                      <div style={{
+                        display: 'flex', alignItems: 'center', gap: '0.35rem',
+                        fontSize: '0.75rem', color: new Date(reminder.dueDate) < new Date() ? '#ef4444' : '#f59e0b',
+                        marginTop: '0.25rem',
+                      }}>
+                        <CalendarDays size={12} />
+                        {new Date(reminder.dueDate).toLocaleDateString('en-US', {
+                          weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+                          hour: '2-digit', minute: '2-digit',
+                        })}
+                        {new Date(reminder.dueDate) < new Date() && <span>(overdue)</span>}
+                      </div>
+                    )}
+                  </div>
+                  <button onClick={() => openReminderModal(reminder)} style={{ ...styles.deleteBtn, color: 'var(--primary)' }} title="Edit">
+                    <Edit size={16} />
+                  </button>
+                  <button onClick={() => handleDeleteReminder(reminder.id)} style={styles.deleteBtn} title="Delete">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {showRoleModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowRoleModal(false)}>
+          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h2>{editingRole ? 'Edit Role' : 'Create Custom Role'}</h2>
+              <button onClick={() => setShowRoleModal(false)} style={styles.closeBtn}><X size={20} /></button>
+            </div>
+            <div style={styles.modalBody}>
+              <div style={styles.field}>
+                <label style={styles.label}>Role Name *</label>
+                <input
+                  type="text"
+                  value={roleForm.name}
+                  onChange={(e) => setRoleForm({ ...roleForm, name: e.target.value })}
+                  style={styles.input}
+                  placeholder="e.g., SUPERVISOR, STOCK_MANAGER"
+                />
+              </div>
+              <div style={styles.field}>
+                <label style={styles.label}>Description</label>
+                <input
+                  type="text"
+                  value={roleForm.description}
+                  onChange={(e) => setRoleForm({ ...roleForm, description: e.target.value })}
+                  style={styles.input}
+                  placeholder="Brief description of this role"
+                />
+              </div>
+              <div style={styles.field}>
+                <label style={styles.label}>Color</label>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input
+                    type="color"
+                    value={roleForm.color}
+                    onChange={(e) => setRoleForm({ ...roleForm, color: e.target.value })}
+                    style={{ width: '48px', height: '48px', borderRadius: '0.5rem', border: '1px solid var(--border)', cursor: 'pointer', padding: 0 }}
+                  />
+                  <input
+                    type="text"
+                    value={roleForm.color}
+                    onChange={(e) => setRoleForm({ ...roleForm, color: e.target.value })}
+                    style={{ ...styles.input, flex: 1, fontFamily: 'monospace' }}
+                    placeholder="#6b7280"
+                  />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                <button onClick={handleSaveRole} style={styles.submitBtn}>
+                  <Save size={18} /> {editingRole ? 'Update Role' : 'Create Role'}
+                </button>
+                {editingRole && (
+                  <button
+                    onClick={() => handleDeleteRole(editingRole)}
+                    style={{ ...styles.deleteBtn, marginLeft: 'auto', background: 'var(--destructive)', color: 'white', padding: '0.5rem 1rem', borderRadius: '0.5rem', fontWeight: '600' }}
+                  >
+                    <Trash2 size={16} /> Delete Role
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+    </div>
+
+      {showReminderModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowReminderModal(false)}>
+          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h2><Clock size={20} /> {editingReminder ? 'Edit Reminder' : 'New Reminder'}</h2>
+              <button onClick={() => setShowReminderModal(false)} style={styles.closeBtn}><X size={20} /></button>
+            </div>
+            <div style={styles.modalBody}>
+              <div style={styles.field}>
+                <label style={styles.label}>Title *</label>
+                <input
+                  type="text"
+                  value={reminderForm.title}
+                  onChange={(e) => setReminderForm({ ...reminderForm, title: e.target.value })}
+                  style={styles.input}
+                  placeholder="e.g., Monthly stock count, Pay supplier invoice..."
+                />
+              </div>
+              <div style={styles.field}>
+                <label style={styles.label}>Description</label>
+                <textarea
+                  value={reminderForm.description}
+                  onChange={(e) => setReminderForm({ ...reminderForm, description: e.target.value })}
+                  style={{ ...styles.input, minHeight: '80px', resize: 'vertical' }}
+                  placeholder="Optional details about this reminder"
+                />
+              </div>
+              <div style={styles.field}>
+                <label style={styles.label}>Due Date (optional)</label>
+                <input
+                  type="datetime-local"
+                  value={reminderForm.dueDate}
+                  onChange={(e) => setReminderForm({ ...reminderForm, dueDate: e.target.value })}
+                  style={styles.input}
+                />
+              </div>
+              <button onClick={handleSaveReminder} style={styles.submitBtn}>
+                <Save size={18} /> {editingReminder ? 'Update Reminder' : 'Create Reminder'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showUserModal && (
         <div style={styles.modalOverlay} onClick={() => setShowUserModal(false)}>
@@ -982,7 +1432,7 @@ export default function SettingsPage() {
                   onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}
                   style={styles.select}
                 >
-                  {roles.map(role => (
+                  {displayRoles.map(role => (
                     <option key={role.value} value={role.value}>{role.label}</option>
                   ))}
                 </select>
@@ -1065,6 +1515,7 @@ const styles: Record<string, React.CSSProperties> = {
   userName: { fontWeight: '600', color: 'var(--foreground)' },
   userEmail: { fontSize: '0.875rem', color: 'var(--muted-foreground)' },
   userRole: { padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: '600' },
+  userRoleSelect: { padding: '0.25rem 0.5rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: '600', cursor: 'pointer', outline: 'none', minWidth: '100px' },
   deleteBtn: { background: 'none', border: 'none', color: 'var(--destructive)', cursor: 'pointer', padding: '0.5rem' },
   rolesInfo: { padding: '1rem', background: 'var(--background)', borderRadius: '0.75rem', border: '1px solid var(--border)' },
   rolesGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', marginTop: '1rem' },
@@ -1089,6 +1540,13 @@ const styles: Record<string, React.CSSProperties> = {
   closeBtn: { background: 'none', border: 'none', color: 'var(--muted-foreground)', cursor: 'pointer' },
   modalBody: { display: 'flex', flexDirection: 'column', gap: '1rem' },
   submitBtn: { marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.875rem', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', border: 'none', borderRadius: '0.5rem', color: 'white', fontWeight: '600', cursor: 'pointer' },
+  logoSection: { display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.25rem', background: 'var(--background)', borderRadius: '0.75rem', border: '1px solid var(--border)', marginBottom: '1.5rem' },
+  logoPreview: { width: '80px', height: '80px', borderRadius: '0.75rem', overflow: 'hidden', flexShrink: 0, background: 'var(--card)' },
+  logoImg: { width: '100%', height: '100%', objectFit: 'cover' },
+  logoPlaceholder: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted-foreground)' },
+  logoActions: { display: 'flex', flexDirection: 'column', gap: '0.5rem' },
+  logoUploadLabel: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', borderRadius: '0.5rem', color: 'white', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem' },
+  logoRemoveBtn: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: 'transparent', border: '1px solid var(--destructive)', borderRadius: '0.5rem', color: 'var(--destructive)', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem' },
 };
 
 const permStyles: Record<string, React.CSSProperties> = {

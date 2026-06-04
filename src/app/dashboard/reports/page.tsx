@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Download } from 'lucide-react';
+import { Download, Search } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useAuth } from '@/components/AuthProvider';
 
@@ -9,10 +9,11 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [reportType, setReportType] = useState<'sales' | 'returns' | 'inventory'>('sales');
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
+  const [search, setSearch] = useState('');
   const [reportData, setReportData] = useState<any>(null);
   const { shop } = useAuth();
 
-  useEffect(() => { fetchReport(); }, [reportType, dateRange.startDate, dateRange.endDate]);
+  useEffect(() => { fetchReport(); }, [reportType, dateRange.startDate, dateRange.endDate, search]);
 
   async function fetchReport() {
     setLoading(true);
@@ -20,6 +21,7 @@ export default function ReportsPage() {
       const params = new URLSearchParams({ type: reportType });
       if (dateRange.startDate) params.append('startDate', dateRange.startDate);
       if (dateRange.endDate) params.append('endDate', dateRange.endDate);
+      if (search.trim()) params.append('search', search.trim());
       const res = await fetch(`/api/reports?${params}`, { headers: { 'x-shop-id': shop?.id || '' } });
       const data = await res.json();
       setReportData(data.report);
@@ -31,10 +33,14 @@ export default function ReportsPage() {
     if (!reportData) return;
     let csv = '';
     if (reportType === 'sales') {
-      csv = 'Date,Receipt #,Items,Subtotal,Discount,Total,Payment Method\n';
+      csv = 'Date,Receipt #,Product,IMEI,Qty,Subtotal,Discount,Total,Payment Method\n';
       reportData.sales?.forEach((sale: any) => {
-        const itemCount = sale.items.reduce((sum: number, i: any) => sum + i.quantity, 0);
-        csv += `"${formatDate(sale.createdAt)}","${sale.receiptNumber}",${itemCount},${sale.subtotal},${sale.discount},${sale.total},${sale.paymentMethod}\n`;
+        sale.items.forEach((item: any, i: number) => {
+          const imei = item.product.electronicsFields?.imei || '';
+          csv += i === 0
+            ? `"${formatDate(sale.createdAt)}","${sale.receiptNumber}","${item.product.name}","${imei}",${item.quantity},${sale.subtotal},${sale.discount},${sale.total},${sale.paymentMethod}\n`
+            : `"","","${item.product.name}","${imei}",${item.quantity},,,,\n`;
+        });
       });
     } else if (reportType === 'returns') {
       csv = 'Date,Return #,Reason,Items,Total Refund\n';
@@ -63,6 +69,12 @@ export default function ReportsPage() {
       <div className="card" style={{ marginBottom: '1.5rem', padding: '1rem' }}>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div><label className="label">Report Type</label><select className="select" style={{ width: '200px' }} value={reportType} onChange={(e) => setReportType(e.target.value as any)}><option value="sales">Sales Report</option><option value="returns">Returns Report</option><option value="inventory">Inventory Report</option></select></div>
+          <div style={{ flex: 1, minWidth: '200px' }}><label className="label">Search Product / Keyword</label>
+            <div style={{ position: 'relative' }}>
+              <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-foreground)' }} />
+              <input type="text" className="input" placeholder="Search by product name or SKU..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ padding: '0.5rem', paddingLeft: '34px', width: '100%' }} />
+            </div>
+          </div>
           <div><label className="label">Start Date</label><input type="date" className="input" style={{ width: '180px' }} value={dateRange.startDate} onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })} /></div>
           <div><label className="label">End Date</label><input type="date" className="input" style={{ width: '180px' }} value={dateRange.endDate} onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })} /></div>
         </div>
@@ -78,8 +90,8 @@ export default function ReportsPage() {
           </div>
           <div className="card table-responsive" style={{ padding: 0, overflow: 'hidden' }}>
             <table className="table">
-              <thead><tr><th>Date</th><th>Receipt #</th><th>Items</th><th>Subtotal</th><th>Discount</th><th>Total</th><th>Profit</th><th>Payment</th></tr></thead>
-              <tbody>{reportData.sales?.slice(0, 50).map((sale: any) => { const profit = sale.items.reduce((sum: number, i: any) => sum + (i.unitPrice - i.product.purchaseCost) * i.quantity, 0); return (<tr key={sale.id}><td>{formatDate(sale.createdAt)}</td><td style={{ fontWeight: '600' }}>{sale.receiptNumber}</td><td>{sale.items.reduce((s: number, i: any) => s + i.quantity, 0)}</td><td>{formatCurrency(sale.subtotal)}</td><td style={{ color: '#ef4444' }}>-{formatCurrency(sale.discount)}</td><td style={{ fontWeight: '600' }}>{formatCurrency(sale.total)}</td><td style={{ color: '#22c55e' }}>{formatCurrency(profit)}</td><td><span className="badge badge-info">{sale.paymentMethod}</span></td></tr>); })}</tbody>
+              <thead><tr><th>Date</th><th>Receipt #</th><th>Products</th><th>IMEI</th><th>Qty</th><th>Subtotal</th><th>Discount</th><th>Total</th><th>Profit</th><th>Payment</th></tr></thead>
+              <tbody>{reportData.sales?.slice(0, 50).map((sale: any) => { const profit = sale.items.reduce((sum: number, i: any) => sum + (i.unitPrice - i.product.purchaseCost) * i.quantity, 0); return (<tr key={sale.id}><td>{formatDate(sale.createdAt)}</td><td style={{ fontWeight: '600' }}>{sale.receiptNumber}</td><td style={{ maxWidth: '180px' }}>{sale.items.map((item: any, i: number) => (<div key={i} style={{ lineHeight: '1.4' }}>{item.product.name}</div>))}</td><td style={{ maxWidth: '120px' }}>{sale.items.map((item: any, i: number) => (<div key={i} style={{ lineHeight: '1.4' }}>{item.product.electronicsFields?.imei ? <span style={{ color: 'var(--warning)', fontFamily: 'monospace' }}>{item.product.electronicsFields.imei}</span> : '-'}</div>))}</td><td>{sale.items.reduce((s: number, i: any) => s + i.quantity, 0)}</td><td>{formatCurrency(sale.subtotal)}</td><td style={{ color: '#ef4444' }}>-{formatCurrency(sale.discount)}</td><td style={{ fontWeight: '600' }}>{formatCurrency(sale.total)}</td><td style={{ color: '#22c55e' }}>{formatCurrency(profit)}</td><td><span className="badge badge-info">{sale.paymentMethod}</span></td></tr>); })}</tbody>
             </table>
           </div>
         </div>
@@ -89,7 +101,7 @@ export default function ReportsPage() {
             <div className="stat-card"><div className="stat-value">{reportData.returns?.length || 0}</div><div className="stat-label">Total Returns</div></div>
             <div className="stat-card"><div className="stat-value" style={{ color: '#ef4444' }}>{formatCurrency(reportData.totalRefunds || 0)}</div><div className="stat-label">Total Refunds</div></div>
           </div>
-          <div className="card"><h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>Loss from Faulty Items</h3><div style={{ fontSize: '2rem', fontWeight: '700', color: '#ef4444' }}>{formatCurrency(reportData.faultyLoss || 0)}</div></div>
+          <div className="card"><h3 style={{ fontWeight: '600', marginBottom: '1rem' }}>Loss from Faulty Items</h3><div style={{ fontWeight: '700', color: '#ef4444' }}>{formatCurrency(reportData.faultyLoss || 0)}</div></div>
         </div>
       ) : reportType === 'inventory' && reportData ? (
         <div>

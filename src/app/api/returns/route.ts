@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 
-function generateReturnNumber(): string {
-  return 'RET' + Date.now().toString(36).toUpperCase();
+async function generateReturnNumber(shopId: string): Promise<string> {
+  const lastReturn = await prisma.return.findFirst({
+    where: { shopId },
+    orderBy: { createdAt: 'desc' },
+    select: { returnNumber: true },
+  });
+  let nextNum = 1;
+  if (lastReturn?.returnNumber) {
+    const match = lastReturn.returnNumber.match(/(\d+)$/);
+    if (match) nextNum = parseInt(match[1], 10) + 1;
+  }
+  return 'RET' + String(nextNum).padStart(5, '0');
 }
 
 export async function GET(request: NextRequest) {
@@ -178,9 +188,11 @@ export async function POST(request: NextRequest) {
       return sum + (item.priceDifference || 0);
     }, 0);
 
+    const returnNumber = await generateReturnNumber(shopId);
+
     const returnRecord = await prisma.return.create({
       data: {
-        returnNumber: generateReturnNumber(),
+        returnNumber,
         reason,
         processedBy: 'demo-admin',
         totalRefund: totalRefund + totalPriceDiff,

@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get('endDate');
     const categoryId = searchParams.get('categoryId');
     const productId = searchParams.get('productId');
+    const search = searchParams.get('search')?.trim();
     const type = searchParams.get('type') || 'sales';
 
     const where: any = { shopId };
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
           items: {
             include: {
               product: {
-                include: { category: true },
+                include: { category: true, electronicsFields: true },
               },
             },
           },
@@ -46,6 +47,15 @@ export async function GET(request: NextRequest) {
       }
       if (productId) {
         filteredSales = filteredSales.filter(s => s.items.some(i => i.productId === productId));
+      }
+      if (search) {
+        const q = search.toLowerCase();
+        filteredSales = filteredSales.filter(s =>
+          s.items.some(i =>
+            i.product.name.toLowerCase().includes(q) ||
+            i.product.sku.toLowerCase().includes(q)
+          )
+        );
       }
 
       const totalRevenue = filteredSales.reduce((sum, s) => sum + s.total, 0);
@@ -90,13 +100,24 @@ export async function GET(request: NextRequest) {
         orderBy: { createdAt: 'desc' },
       });
 
-      const totalRefunds = returns.reduce((sum, r) => sum + r.items.reduce((s, i) => s + i.refundAmount, 0), 0);
-      const faultyLoss = returns
+      let filteredReturns = returns;
+      if (search) {
+        const q = search.toLowerCase();
+        filteredReturns = returns.filter(r =>
+          r.items.some(i =>
+            i.product.name.toLowerCase().includes(q) ||
+            i.product.sku.toLowerCase().includes(q)
+          )
+        );
+      }
+
+      const totalRefunds = filteredReturns.reduce((sum, r) => sum + r.items.reduce((s, i) => s + i.refundAmount, 0), 0);
+      const faultyLoss = filteredReturns
         .filter(r => r.items.some(i => i.status === 'FAULTY' || i.status === 'DISCARDED'))
         .reduce((sum, r) => sum + r.items.filter(i => i.status === 'FAULTY' || i.status === 'DISCARDED').reduce((s, i) => s + i.refundAmount, 0), 0);
 
       return NextResponse.json({
-        report: { returns, totalRefunds, faultyLoss },
+        report: { returns: filteredReturns, totalRefunds, faultyLoss },
       });
     }
 
@@ -112,6 +133,13 @@ export async function GET(request: NextRequest) {
       }
       if (productId) {
         filteredProducts = filteredProducts.filter(p => p.id === productId);
+      }
+      if (search) {
+        const q = search.toLowerCase();
+        filteredProducts = filteredProducts.filter(p =>
+          p.name.toLowerCase().includes(q) ||
+          p.sku.toLowerCase().includes(q)
+        );
       }
 
       const totalValue = filteredProducts.reduce((sum, p) => sum + p.sellingPrice * p.stockQuantity, 0);

@@ -12,14 +12,18 @@ export async function POST(request: NextRequest) {
     }
 
     const emailLower = email.toLowerCase();
-    const user = await prisma.user.findFirst({
-      where: { email: emailLower },
-      include: { shop: true }
+    const where = { email: emailLower, ...(shopId ? { shopId } : {}) };
+
+    const users = await prisma.user.findMany({
+      where,
+      include: { shop: true },
     });
 
-    if (!user) {
+    if (users.length === 0) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
+
+    const user = users.find(u => u.role === 'OWNER') || users[0];
 
     if (!user.isActive) {
       return NextResponse.json({ error: 'Account is disabled' }, { status: 401 });

@@ -22,7 +22,12 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({ settings });
+    const shop = await prisma.shop.findUnique({
+      where: { id: shopId },
+      select: { logo: true },
+    });
+
+    return NextResponse.json({ settings, logo: shop?.logo || null });
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'Unknown error';
     console.error('Get settings error:', msg);

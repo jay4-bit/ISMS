@@ -18,6 +18,7 @@ interface Settings {
 
 interface SettingsContextType {
   settings: Settings;
+  logo: string | null;
   loading: boolean;
   refreshSettings: () => Promise<void>;
 }
@@ -37,12 +38,14 @@ const defaultSettings: Settings = {
 
 const SettingsContext = createContext<SettingsContextType>({
   settings: defaultSettings,
+  logo: null,
   loading: true,
   refreshSettings: async () => {},
 });
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<Settings>(defaultSettings);
+  const [logo, setLogo] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { shop } = useAuth();
 
@@ -60,6 +63,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       if (data.settings) {
         setSettings({ ...defaultSettings, ...data.settings });
       }
+      if (data.logo) setLogo(data.logo);
     } catch (error) {
       console.error('Failed to fetch settings:', error);
     } finally {
@@ -72,7 +76,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   }, [shop?.id]);
 
   return (
-    <SettingsContext.Provider value={{ settings, loading, refreshSettings: fetchSettings }}>
+    <SettingsContext.Provider value={{ settings, logo, loading, refreshSettings: fetchSettings }}>
       {children}
     </SettingsContext.Provider>
   );
