@@ -33,6 +33,7 @@ interface AuthContextType {
   shop: Shop | null;
   loading: boolean;
   login: (email: string, password: string, shopId?: string) => Promise<{ success: boolean; error?: string }>;
+  register: (data: any) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   hasPermission: (module: string, action: 'read' | 'write' | 'delete') => boolean;
 }
@@ -42,6 +43,7 @@ const AuthContext = createContext<AuthContextType>({
   shop: null,
   loading: true,
   login: async () => ({ success: false }),
+  register: async () => ({ success: false }),
   logout: () => {},
   hasPermission: () => true
 });
@@ -57,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     const storedShop = localStorage.getItem('shop');
+    const storedPermissions = localStorage.getItem('permissions');
 
     if (storedUser) {
       try {
@@ -74,6 +77,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    if (storedPermissions) {
+      try {
+        setPermissions(JSON.parse(storedPermissions));
+      } catch {
+        localStorage.removeItem('permissions');
+      }
+    }
+
     setLoading(false);
   }, []);
 
@@ -88,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then(data => {
         if (data.permissions?.length > 0) {
           setPermissions(data.permissions);
+          localStorage.setItem('permissions', JSON.stringify(data.permissions));
         }
       })
       .catch(() => {});
@@ -134,8 +146,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem('shop', JSON.stringify(data.shop));
         localStorage.setItem('token', data.token);
+        localStorage.removeItem('permissions');
         setUser(data.user);
         setShop(data.shop);
+        setPermissions([]);
         permissionsLoaded.current = false;
         return { success: true };
       }
@@ -147,18 +161,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const register = async (registerData: any): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const res = await fetch('/api/shops', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', ...registerData }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Registration failed' };
+      }
+
+      if (data.success && data.user && data.shop) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('shop', JSON.stringify(data.shop));
+        localStorage.setItem('token', data.token);
+        localStorage.removeItem('permissions');
+        setUser(data.user);
+        setShop(data.shop);
+        setPermissions([]);
+        permissionsLoaded.current = false;
+        return { success: true };
+      }
+
+      return { success: false, error: 'Invalid response' };
+    } catch {
+      return { success: false, error: 'Connection error' };
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('shop');
     localStorage.removeItem('token');
+    localStorage.removeItem('permissions');
     setUser(null);
     setShop(null);
+    setPermissions([]);
     permissionsLoaded.current = false;
     router.push('/');
   };
 
   return (
-    <AuthContext.Provider value={{ user, shop, loading, login, logout, hasPermission }}>
+    <AuthContext.Provider value={{ user, shop, loading, login, register, logout, hasPermission }}>
       {children}
     </AuthContext.Provider>
   );

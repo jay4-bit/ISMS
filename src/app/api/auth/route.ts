@@ -5,38 +5,29 @@ import { hashPassword, verifyPassword, generateToken } from '@/lib/auth';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, shopType } = body;
+    const { email, password, shopId } = body;
 
-    if (!email || !password || !shopType) {
-      return NextResponse.json({ error: 'Email, password, and business type are required' }, { status: 400 });
+    if (!email || !password) {
+      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
+    const emailLower = email.toLowerCase();
     const user = await prisma.user.findFirst({
-      where: {
-        email: { equals: email, mode: 'insensitive' },
-        shop: { shopType }
-      },
+      where: { email: emailLower },
       include: { shop: true }
     });
 
     if (!user) {
-      const anyUser = await prisma.user.findFirst({
-        where: { email: { equals: email, mode: 'insensitive' } },
-        include: { shop: true }
-      });
-      if (anyUser) {
-        return NextResponse.json({ error: 'Email found under a different business type' }, { status: 401 });
-      }
-      return NextResponse.json({ error: 'Account not found. Please register or check your email.' }, { status: 401 });
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
     if (!user.isActive) {
-      return NextResponse.json({ error: 'Account is disabled. Contact the shop owner.' }, { status: 401 });
+      return NextResponse.json({ error: 'Account is disabled' }, { status: 401 });
     }
 
     const isValid = await verifyPassword(password, user.password);
     if (!isValid) {
-      return NextResponse.json({ error: 'Wrong password. Check Caps Lock or reset your password.' }, { status: 401 });
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
     const token = generateToken(user.id, user.shopId, user.role);

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Package, Eye, EyeOff, AlertCircle, LogIn, UserPlus, ArrowLeft } from 'lucide-react';
-import { SHOP_TYPE_CONFIG } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/components/AuthProvider';
+import { Package, Eye, EyeOff, AlertCircle, LogIn, UserPlus } from 'lucide-react';
 
 const SHOP_TYPES = [
   { type: 'PHARMACY', icon: '💊', name: 'Pharmacy', color: '#22c55e' },
@@ -13,8 +14,10 @@ const SHOP_TYPES = [
 ];
 
 export default function HomePage() {
-  const [mode, setMode] = useState<'select' | 'login' | 'register'>('select');
-  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const router = useRouter();
+  const { login, register } = useAuth();
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [selectedType, setSelectedType] = useState<string>('GENERAL');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -29,55 +32,18 @@ export default function HomePage() {
     address: ''
   });
 
-  const handleTypeSelect = (type: string) => {
-    setSelectedType(type);
-    setMode('login');
-    setError('');
-  };
-
-  const handleBack = () => {
-    setSelectedType(null);
-    setMode('select');
-    setError('');
-    setEmail('');
-    setPassword('');
-    setRegisterData({
-      shopName: '',
-      ownerName: '',
-      ownerEmail: '',
-      ownerPassword: '',
-      phone: '',
-      address: ''
-    });
-  };
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    try {
-      const res = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, shopType: selectedType }),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('shop', JSON.stringify(data.shop));
-        localStorage.setItem('token', data.token);
-        window.location.href = '/dashboard';
-      } else {
-        setError(data.error || 'Login failed');
-      }
-    } catch {
-      setError('Connection error');
-    } finally {
-      setLoading(false);
+    const result = await login(email, password);
+    if (result.success) {
+      router.push('/dashboard');
+    } else {
+      setError(result.error || 'Login failed');
     }
+    setLoading(false);
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -85,38 +51,23 @@ export default function HomePage() {
     setError('');
     setLoading(true);
 
-    try {
-      const res = await fetch('/api/shops', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'create',
-          name: registerData.shopName,
-          shopType: selectedType,
-          phone: registerData.phone,
-          email: registerData.ownerEmail,
-          address: registerData.address,
-          ownerName: registerData.ownerName,
-          ownerEmail: registerData.ownerEmail,
-          ownerPassword: registerData.ownerPassword
-        }),
-      });
+    const result = await register({
+      name: registerData.shopName,
+      shopType: selectedType,
+      phone: registerData.phone,
+      email: registerData.ownerEmail,
+      address: registerData.address,
+      ownerName: registerData.ownerName,
+      ownerEmail: registerData.ownerEmail,
+      ownerPassword: registerData.ownerPassword
+    });
 
-      const data = await res.json();
-
-      if (data.success) {
-        localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('shop', JSON.stringify(data.shop));
-        localStorage.setItem('token', data.token);
-        window.location.href = '/dashboard';
-      } else {
-        setError(data.error || 'Registration failed');
-      }
-    } catch {
-      setError('Connection error');
-    } finally {
-      setLoading(false);
+    if (result.success) {
+      router.push('/dashboard');
+    } else {
+      setError(result.error || 'Registration failed');
     }
+    setLoading(false);
   };
 
   return (
@@ -132,187 +83,163 @@ export default function HomePage() {
           <p style={styles.subtitle}>Inventory & Sales Management System</p>
         </div>
 
-        {mode === 'select' ? (
-          <div style={styles.typeSelector}>
-            <h2 style={styles.sectionTitle}>Select Your Business Type</h2>
-            <p style={styles.sectionSubtitle}>Choose the type of shop you want to manage</p>
-            
-            <div className="type-grid" style={styles.typeGrid}>
-              {SHOP_TYPES.map((st) => (
-                <button
-                  key={st.type}
-                  onClick={() => handleTypeSelect(st.type)}
-                  style={{ ...styles.typeCard, borderColor: st.color }}
-                >
-                  <span style={styles.typeIcon}>{st.icon}</span>
-                  <span style={styles.typeName}>{st.name}</span>
-                </button>
-              ))}
-            </div>
+        <div style={styles.tabContainer}>
+          <button
+            onClick={() => setMode('login')}
+            style={{
+              ...styles.tab,
+              ...(mode === 'login' ? styles.tabActive : {})
+            }}
+          >
+            <LogIn size={18} /> Sign In
+          </button>
+          <button
+            onClick={() => setMode('register')}
+            style={{
+              ...styles.tab,
+              ...(mode === 'register' ? styles.tabActive : {})
+            }}
+          >
+            <UserPlus size={18} /> Register
+          </button>
+        </div>
+
+        {error && (
+          <div style={styles.errorBox}>
+            <AlertCircle size={18} />
+            {error}
           </div>
-        ) : (
-          <div style={styles.authContainer}>
-            <button onClick={handleBack} style={styles.backButton}>
-              <ArrowLeft size={18} /> Back to shop types
+        )}
+
+        {mode === 'login' ? (
+          <form onSubmit={handleLogin} style={styles.form}>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Email Address</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                style={styles.input}
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Password</label>
+              <div style={styles.inputWrapper}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  style={{...styles.input, paddingRight: '2.5rem'}}
+                  placeholder="Enter your password"
+                  required
+                />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} style={styles.eyeButton}>
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" disabled={loading} style={styles.button}>
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
 
-            <div style={styles.selectedShop}>
-              <span style={styles.selectedIcon}>
-                {SHOP_TYPES.find(t => t.type === selectedType)?.icon}
-              </span>
-              <span style={styles.selectedName}>{SHOP_TYPE_CONFIG[selectedType!].name}</span>
+            <p style={styles.switchText}>
+              Don&apos;t have an account?{' '}
+              <button onClick={() => setMode('register')} style={styles.switchLink}>
+                Register here
+              </button>
+            </p>
+          </form>
+        ) : (
+          <form onSubmit={handleRegister} style={styles.form}>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Business Type</label>
+              <select value={selectedType} onChange={(e) => setSelectedType(e.target.value)} style={styles.select}>
+                {SHOP_TYPES.map(st => (
+                  <option key={st.type} value={st.type}>{st.name} {st.icon}</option>
+                ))}
+              </select>
             </div>
 
-            <div style={styles.tabContainer}>
-              <button
-                onClick={() => setMode('login')}
-                style={{
-                  ...styles.tab,
-                  ...(mode === 'login' ? styles.tabActive : {})
-                }}
-              >
-                <LogIn size={18} /> Sign In
-              </button>
-              <button
-                onClick={() => setMode('register')}
-                style={{
-                  ...styles.tab,
-                  ...(mode === 'register' ? styles.tabActive : {})
-                }}
-              >
-                <UserPlus size={18} /> Register
-              </button>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Shop Name</label>
+              <input
+                type="text"
+                value={registerData.shopName}
+                onChange={(e) => setRegisterData({ ...registerData, shopName: e.target.value })}
+                style={styles.input}
+                placeholder="Enter your shop name"
+                required
+              />
             </div>
 
-            {error && (
-              <div style={styles.errorBox}>
-                <AlertCircle size={18} />
-                {error}
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Your Name</label>
+              <input
+                type="text"
+                value={registerData.ownerName}
+                onChange={(e) => setRegisterData({ ...registerData, ownerName: e.target.value })}
+                style={styles.input}
+                placeholder="Enter your full name"
+                required
+              />
+            </div>
+
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Email Address</label>
+              <input
+                type="email"
+                value={registerData.ownerEmail}
+                onChange={(e) => setRegisterData({ ...registerData, ownerEmail: e.target.value })}
+                style={styles.input}
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Password</label>
+              <div style={styles.inputWrapper}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={registerData.ownerPassword}
+                  onChange={(e) => setRegisterData({ ...registerData, ownerPassword: e.target.value })}
+                  style={{...styles.input, paddingRight: '2.5rem'}}
+                  placeholder="Create a password (min 6 chars)"
+                  required
+                  minLength={6}
+                />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} style={styles.eyeButton}>
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
-            )}
+            </div>
 
-            {mode === 'login' ? (
-              <form onSubmit={handleLogin} style={styles.form}>
-                <div style={styles.inputGroup}>
-                  <label style={styles.label}>Email Address</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    style={styles.input}
-                    placeholder="Enter your email"
-                    required
-                  />
-                </div>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Phone Number (Optional)</label>
+              <input
+                type="tel"
+                value={registerData.phone}
+                onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
+                style={styles.input}
+                placeholder="+255..."
+              />
+            </div>
 
-                <div style={styles.inputGroup}>
-                  <label style={styles.label}>Password</label>
-                  <div style={styles.inputWrapper}>
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      style={{...styles.input, paddingRight: '2.5rem'}}
-                      placeholder="Enter your password"
-                      required
-                    />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} style={styles.eyeButton}>
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </div>
+            <button type="submit" disabled={loading} style={styles.button}>
+              {loading ? 'Creating Account...' : 'Create Account'}
+            </button>
 
-                <button type="submit" disabled={loading} style={styles.button}>
-                  {loading ? 'Signing in...' : 'Sign In'}
-                </button>
-
-                <p style={styles.switchText}>
-                  Don&apos;t have an account?{' '}
-                  <button onClick={() => setMode('register')} style={styles.switchLink}>
-                    Register here
-                  </button>
-                </p>
-              </form>
-            ) : (
-              <form onSubmit={handleRegister} style={styles.form}>
-                <div style={styles.inputGroup}>
-                  <label style={styles.label}>Shop Name</label>
-                  <input
-                    type="text"
-                    value={registerData.shopName}
-                    onChange={(e) => setRegisterData({ ...registerData, shopName: e.target.value })}
-                    style={styles.input}
-                    placeholder="Enter your shop name"
-                    required
-                  />
-                </div>
-
-                <div style={styles.inputGroup}>
-                  <label style={styles.label}>Your Name</label>
-                  <input
-                    type="text"
-                    value={registerData.ownerName}
-                    onChange={(e) => setRegisterData({ ...registerData, ownerName: e.target.value })}
-                    style={styles.input}
-                    placeholder="Enter your full name"
-                    required
-                  />
-                </div>
-
-                <div style={styles.inputGroup}>
-                  <label style={styles.label}>Email Address</label>
-                  <input
-                    type="email"
-                    value={registerData.ownerEmail}
-                    onChange={(e) => setRegisterData({ ...registerData, ownerEmail: e.target.value })}
-                    style={styles.input}
-                    placeholder="Enter your email"
-                    required
-                  />
-                </div>
-
-                <div style={styles.inputGroup}>
-                  <label style={styles.label}>Password</label>
-                  <div style={styles.inputWrapper}>
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={registerData.ownerPassword}
-                      onChange={(e) => setRegisterData({ ...registerData, ownerPassword: e.target.value })}
-                      style={{...styles.input, paddingRight: '2.5rem'}}
-                      placeholder="Create a password (min 6 chars)"
-                      required
-                      minLength={6}
-                    />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} style={styles.eyeButton}>
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </div>
-
-                <div style={styles.inputGroup}>
-                  <label style={styles.label}>Phone Number (Optional)</label>
-                  <input
-                    type="tel"
-                    value={registerData.phone}
-                    onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
-                    style={styles.input}
-                    placeholder="+255..."
-                  />
-                </div>
-
-                <button type="submit" disabled={loading} style={styles.button}>
-                  {loading ? 'Creating Account...' : 'Create Account'}
-                </button>
-
-                <p style={styles.switchText}>
-                  Already have an account?{' '}
-                  <button onClick={() => setMode('login')} style={styles.switchLink}>
-                    Sign in here
-                  </button>
-                </p>
-              </form>
-            )}
-          </div>
+            <p style={styles.switchText}>
+              Already have an account?{' '}
+              <button onClick={() => setMode('login')} style={styles.switchLink}>
+                Sign in here
+              </button>
+            </p>
+          </form>
         )}
       </div>
     </div>

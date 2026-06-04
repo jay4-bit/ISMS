@@ -10,10 +10,6 @@ export async function GET(request: NextRequest) {
     });
     
     if (!settings) {
-      const shop = await prisma.shop.findUnique({ where: { id: shopId }, select: { id: true } });
-      if (!shop) {
-        return NextResponse.json({ error: 'Shop not found. Please log in again.' }, { status: 404 });
-      }
       settings = await prisma.shopSettings.create({
         data: {
           shopId,

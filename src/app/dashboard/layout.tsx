@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
@@ -36,6 +36,23 @@ import { SHOP_TYPE_CONFIG } from '@/lib/auth';
 import { useSettings } from '@/context/SettingsContext';
 import { useTheme } from '@/context/ThemeContext';
 
+const DASHBOARD_PATHS = [
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, permission: 'dashboard' },
+  { name: 'Inventory', href: '/dashboard/inventory', icon: Package, permission: 'inventory' },
+  { name: 'POS', href: '/dashboard/pos', icon: ShoppingCart, permission: 'pos' },
+  { name: 'Sales', href: '/dashboard/sales', icon: DollarSign, permission: 'sales' },
+  { name: 'Returns', href: '/dashboard/returns', icon: RefreshCw, permission: 'returns' },
+  { name: 'Installments', href: '/dashboard/installments', icon: Calculator, permission: 'installments' },
+  { name: 'Suppliers', href: '/dashboard/suppliers', icon: Truck, permission: 'suppliers' },
+  { name: 'Purchase Orders', href: '/dashboard/purchase-orders', icon: PackagePlus, permission: 'purchase-orders' },
+  { name: 'Clients', href: '/dashboard/clients', icon: UserPlus, permission: 'clients' },
+  { name: 'Expenses', href: '/dashboard/expenses', icon: Receipt, permission: 'expenses' },
+  { name: 'Profit & Loss', href: '/dashboard/profit-loss', icon: PieChart, permission: 'profit-loss' },
+  { name: 'Reports', href: '/dashboard/reports', icon: BarChart3, permission: 'reports' },
+  { name: 'Users', href: '/dashboard/users', icon: Users, permission: 'users' },
+  { name: 'Settings', href: '/dashboard/settings', icon: Settings, permission: 'settings' },
+];
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, shop, logout, hasPermission } = useAuth();
   const { settings } = useSettings();
@@ -44,13 +61,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const redirectAttempted = useRef(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
-      router.push('/');
+      router.replace('/');
     }
   }, [router]);
+
+  useEffect(() => {
+    if (pathname === '/dashboard' && !hasPermission('dashboard', 'read') && !redirectAttempted.current) {
+      redirectAttempted.current = true;
+      const firstPermitted = DASHBOARD_PATHS.find(p => p.permission !== 'dashboard' && hasPermission(p.permission, 'read'));
+      router.replace(firstPermitted?.href || '/');
+    }
+  }, [pathname, hasPermission, router]);
 
   if (!user || !shop) {
     return (
@@ -61,24 +87,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
+  if (pathname === '/dashboard' && !hasPermission('dashboard', 'read')) {
+    return (
+      <div style={styles.loading}>
+        <div style={styles.spinner}></div>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
   const shopConfig = SHOP_TYPE_CONFIG[shop.shopType] || {};
 
-  const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, permission: 'dashboard' },
-    { name: 'Inventory', href: '/dashboard/inventory', icon: Package, permission: 'inventory' },
-    { name: 'POS', href: '/dashboard/pos', icon: ShoppingCart, permission: 'pos' },
-    { name: 'Sales', href: '/dashboard/sales', icon: DollarSign, permission: 'sales' },
-    { name: 'Returns', href: '/dashboard/returns', icon: RefreshCw, permission: 'returns' },
-    { name: 'Installments', href: '/dashboard/installments', icon: Calculator, permission: 'installments' },
-    { name: 'Suppliers', href: '/dashboard/suppliers', icon: Truck, permission: 'suppliers' },
-    { name: 'Purchase Orders', href: '/dashboard/purchase-orders', icon: PackagePlus, permission: 'purchase-orders' },
-    { name: 'Clients', href: '/dashboard/clients', icon: UserPlus, permission: 'clients' },
-    { name: 'Expenses', href: '/dashboard/expenses', icon: Receipt, permission: 'expenses' },
-    { name: 'Profit & Loss', href: '/dashboard/profit-loss', icon: PieChart, permission: 'profit-loss' },
-    { name: 'Reports', href: '/dashboard/reports', icon: BarChart3, permission: 'reports' },
-    { name: 'Users', href: '/dashboard/users', icon: Users, permission: 'users' },
-    { name: 'Settings', href: '/dashboard/settings', icon: Settings, permission: 'settings' },
-  ].filter(item => hasPermission(item.permission, 'read'));
+  const navigation = DASHBOARD_PATHS.filter(item => hasPermission(item.permission, 'read'));
 
   const shopIcons: Record<string, string> = {
     PHARMACY: '💊',

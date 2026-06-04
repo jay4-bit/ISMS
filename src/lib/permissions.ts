@@ -18,6 +18,7 @@ export const MODULES = [
 export const DEFAULT_ROLE_PERMISSIONS: Record<string, { module: string; canRead: boolean; canWrite: boolean; canDelete: boolean }[]> = {
   OWNER: MODULES.map(m => ({ module: m.id, canRead: true, canWrite: true, canDelete: true })),
   MANAGER: [
+    { module: 'dashboard', canRead: true, canWrite: false, canDelete: false },
     { module: 'inventory', canRead: true, canWrite: true, canDelete: false },
     { module: 'pos', canRead: true, canWrite: true, canDelete: false },
     { module: 'sales', canRead: true, canWrite: true, canDelete: false },

@@ -34,6 +34,7 @@ export default function SalesPage() {
   const [search, setSearch] = useState('');
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [timeFilter, setTimeFilter] = useState('ALL');
+  const [page, setPage] = useState(1);
 
   useEffect(() => { fetchSales(); }, [shop]);
 
@@ -41,6 +42,8 @@ export default function SalesPage() {
     const interval = setInterval(fetchSales, 15000);
     return () => clearInterval(interval);
   }, [shop]);
+
+  useEffect(() => { setPage(1); }, [search, timeFilter]);
 
   function isInPeriod(dateStr: string, period: string): boolean {
     const d = new Date(dateStr);
@@ -92,7 +95,11 @@ export default function SalesPage() {
     s.receiptNumber.toLowerCase().includes(search.toLowerCase()) ||
     s.customerName?.toLowerCase().includes(search.toLowerCase()) ||
     s.customerPhone?.includes(search))
-  );
+  ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  const pageSize = 15;
+  const totalPages = Math.ceil(filteredSales.length / pageSize);
+  const paginatedSales = filteredSales.slice((page - 1) * pageSize, page * pageSize);
 
   const totalSales = filteredSales.reduce((sum, s) => sum + s.total, 0);
 
@@ -206,7 +213,7 @@ export default function SalesPage() {
             </tr>
           </thead>
           <tbody>
-            {filteredSales.map((sale, index) => (
+            {paginatedSales.map((sale, index) => (
               <tr key={sale.id} style={{ background: index % 2 === 0 ? 'var(--card)' : 'var(--background)' }}>
                 <td style={{ padding: '0.5rem' }}>
                   <div style={{ fontWeight: '600', color: 'var(--foreground)', fontSize: '0.75rem' }}>{sale.receiptNumber}</div>
@@ -262,6 +269,54 @@ export default function SalesPage() {
           </div>
         )}
       </div>
+
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', fontSize: '0.8rem' }}>
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="filter-tab"
+            style={{
+              padding: '0.35rem 0.75rem', borderRadius: '0.375rem', border: '1px solid var(--border)',
+              background: 'transparent', color: page === 1 ? 'var(--muted-foreground)' : 'var(--foreground)',
+              cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.5 : 1,
+            }}
+          >
+            Previous
+          </button>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+            <button
+              key={p}
+              onClick={() => setPage(p)}
+              className="filter-tab"
+              style={{
+                padding: '0.35rem 0.65rem', borderRadius: '0.375rem', border: '1px solid',
+                borderColor: page === p ? 'var(--primary)' : 'var(--border)',
+                background: page === p ? 'var(--primary)' : 'transparent',
+                color: page === p ? 'white' : 'var(--muted-foreground)',
+                cursor: 'pointer', fontWeight: page === p ? '600' : '400',
+                minWidth: '2rem',
+              }}
+            >
+              {p}
+            </button>
+          ))}
+
+          <button
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="filter-tab"
+            style={{
+              padding: '0.35rem 0.75rem', borderRadius: '0.375rem', border: '1px solid var(--border)',
+              background: 'transparent', color: page === totalPages ? 'var(--muted-foreground)' : 'var(--foreground)',
+              cursor: page === totalPages ? 'not-allowed' : 'pointer', opacity: page === totalPages ? 0.5 : 1,
+            }}
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {selectedSale && (
         <div className="modal-overlay" onClick={() => setSelectedSale(null)}>

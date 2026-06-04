@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       }
 
       const existingOwner = await prisma.user.findFirst({
-        where: { email: ownerEmail }
+        where: { email: ownerEmail.toLowerCase() }
       });
 
       if (existingOwner) {
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
           address: address || null,
           users: {
             create: {
-              email: ownerEmail,
+              email: ownerEmail.toLowerCase(),
               password: hashedPassword,
               name: ownerName,
               role: 'OWNER'
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
       }
 
       const existingUser = await prisma.user.findFirst({
-        where: { email: ownerEmail, shopId }
+        where: { email: ownerEmail.toLowerCase(), shopId }
       });
 
       if (existingUser) {
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
 
       const user = await prisma.user.create({
         data: {
-          email: ownerEmail,
+          email: ownerEmail.toLowerCase(),
           password: hashedPassword,
           name: ownerName,
           role: 'OWNER',
