@@ -101,8 +101,16 @@ export default function ActivitiesPage() {
   const [rangePreset, setRangePreset] = useState<RangePreset>('all');
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [expandedWidget, setExpandedWidget] = useState<{ userId: string; widget: keyof UserDetails } | null>(null);
+  const [exportStartDate, setExportStartDate] = useState('');
+  const [exportEndDate, setExportEndDate] = useState('');
+  const [userReportUser, setUserReportUser] = useState<string | null>(null);
+  const [userReportStart, setUserReportStart] = useState('');
+  const [userReportEnd, setUserReportEnd] = useState('');
+  const [widgetPage, setWidgetPage] = useState<Record<string, number>>({});
 
-  const kpiRange = rangePreset === 'all' ? { start: '', end: '' } : getRangeDates(rangePreset);
+  const kpiRange = rangePreset === 'all' && !exportStartDate && !exportEndDate
+    ? { start: '', end: '' }
+    : { start: exportStartDate || getRangeDates(rangePreset).start, end: exportEndDate || getRangeDates(rangePreset).end };
 
   useEffect(() => {
     if (shop?.id) fetchActivities();
@@ -177,48 +185,80 @@ export default function ActivitiesPage() {
     URL.revokeObjectURL(url);
   }
 
-  function handleExportUserReport(k: UserKPI) {
+  async function handleExportUserReport(k: UserKPI, startDate?: string, endDate?: string) {
+    const hasCustom = startDate || endDate;
+    const periodStr = hasCustom ? `${startDate || '...'} to ${endDate || '...'}` : rangeLabel;
+
+    let details = k.details;
+    let sales = k.totalSales;
+    let revenue = k.totalRevenue;
+    let discounts = k.totalDiscounts;
+    let returns = k.totalReturns;
+    let expenses = k.totalExpenses;
+    let logins = k.logins;
+    let other = k.otherActions;
+
+    if (hasCustom) {
+      try {
+        const params = new URLSearchParams();
+        if (startDate) params.set('startDate', startDate);
+        if (endDate) params.set('endDate', endDate);
+        const res = await fetch(`/api/activities/kpi?${params}`, { headers: { 'x-shop-id': shop?.id || '' } });
+        const data = await res.json();
+        const fresh = (data.kpi || []).find((u: any) => u.userId === k.userId);
+        if (fresh) {
+          details = fresh.details;
+          sales = fresh.totalSales;
+          revenue = fresh.totalRevenue;
+          discounts = fresh.totalDiscounts;
+          returns = fresh.totalReturns;
+          expenses = fresh.totalExpenses;
+          logins = fresh.logins;
+          other = fresh.otherActions;
+        }
+      } catch {}
+    }
     const lines: string[] = [];
     lines.push(`User Report: ${k.userName}`);
     lines.push(`Role: ${k.role} · Email: ${k.email} · Joined: ${new Date(k.joinedAt).toLocaleDateString()}`);
-    lines.push(`Period: ${rangeLabel}`);
+    lines.push(`Period: ${periodStr}`);
     lines.push('');
     lines.push('=== Summary ===');
-    lines.push(`Total Sales,${k.totalSales}`);
-    lines.push(`Total Revenue,${k.totalRevenue.toLocaleString()}`);
-    lines.push(`Total Discounts,${k.totalDiscounts.toLocaleString()}`);
-    lines.push(`Returns,${k.totalReturns}`);
-    lines.push(`Expenses,${k.totalExpenses}`);
-    lines.push(`Logins,${k.logins}`);
-    lines.push(`Other Actions,${k.otherActions}`);
+    lines.push(`Total Sales,${sales}`);
+    lines.push(`Total Revenue,${revenue.toLocaleString()}`);
+    lines.push(`Total Discounts,${discounts.toLocaleString()}`);
+    lines.push(`Returns,${returns}`);
+    lines.push(`Expenses,${expenses}`);
+    lines.push(`Logins,${logins}`);
+    lines.push(`Other Actions,${other}`);
     lines.push('');
     lines.push('=== Products Sold ===');
     lines.push('Date,Product,SKU,Qty,Unit Price,Total');
-    for (const s of k.details.sales) {
+    for (const s of details.sales) {
       lines.push(`${new Date(s.date).toLocaleDateString()},${s.productName},${s.productSku || ''},${s.quantity},${s.unitPrice},${s.total}`);
     }
     lines.push('');
     lines.push('=== Products Returned ===');
     lines.push('Date,Product,SKU,Qty,Refund,Reason,Status');
-    for (const r of k.details.returns) {
+    for (const r of details.returns) {
       lines.push(`${new Date(r.date).toLocaleDateString()},${r.productName},${r.productSku || ''},${r.quantity},${r.refundAmount},${r.reason || ''},${r.status || ''}`);
     }
     lines.push('');
     lines.push('=== Expenses ===');
     lines.push('Date,Details');
-    for (const e of k.details.expenses) {
+    for (const e of details.expenses) {
       lines.push(`${new Date(e.date).toLocaleDateString()},"${e.details || ''}"`);
     }
     lines.push('');
     lines.push('=== Logins ===');
     lines.push('Date');
-    for (const l of k.details.logins) {
+    for (const l of details.logins) {
       lines.push(new Date(l.date).toLocaleString());
     }
     lines.push('');
     lines.push('=== Other Actions ===');
     lines.push('Date,Action,Details');
-    for (const o of k.details.other) {
+    for (const o of details.other) {
       lines.push(`${new Date(o.date).toLocaleDateString()},${o.action},"${o.details || ''}"`);
     }
     const csv = lines.join('\n');
@@ -247,10 +287,12 @@ export default function ActivitiesPage() {
     fontSize: '0.8rem',
   });
 
-  const rangeLabel = rangePreset === 'all' ? 'All Time' :
-    rangePreset === 'day' ? 'Last 24h' :
-    rangePreset === 'week' ? 'Last 7 Days' :
-    rangePreset === 'month' ? 'Last 30 Days' : 'Last 3 Months';
+  const rangeLabel = exportStartDate || exportEndDate
+    ? `${exportStartDate || '...'} to ${exportEndDate || '...'}`
+    : rangePreset === 'all' ? 'All Time'
+    : rangePreset === 'day' ? 'Last 24h'
+    : rangePreset === 'week' ? 'Last 7 Days'
+    : rangePreset === 'month' ? 'Last 30 Days' : 'Last 3 Months';
 
   const widgetMeta: { key: keyof UserDetails; label: string; color: string; bg: string }[] = [
     { key: 'sales', label: 'Sales', color: '#10b981', bg: 'rgba(16,185,129,0.08)' },
@@ -341,8 +383,14 @@ export default function ActivitiesPage() {
             <button onClick={() => setRangePreset('week')} style={btnRange('week')}>Week</button>
             <button onClick={() => setRangePreset('month')} style={btnRange('month')}>Month</button>
             <button onClick={() => setRangePreset('3months')} style={btnRange('3months')}>3 Months</button>
-            <button onClick={() => setRangePreset('all')} style={btnRange('all')}>All Time</button>
+            <button onClick={() => { setRangePreset('all'); setExportStartDate(''); setExportEndDate(''); }} style={btnRange('all')}>All Time</button>
             <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginLeft: '0.5rem' }}><Calendar size={12} style={{ verticalAlign: 'middle', marginRight: '0.25rem' }} />{rangeLabel}</span>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginLeft: '0.75rem', borderLeft: '1px solid var(--border)', paddingLeft: '0.75rem' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>Custom:</span>
+              <input type="date" value={exportStartDate} onChange={(e) => { setExportStartDate(e.target.value); setRangePreset('all'); }} style={{ padding: '0.3rem 0.5rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.375rem', color: 'var(--foreground)', fontSize: '0.8rem' }} />
+              <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>to</span>
+              <input type="date" value={exportEndDate} onChange={(e) => { setExportEndDate(e.target.value); setRangePreset('all'); }} style={{ padding: '0.3rem 0.5rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.375rem', color: 'var(--foreground)', fontSize: '0.8rem' }} />
+            </div>
           </div>
           {kpiLoading ? (
             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted-foreground)' }}>Loading KPIs...</div>
@@ -366,9 +414,25 @@ export default function ActivitiesPage() {
                         </div>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <button onClick={(e) => { e.stopPropagation(); handleExportUserReport(k); }} title="Export user report" style={{ background: 'none', border: '1px solid var(--border)', borderRadius: '0.375rem', padding: '0.3rem 0.6rem', color: 'var(--muted-foreground)', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <Download size={14} /> Report
-                        </button>
+                        <div style={{ position: 'relative' }}>
+                          <button onClick={(e) => { e.stopPropagation(); setUserReportUser(userReportUser === k.userId ? null : k.userId); }} title="Export user report" style={{ background: 'none', border: '1px solid var(--border)', borderRadius: '0.375rem', padding: '0.3rem 0.6rem', color: 'var(--muted-foreground)', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <Download size={14} /> Report
+                          </button>
+                          {userReportUser === k.userId && (
+                            <div onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', top: '100%', right: '0', marginTop: '0.35rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.5rem', padding: '0.75rem', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 50, display: 'flex', flexDirection: 'column', gap: '0.5rem', minWidth: '280px' }}>
+                              <div style={{ fontSize: '0.8rem', fontWeight: '600' }}>Export Report: {k.userName}</div>
+                              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                <input type="date" value={userReportStart} onChange={(e) => setUserReportStart(e.target.value)} style={{ flex: 1, padding: '0.3rem 0.5rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '0.375rem', color: 'var(--foreground)', fontSize: '0.8rem' }} />
+                                <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>to</span>
+                                <input type="date" value={userReportEnd} onChange={(e) => setUserReportEnd(e.target.value)} style={{ flex: 1, padding: '0.3rem 0.5rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '0.375rem', color: 'var(--foreground)', fontSize: '0.8rem' }} />
+                              </div>
+                              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                                <button onClick={() => { setUserReportUser(null); handleExportUserReport(k, userReportStart, userReportEnd); }} style={{ padding: '0.35rem 0.85rem', background: 'var(--foreground)', color: 'var(--background)', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '600' }}>Download</button>
+                                <button onClick={() => setUserReportUser(null)} style={{ padding: '0.35rem 0.85rem', background: 'none', border: '1px solid var(--border)', borderRadius: '0.375rem', color: 'var(--foreground)', cursor: 'pointer', fontSize: '0.8rem' }}>Cancel</button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                         {isExpanded ? <ChevronUp size={20} style={{ color: 'var(--muted-foreground)' }} /> : <ChevronDown size={20} style={{ color: 'var(--muted-foreground)' }} />}
                       </div>
                     </div>
@@ -409,7 +473,12 @@ export default function ActivitiesPage() {
                         {widgetMeta.map(w => {
                           const ew = expandedWidget?.userId === k.userId && expandedWidget?.widget === w.key;
                           if (!ew) return null;
-                          const items = k.details[w.key];
+                          const allItems = k.details[w.key];
+                          const wpKey = `${k.userId}-${w.key}`;
+                          const page = widgetPage[wpKey] || 0;
+                          const perPage = 20;
+                          const totalPages = Math.ceil(allItems.length / perPage);
+                          const items = allItems.slice(page * perPage, (page + 1) * perPage);
                           return (
                             <div key={w.key} style={{ border: '1px solid var(--border)', borderRadius: '0.5rem', overflow: 'hidden' }}>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.6rem 1rem', background: w.bg, borderBottom: '1px solid var(--border)', fontSize: '0.85rem', fontWeight: '600' }}>
@@ -423,17 +492,27 @@ export default function ActivitiesPage() {
                               {items.length === 0 ? (
                                 <div style={{ padding: '1rem', textAlign: 'center', fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>No data for this period</div>
                               ) : w.key === 'logins' ? (
-                                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                                  {(items as { date: string }[]).map((item, i) => (
-                                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 1rem', borderBottom: '1px solid var(--border)', fontSize: '0.8rem' }}>
-                                      <span style={{ color: 'var(--muted-foreground)' }}>Login</span>
-                                      <span>{new Date(item.date).toLocaleString()}</span>
+                                <div>
+                                  <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                                    {(items as { date: string }[]).map((item, i) => (
+                                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 1rem', borderBottom: '1px solid var(--border)', fontSize: '0.8rem' }}>
+                                        <span style={{ color: 'var(--muted-foreground)' }}>Login</span>
+                                        <span>{new Date(item.date).toLocaleString()}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                  {totalPages > 1 && (
+                                    <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', padding: '0.5rem', borderTop: '1px solid var(--border)', fontSize: '0.8rem' }}>
+                                      <button disabled={page === 0} onClick={() => setWidgetPage(p => ({ ...p, [wpKey]: page - 1 }))} style={{ padding: '0.25rem 0.6rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.25rem', cursor: page === 0 ? 'not-allowed' : 'pointer', opacity: page === 0 ? 0.4 : 1, color: 'var(--foreground)' }}>Prev</button>
+                                      <span style={{ display: 'flex', alignItems: 'center', color: 'var(--muted-foreground)' }}>{page + 1} / {totalPages}</span>
+                                      <button disabled={page >= totalPages - 1} onClick={() => setWidgetPage(p => ({ ...p, [wpKey]: page + 1 }))} style={{ padding: '0.25rem 0.6rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.25rem', cursor: page >= totalPages - 1 ? 'not-allowed' : 'pointer', opacity: page >= totalPages - 1 ? 0.4 : 1, color: 'var(--foreground)' }}>Next</button>
                                     </div>
-                                  ))}
+                                  )}
                                 </div>
                               ) : (
-                                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                                  {items.map((item: DetailItem, i: number) => (
+                                <div>
+                                  <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
+                                    {items.map((item: DetailItem, i: number) => (
                                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 1rem', borderBottom: '1px solid var(--border)', fontSize: '0.8rem', gap: '0.5rem' }}>
                                       <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -452,6 +531,14 @@ export default function ActivitiesPage() {
                                       </div>
                                     </div>
                                   ))}
+                                  </div>
+                                  {totalPages > 1 && (
+                                    <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', padding: '0.5rem', borderTop: '1px solid var(--border)', fontSize: '0.8rem' }}>
+                                      <button disabled={page === 0} onClick={() => setWidgetPage(p => ({ ...p, [wpKey]: page - 1 }))} style={{ padding: '0.25rem 0.6rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.25rem', cursor: page === 0 ? 'not-allowed' : 'pointer', opacity: page === 0 ? 0.4 : 1, color: 'var(--foreground)' }}>Prev</button>
+                                      <span style={{ display: 'flex', alignItems: 'center', color: 'var(--muted-foreground)' }}>{page + 1} / {totalPages}</span>
+                                      <button disabled={page >= totalPages - 1} onClick={() => setWidgetPage(p => ({ ...p, [wpKey]: page + 1 }))} style={{ padding: '0.25rem 0.6rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.25rem', cursor: page >= totalPages - 1 ? 'not-allowed' : 'pointer', opacity: page >= totalPages - 1 ? 0.4 : 1, color: 'var(--foreground)' }}>Next</button>
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </div>
