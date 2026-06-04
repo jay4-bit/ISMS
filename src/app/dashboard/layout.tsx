@@ -64,10 +64,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const redirectAttempted = useRef(false);
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [uptime, setUptime] = useState('');
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    if (typeof window !== 'undefined' && !localStorage.getItem('loginTime')) {
+      localStorage.setItem('loginTime', String(Date.now()));
+    }
+    const update = () => {
+      const start = parseInt(localStorage.getItem('loginTime') || String(Date.now()), 10);
+      const elapsed = Math.floor((Date.now() - start) / 1000);
+      const h = String(Math.floor(elapsed / 3600)).padStart(2, '0');
+      const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+      const s = String(elapsed % 60).padStart(2, '0');
+      setUptime(`${h}:${m}:${s}`);
+    };
+    update();
+    const timer = setInterval(update, 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -200,9 +212,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </h1>
           </div>
           <div style={styles.headerRight}>
-            <div style={styles.clock}>
-              <Clock size={16} />
-              <span>{currentTime.toLocaleTimeString()}</span>
+            <div style={styles.uptime} title="Session duration">
+              <span>{uptime}</span>
             </div>
             <button onClick={toggleTheme} style={styles.themeBtn} title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
@@ -396,13 +407,14 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: '1rem',
   },
-  clock: {
+  uptime: {
     display: 'flex',
     alignItems: 'center',
-    gap: '0.4rem',
     color: 'var(--muted-foreground)',
     fontSize: '0.85rem',
     fontWeight: '500',
+    fontFamily: 'monospace',
+    letterSpacing: '0.05em',
   },
   themeBtn: {
     background: 'transparent',

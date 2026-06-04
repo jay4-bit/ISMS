@@ -146,6 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem('shop', JSON.stringify(data.shop));
         localStorage.setItem('token', data.token);
+        localStorage.setItem('loginTime', String(Date.now()));
         localStorage.removeItem('permissions');
         setUser(data.user);
         setShop(data.shop);
@@ -179,6 +180,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem('shop', JSON.stringify(data.shop));
         localStorage.setItem('token', data.token);
+        localStorage.setItem('loginTime', String(Date.now()));
         localStorage.removeItem('permissions');
         setUser(data.user);
         setShop(data.shop);
@@ -198,6 +200,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('shop');
     localStorage.removeItem('token');
     localStorage.removeItem('permissions');
+    localStorage.removeItem('loginTime');
     setUser(null);
     setShop(null);
     setPermissions([]);
