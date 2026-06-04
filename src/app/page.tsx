@@ -1,9 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Package, Store, Eye, EyeOff, AlertCircle, LogIn, UserPlus, ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
+import { Package, Eye, EyeOff, AlertCircle, LogIn, UserPlus, ArrowLeft } from 'lucide-react';
 import { SHOP_TYPE_CONFIG } from '@/lib/auth';
 
 const SHOP_TYPES = [
@@ -15,7 +13,6 @@ const SHOP_TYPES = [
 ];
 
 export default function HomePage() {
-  const router = useRouter();
   const [mode, setMode] = useState<'select' | 'login' | 'register'>('select');
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [email, setEmail] = useState('');
@@ -23,8 +20,6 @@ export default function HomePage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [shops, setShops] = useState<any[]>([]);
-  const [selectedShop, setSelectedShop] = useState<string>('');
   const [registerData, setRegisterData] = useState({
     shopName: '',
     ownerName: '',
@@ -34,13 +29,29 @@ export default function HomePage() {
     address: ''
   });
 
-  useEffect(() => {
-    if (selectedType && mode === 'login') {
-      fetchShops(selectedType);
-    }
-  }, [selectedType, mode]);
+  const handleTypeSelect = (type: string) => {
+    setSelectedType(type);
+    setMode('login');
+    setError('');
+  };
 
-  const handleLogin = async (e: React.FormEvent, shopId?: string) => {
+  const handleBack = () => {
+    setSelectedType(null);
+    setMode('select');
+    setError('');
+    setEmail('');
+    setPassword('');
+    setRegisterData({
+      shopName: '',
+      ownerName: '',
+      ownerEmail: '',
+      ownerPassword: '',
+      phone: '',
+      address: ''
+    });
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -49,7 +60,7 @@ export default function HomePage() {
       const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, shopId }),
+        body: JSON.stringify({ email, password, shopType: selectedType }),
       });
 
       const data = await res.json();
@@ -106,37 +117,6 @@ export default function HomePage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fetchShops = async (type: string) => {
-    const res = await fetch(`/api/shops?type=${type}`);
-    const data = await res.json();
-    if (data.shops) {
-      setShops(data.shops);
-    }
-  };
-
-  const handleTypeSelect = (type: string) => {
-    setSelectedType(type);
-    setMode('login');
-    setError('');
-    fetchShops(type);
-  };
-
-  const handleBack = () => {
-    setSelectedType(null);
-    setMode('select');
-    setError('');
-    setEmail('');
-    setPassword('');
-    setRegisterData({
-      shopName: '',
-      ownerName: '',
-      ownerEmail: '',
-      ownerPassword: '',
-      phone: '',
-      address: ''
-    });
   };
 
   return (
@@ -212,19 +192,7 @@ export default function HomePage() {
             )}
 
             {mode === 'login' ? (
-              <form onSubmit={(e) => handleLogin(e, selectedShop || shops[0]?.id)} style={styles.form}>
-                {shops.length > 0 && (
-                  <div style={styles.inputGroup}>
-                    <label style={styles.label}>Select Shop</label>
-                    <select value={selectedShop} onChange={(e) => setSelectedShop(e.target.value)} style={styles.select}>
-                      <option value="">-- Select a shop --</option>
-                      {shops.map(shop => (
-                        <option key={shop.id} value={shop.id}>{shop.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
+              <form onSubmit={handleLogin} style={styles.form}>
                 <div style={styles.inputGroup}>
                   <label style={styles.label}>Email Address</label>
                   <input

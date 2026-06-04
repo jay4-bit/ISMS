@@ -50,9 +50,14 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     try {
       if (!shopId) { setLoading(false); return; }
       const res = await fetch('/api/settings', { headers: { 'x-shop-id': shopId } });
+      if (res.status === 404) {
+        localStorage.removeItem('user');
+        localStorage.removeItem('shop');
+        localStorage.removeItem('token');
+        window.location.href = '/';
+        return;
+      }
       if (!res.ok) {
-        const text = await res.text();
-        console.error('Settings fetch failed:', res.status, text);
         setLoading(false);
         return;
       }
