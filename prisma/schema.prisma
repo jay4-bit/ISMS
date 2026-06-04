@@ -56,9 +56,10 @@ model Shop {
   stockCounts StockCount[]
   settings    ShopSettings?
   permissions Permission[]
-  customRoles CustomRole[]
+  activities  Activity[]
   reminders   Reminder[]
-  
+  customRoles CustomRole[]
+
   @@unique([name, shopType])
 }
 
@@ -73,9 +74,9 @@ model User {
   shop         Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  
+
   sales        Sale[]
-  
+
   @@unique([email, shopId])
 }
 
@@ -89,7 +90,7 @@ model Category {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   products    Product[]
-  
+
   @@unique([name, shopId])
 }
 
@@ -622,4 +623,15 @@ model Reminder {
   createdBy   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Activity {
+  id        String   @id @default(cuid())
+  shopId    String
+  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  userId    String?
+  userName  String?
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
 }

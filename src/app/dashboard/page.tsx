@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Package, AlertTriangle, TrendingUp, TrendingDown, DollarSign, ShoppingCart, ArrowRight, Receipt, RotateCcw, BadgeDollarSign } from 'lucide-react';
+import { Package, AlertTriangle, TrendingUp, TrendingDown, DollarSign, ShoppingCart, ArrowRight, Receipt, RotateCcw, BadgeDollarSign, Activity, User, LogIn, ShoppingBag } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useAuth } from '@/components/AuthProvider';
 import { useSettings } from '@/context/SettingsContext';
@@ -26,8 +26,27 @@ interface DashboardStats {
   expiredCount: number;
 }
 
+interface ActivityItem {
+  id: string;
+  userId?: string;
+  userName?: string;
+  action: string;
+  details?: string;
+  createdAt: string;
+}
+
+const actionIcons: Record<string, any> = {
+  LOGIN: LogIn,
+  SALE_CREATED: ShoppingCart,
+  SALE_RETURNED: RotateCcw,
+  EXPENSE_ADDED: BadgeDollarSign,
+  PRODUCT_CREATED: Package,
+  USER_CREATED: User,
+};
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { shop } = useAuth();
@@ -48,6 +67,7 @@ export default function DashboardPage() {
       }
       const data = await res.json();
       setStats(data.stats);
+      setRecentActivities(data.recentActivities || []);
     } catch (error) {
       console.error('Failed to fetch dashboard:', error);
       setError('Failed to load dashboard data');
@@ -335,6 +355,42 @@ export default function DashboardPage() {
               <p style={{ color: '#64748b', fontSize: '0.875rem' }}>No products expiring soon</p>
             ) : null}
           </div>
+        )}
+      </div>
+
+      <div className="card" style={{ marginTop: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <Activity size={20} color="#3b82f6" />
+            <h3 style={{ fontSize: '1rem', fontWeight: '600' }}>User Activities</h3>
+          </div>
+          <Link href="/dashboard/activities" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', color: '#3b82f6', textDecoration: 'none' }}>
+            View all <ArrowRight size={14} />
+          </Link>
+        </div>
+        {recentActivities.length > 0 ? (
+          <div>
+            {recentActivities.map((a) => {
+              const Icon = actionIcons[a.action] || Activity;
+              return (
+                <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0', borderBottom: '1px solid var(--border)' }}>
+                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(59,130,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon size={14} color="#3b82f6" />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--foreground)' }}>
+                      <strong>{a.userName || 'System'}</strong> {a.details || a.action.replace(/_/g, ' ').toLowerCase()}
+                    </div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--muted-foreground)', marginTop: '0.15rem' }}>
+                      {new Date(a.createdAt).toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>No activities recorded yet</p>
         )}
       </div>
     </div>

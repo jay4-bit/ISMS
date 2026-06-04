@@ -37,7 +37,7 @@ export default function ExpensesPage() {
     category: 'OTHER', amount: '', description: '', reference: '', date: new Date().toISOString().split('T')[0]
   });
   const { settings } = useSettings();
-  const { shop } = useAuth();
+  const { shop, user } = useAuth();
 
   useEffect(() => { fetchExpenses(); }, []);
 
@@ -74,7 +74,7 @@ export default function ExpensesPage() {
     e.preventDefault();
     try {
       const method = editingExpense ? 'PUT' : 'POST';
-      const body = editingExpense ? { ...formData, id: editingExpense.id } : formData;
+      const body = editingExpense ? { ...formData, id: editingExpense.id } : { ...formData, userId: user?.id, userName: user?.name };
       const res = await fetch('/api/expenses', {
         method,
         headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },

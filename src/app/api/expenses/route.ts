@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { logActivity } from '@/lib/activity-log';
 
 export async function GET(request: Request) {
   try {
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { category, amount, description, reference, date } = body;
+    const { category, amount, description, reference, date, userId, userName } = body;
 
     if (!category || !amount || !description) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -71,6 +72,12 @@ export async function POST(request: Request) {
         createdBy: 'system',
         shopId,
       },
+    });
+
+    logActivity({
+      shopId, userId: userId || 'system', userName: userName || 'System',
+      action: 'EXPENSE_ADDED',
+      details: `Expense ${description} — ${parseFloat(amount).toLocaleString()} (${category})`,
     });
 
     return NextResponse.json(expense);

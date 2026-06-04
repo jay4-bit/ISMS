@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import { logActivity } from '@/lib/activity-log';
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
     const shopId = request.headers.get('x-shop-id') || undefined;
     if (!shopId) { return NextResponse.json({ error: 'Shop ID required' }, { status: 400 }); }
     const body = await request.json();
-    const { name, email, password, role } = body;
+    const { name, email, password, role, actingUserId, actingUserName } = body;
 
     if (!name || !email || !password || !role) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -58,6 +59,12 @@ export async function POST(request: NextRequest) {
         role: true,
         isActive: true,
       },
+    });
+
+    logActivity({
+      shopId, userId: actingUserId || 'system', userName: actingUserName || 'System',
+      action: 'USER_CREATED',
+      details: `Created user ${name} (${email}) with role ${role}`,
     });
 
     return NextResponse.json({ user });

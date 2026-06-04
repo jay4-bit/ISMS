@@ -66,7 +66,7 @@ export default function ReturnsPage() {
   const [search, setSearch] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const { settings } = useSettings();
-  const { shop } = useAuth();
+  const { shop, user } = useAuth();
 
   useEffect(() => { fetchData(); }, [shop]);
 
@@ -188,7 +188,7 @@ export default function ReturnsPage() {
       const res = await fetch('/api/returns', { 
         method: 'POST', 
         headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' }, 
-        body: JSON.stringify({ items: returnItems, reason }) 
+        body: JSON.stringify({ items: returnItems, reason, userId: user?.id, userName: user?.name }) 
       });
       if (res.ok) { setShowModal(false); setReturnItems([]); setReason(''); fetchData(); }
     } catch (error) { console.error('Return failed:', error); }

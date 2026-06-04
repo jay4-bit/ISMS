@@ -31,7 +31,8 @@ import {
   PackagePlus,
   Sun,
   Moon,
-  Clock
+  Clock,
+  Activity
 } from 'lucide-react';
 import { SHOP_TYPE_CONFIG } from '@/lib/auth';
 import { useSettings } from '@/context/SettingsContext';
@@ -52,6 +53,7 @@ const DASHBOARD_PATHS = [
   { name: 'Profit & Loss', href: '/dashboard/profit-loss', icon: PieChart, permission: 'profit-loss' },
   { name: 'Reports', href: '/dashboard/reports', icon: BarChart3, permission: 'reports' },
   { name: 'Users', href: '/dashboard/users', icon: Users, permission: 'users' },
+  { name: 'Activities', href: '/dashboard/activities', icon: Activity, permission: 'users' },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings, permission: 'settings' },
 ];
 

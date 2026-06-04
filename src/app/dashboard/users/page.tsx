@@ -13,7 +13,7 @@ interface User {
 }
 
 export default function UsersPage() {
-  const { shop } = useAuth();
+  const { shop, user } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -58,7 +58,7 @@ export default function UsersPage() {
       const res = await fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
-        body: JSON.stringify(userForm),
+        body: JSON.stringify({ ...userForm, actingUserId: user?.id, actingUserName: user?.name }),
       });
       const data = await res.json();
       if (res.ok) {

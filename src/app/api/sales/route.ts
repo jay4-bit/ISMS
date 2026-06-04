@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import { logActivity } from '@/lib/activity-log';
 
 async function generateReceiptNumber(shopId: string): Promise<string> {
   const lastSale = await prisma.sale.findFirst({
@@ -189,6 +190,12 @@ const saleData: any = {
         data: { totalPurchases: { increment: total } },
       });
     }
+
+    logActivity({
+      shopId, userId: cashierId, userName: cashierExists.name,
+      action: 'SALE_CREATED',
+      details: `Sale ${receiptNumber} — ${total.toLocaleString()} (${items.length} items)`,
+    });
 
     return NextResponse.json({ sale });
   } catch (error) {

@@ -85,6 +85,12 @@ export async function GET(request: NextRequest) {
       .slice(0, 5);
     const expiredCount = products.filter(p => p.expiryDate && new Date(p.expiryDate) < now && !p.isFaulty).length;
 
+    const recentActivities = await prisma.activity.findMany({
+      where: { shopId },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+    });
+
     return NextResponse.json({
       stats: {
         totalProducts,
@@ -104,6 +110,7 @@ export async function GET(request: NextRequest) {
         expiredProducts,
         expiredCount,
       },
+      recentActivities,
     });
   } catch (error) {
     console.error('Dashboard error:', error);

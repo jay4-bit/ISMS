@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { logActivity } from '@/lib/activity-log';
 
 async function generateReturnNumber(shopId: string): Promise<string> {
   const lastReturn = await prisma.return.findFirst({
@@ -117,7 +118,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { items, reason } = body;
+    const { items, reason, userId, userName } = body;
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: 'No items to return' }, { status: 400 });
@@ -235,6 +236,12 @@ export async function POST(request: NextRequest) {
         }
       }
     }
+
+    logActivity({
+      shopId, userId: userId || 'system', userName: userName || 'System',
+      action: 'SALE_RETURNED',
+      details: `Return ${returnNumber} — ${returnRecord.items.length} items, refund ${returnRecord.totalRefund}`,
+    });
 
     return NextResponse.json({ return: returnRecord });
   } catch (error) {

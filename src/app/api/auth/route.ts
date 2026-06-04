@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { hashPassword, verifyPassword, generateToken } from '@/lib/auth';
+import { logActivity } from '@/lib/activity-log';
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,6 +36,14 @@ export async function POST(request: NextRequest) {
     }
 
     const token = generateToken(user.id, user.shopId, user.role);
+
+    logActivity({
+      shopId: user.shopId,
+      userId: user.id,
+      userName: user.name,
+      action: 'LOGIN',
+      details: `${user.name} logged in`,
+    });
 
     return NextResponse.json({
       success: true,
