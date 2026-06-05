@@ -137,7 +137,8 @@ export async function GET(request: NextRequest) {
       const repairCost = item.repairCost || 0;
       const priceDiff = item.priceDifference || 0;
       const paidBy = item.differencePaidBy || 'CLIENT';
-      const purchaseCost = (item.product?.purchaseCost || 0) * item.quantity;
+      const productCost = (item.product?.purchaseCost || 0) * item.quantity;
+      const returnProcCost = item.returnCost || 0;
       const awardedType = item.awardedType || 'REFUND';
       const isResellable = item.status === 'RESELLABLE';
       
@@ -150,10 +151,13 @@ export async function GET(request: NextRequest) {
       }
       if (awardedType === 'REPLACEMENT' && priceDiff > 0) {
         if (paidBy === 'BUSINESS') {
-          totalRevenue -= priceDiff;
+          const refundGiven = item.replacementRefundGiven || priceDiff;
+          totalRevenue -= refundGiven;
         } else {
-          totalRevenue += priceDiff;
-          totalTopUpReceived += priceDiff;
+          const collectedAmount = item.replacementPaidAmount || priceDiff;
+          totalRevenue += collectedAmount;
+          totalTopUpReceived += collectedAmount;
+          // Discount is already reflected in collectedAmount (lower than priceDiff)
         }
       }
       if (awardedType !== 'REPLACEMENT' && paidBy === 'CLIENT' && priceDiff > 0) {
@@ -162,12 +166,15 @@ export async function GET(request: NextRequest) {
       }
       
       // === COGS & RETURN COSTS ===
-      // The returned product came back — remove its cost from COGS regardless of condition
-      totalCost -= purchaseCost;
+      // The returned product came back — remove its purchase cost from COGS (unless REPAIR)
+      if (awardedType !== 'REPAIR') {
+        totalCost -= productCost;
+      }
       
-      if (!isResellable) {
-        // Faulty/Discarded: product is worthless — recognize as a return cost
-        totalReturnLoss += purchaseCost;
+      // The returnCost (processing/handling/repair fee) is the ONLY cost of the return
+      // The product's purchase cost is NOT a loss — it goes back to inventory for resale
+      if (returnProcCost > 0 && awardedType !== 'REPAIR') {
+        totalReturnLoss += returnProcCost;
       }
       
       // Replacement product given to customer: its purchase cost is a return cost (not COGS)
@@ -192,7 +199,7 @@ export async function GET(request: NextRequest) {
       if (productBreakdown[item.productId]) {
         productBreakdown[item.productId].quantity -= isResellable ? item.quantity : 0;
         productBreakdown[item.productId].revenue -= refundAmount;
-        productBreakdown[item.productId].cost -= isResellable ? purchaseCost : 0;
+        productBreakdown[item.productId].cost -= (isResellable && awardedType !== 'REPAIR') ? productCost : 0;
         productBreakdown[item.productId].profit -= refundAmount;
       }
       
@@ -212,12 +219,12 @@ export async function GET(request: NextRequest) {
         returnBreakdown['REFUND'].amount += refundAmount;
         returnBreakdown['REFUND'].count += 1;
       }
-      if (purchaseCost > 0 && !isResellable) {
-        if (!returnBreakdown['COST_LOSS']) {
-          returnBreakdown['COST_LOSS'] = { type: 'Faulty/Discarded Product Cost', amount: 0, count: 0, isLoss: true };
+      if (returnProcCost > 0) {
+        if (!returnBreakdown['RETURN_COST']) {
+          returnBreakdown['RETURN_COST'] = { type: 'Return Processing Cost', amount: 0, count: 0, isLoss: true };
         }
-        returnBreakdown['COST_LOSS'].amount += purchaseCost;
-        returnBreakdown['COST_LOSS'].count += 1;
+        returnBreakdown['RETURN_COST'].amount += returnProcCost;
+        returnBreakdown['RETURN_COST'].count += 1;
       }
       if (awardedType === 'REPLACEMENT' && item.replacementProductId) {
         const repCost = (replacementCostMap.get(item.replacementProductId) || 0) * item.quantity;
@@ -245,10 +252,11 @@ export async function GET(request: NextRequest) {
           returnBreakdown['PRICE_DIFF_BUSINESS'].count += 1;
         }
         if (paidBy === 'CLIENT') {
+          const collected = item.replacementPaidAmount || priceDiff;
           if (!returnBreakdown['TOP_UP']) {
             returnBreakdown['TOP_UP'] = { type: 'Customer Top-Up', amount: 0, count: 0, isLoss: false };
           }
-          returnBreakdown['TOP_UP'].amount += priceDiff;
+          returnBreakdown['TOP_UP'].amount += collected;
           returnBreakdown['TOP_UP'].count += 1;
         }
       }

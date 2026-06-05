@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
-import { Package, Eye, EyeOff, AlertCircle, LogIn, UserPlus, Mail, CheckCircle, RefreshCw } from 'lucide-react';
+import { Package, Eye, EyeOff, AlertCircle, LogIn, UserPlus, Mail, CheckCircle, RefreshCw, KeyRound, ArrowLeft } from 'lucide-react';
 
 const SHOP_TYPES = [
   { type: 'PHARMACY', icon: '💊', name: 'Pharmacy', color: '#22c55e' },
@@ -30,6 +30,16 @@ export default function HomePage() {
   const [verifying, setVerifying] = useState(false);
   const [verified, setVerified] = useState(false);
   const [resent, setResent] = useState(false);
+
+  // Forgot password state
+  const [showForgot, setShowForgot] = useState(false);
+  const [forgotStep, setForgotStep] = useState<'email' | 'code'>('email');
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetCode, setResetCode] = useState('');
+  const [resetNewPassword, setResetNewPassword] = useState('');
+  const [resetConfirmPassword, setResetConfirmPassword] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetDone, setResetDone] = useState(false);
 
   const [registerData, setRegisterData] = useState({
     shopName: '',
@@ -127,6 +137,56 @@ export default function HomePage() {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setResetLoading(true);
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resetEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to send reset code');
+      setForgotStep('code');
+      setError('');
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (resetNewPassword !== resetConfirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    if (resetNewPassword.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+    setResetLoading(true);
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resetEmail, code: resetCode, newPassword: resetNewPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to reset password');
+      setResetDone(true);
+      setError('');
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   return (
     <div style={styles.container}>
       <div style={styles.backgroundPattern}></div>
@@ -211,7 +271,7 @@ export default function HomePage() {
               </p>
             </div>
           </div>
-        ) : mode === 'login' ? (
+        ) : mode === 'login' && !showForgot && !resetDone ? (
           <form onSubmit={handleLogin} style={styles.form}>
             <div style={styles.inputGroup}>
               <label style={styles.label}>Email Address</label>
@@ -246,6 +306,12 @@ export default function HomePage() {
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
 
+            <div style={{ textAlign: 'center', marginTop: '-0.5rem' }}>
+              <button type="button" onClick={() => { setShowForgot(true); setResetEmail(email); setError(''); setForgotStep('email'); }} style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', fontSize: '0.85rem', textDecoration: 'underline' }}>
+                Forgot Password?
+              </button>
+            </div>
+
             <p style={styles.switchText}>
               Don&apos;t have an account?{' '}
               <button onClick={() => setMode('register')} style={styles.switchLink}>
@@ -253,6 +319,65 @@ export default function HomePage() {
               </button>
             </p>
           </form>
+        ) : mode === 'login' && showForgot && !resetDone ? (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '0.5rem' }}>
+              <button onClick={() => { setShowForgot(false); setResetEmail(''); setResetCode(''); setResetNewPassword(''); setResetConfirmPassword(''); setError(''); }} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <ArrowLeft size={14} /> Back to login
+              </button>
+            </div>
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+              <div style={{ ...styles.logoIcon, background: 'linear-gradient(135deg, #f59e0b, #d97706)', width: '56px', height: '56px', margin: '0 auto 1rem' }}>
+                <KeyRound size={28} color="white" />
+              </div>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#f1f5f9', margin: '0 0 0.5rem' }}>Reset Password</h2>
+              <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 0 }}>
+                {forgotStep === 'email' ? 'Enter your email and we\'ll send a reset code.' : `A 6-digit code was sent to ${resetEmail}. Enter it below with your new password.`}
+              </p>
+            </div>
+            {forgotStep === 'email' ? (
+              <form onSubmit={handleForgotPassword} style={styles.form}>
+                <div style={styles.inputGroup}>
+                  <label style={styles.label}>Email Address</label>
+                  <input type="email" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} style={styles.input} placeholder="Enter your email" required />
+                </div>
+                <button type="submit" disabled={resetLoading || !resetEmail} style={{ ...styles.button, opacity: resetLoading || !resetEmail ? 0.6 : 1 }}>
+                  {resetLoading ? 'Sending...' : 'Send Reset Code'}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleResetPassword} style={styles.form}>
+                <div style={styles.inputGroup}>
+                  <label style={styles.label}>Reset Code</label>
+                  <input type="text" maxLength={6} value={resetCode} onChange={(e) => setResetCode(e.target.value.replace(/\D/g, '').slice(0, 6))} style={{ ...styles.input, textAlign: 'center', fontSize: '1.25rem', letterSpacing: '0.5rem' }} placeholder="000000" required />
+                </div>
+                <div style={styles.inputGroup}>
+                  <label style={styles.label}>New Password</label>
+                  <input type="password" value={resetNewPassword} onChange={(e) => setResetNewPassword(e.target.value)} style={styles.input} placeholder="Min 6 characters" required minLength={6} />
+                </div>
+                <div style={styles.inputGroup}>
+                  <label style={styles.label}>Confirm Password</label>
+                  <input type="password" value={resetConfirmPassword} onChange={(e) => setResetConfirmPassword(e.target.value)} style={styles.input} placeholder="Confirm new password" required />
+                </div>
+                <button type="submit" disabled={resetLoading || resetCode.length !== 6 || !resetNewPassword || !resetConfirmPassword} style={{ ...styles.button, opacity: resetLoading || resetCode.length !== 6 || !resetNewPassword || !resetConfirmPassword ? 0.6 : 1 }}>
+                  {resetLoading ? 'Resetting...' : 'Reset Password'}
+                </button>
+              </form>
+            )}
+          </div>
+        ) : mode === 'login' && resetDone ? (
+          <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+            <div style={{ ...styles.logoIcon, background: 'linear-gradient(135deg, #22c55e, #16a34a)', width: '56px', height: '56px', margin: '0 auto 1rem' }}>
+              <CheckCircle size={28} color="white" />
+            </div>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#f1f5f9', margin: '0 0 0.5rem' }}>Password Reset!</h2>
+            <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: '0 0 1.5rem' }}>
+              Your password has been updated. You can now log in.
+            </p>
+            <button onClick={() => { setResetDone(false); setShowForgot(false); setResetEmail(''); setResetCode(''); setResetNewPassword(''); setResetConfirmPassword(''); setError(''); }} style={styles.button}>
+              Back to Login
+            </button>
+          </div>
         ) : (
           <form onSubmit={handleRegister} style={styles.form}>
             <div style={styles.inputGroup}>

@@ -40,6 +40,7 @@ export async function GET(request: NextRequest) {
         where: { shopId, id: { in: ids } },
         select: {
           id: true, name: true, sku: true, sellingPrice: true,
+          purchaseCost: true,
           stockQuantity: true, barcode: true, supplierId: true,
           supplier: { select: { id: true, name: true } },
           electronicsFields: { select: { imei: true } }
@@ -84,7 +85,7 @@ export async function GET(request: NextRequest) {
     if (id) {
       const returnRecord = await prisma.return.findUnique({
         where: { id, shopId },
-        include: { items: { include: { product: { include: { electronicsFields: true } } } } },
+        include: { items: { include: { product: { include: { electronicsFields: true } }, returnInstallmentPayments: { orderBy: { createdAt: 'desc' } } } } },
       });
       if (returnRecord) {
         await enrichWithReplacementData(returnRecord.items);
@@ -168,12 +169,22 @@ export async function POST(request: NextRequest) {
         awardedType: item.awardedType || 'REFUND',
         awardedAmount: item.awardedAmount || 0,
         repairCost: item.repairCost || 0,
+        returnCost: item.returnCost ?? (product?.purchaseCost || 0) * item.quantity,
         replacementProductName: item.replacementProductName || null,
         replacementProductId: item.replacementProductId || null,
         replacementProductPrice: replacementProductPrice,
         originalProductValue: originalProductValue,
         priceDifference: priceDifference,
         differencePaidBy: differencePaidBy,
+        replacementPaymentMethod: item.replacementPaymentMethod || null,
+        replacementPaidAmount: item.replacementPaidAmount || 0,
+        replacementDiscount: item.replacementDiscount || 0,
+        replacementIsInstallment: item.replacementIsInstallment || false,
+        replacementInstallmentTotal: item.replacementInstallmentTotal || null,
+        replacementInstallmentPaid: item.replacementInstallmentPaid || null,
+        replacementInstallmentCustomerName: item.replacementInstallmentCustomerName || null,
+        replacementInstallmentCustomerPhone: item.replacementInstallmentCustomerPhone || null,
+        replacementRefundGiven: item.replacementRefundGiven ?? (priceDifference < 0 ? Math.abs(priceDifference) : 0),
         notes: item.notes || null,
       };
     }));
@@ -259,7 +270,40 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, status } = body;
+    const { id, status, amount, notes } = body;
+
+    // Record installment payment on a return item
+    if (amount !== undefined) {
+      const returnItem = await prisma.returnItem.findFirst({
+        where: { id, return: { shopId } },
+      });
+      if (!returnItem) {
+        return NextResponse.json({ error: 'Return item not found' }, { status: 404 });
+      }
+
+      const total = returnItem.replacementInstallmentTotal || returnItem.priceDifference || 0;
+      const currentPaid = returnItem.replacementInstallmentPaid || 0;
+      const newPaid = currentPaid + amount;
+      const newDue = Math.max(0, total - newPaid);
+
+      const updated = await prisma.returnItem.update({
+        where: { id },
+        data: { replacementInstallmentPaid: newPaid },
+      });
+
+      await prisma.returnInstallmentPayment.create({
+        data: {
+          returnItemId: id,
+          amount: total,
+          amountPaid: amount,
+          balance: newDue,
+          paidAt: new Date(),
+          notes: notes || null,
+        },
+      });
+
+      return NextResponse.json({ returnItem: updated });
+    }
 
     const returnItem = await prisma.returnItem.update({
       where: { id, return: { shopId } },

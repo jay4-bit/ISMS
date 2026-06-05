@@ -46,6 +46,30 @@ export async function sendVerificationCode(email: string, code: string, userName
   });
 }
 
+export async function sendPasswordResetCode(email: string, code: string, userName: string): Promise<void> {
+  const transporter = getTransporter();
+  await transporter.sendMail({
+    from: `"${fromName}" <${fromEmail}>`,
+    to: email,
+    subject: 'Reset Your Password - ISMS Pro',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #f9fafb; border-radius: 12px;">
+        <h2 style="color: #1e293b; margin: 0 0 8px;">Password Reset Request</h2>
+        <p style="color: #374151; font-size: 14px; margin: 0 0 16px;">
+          Hi <strong>${userName}</strong>, use the code below to reset your password. It expires in 10 minutes.
+        </p>
+        <div style="text-align: center; background: #fff; padding: 24px; border-radius: 8px; border: 1px solid #e5e7eb;">
+          <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">Your reset code</div>
+          <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #f59e0b;">${code}</div>
+        </div>
+        <p style="color: #6b7280; font-size: 12px; margin: 16px 0 0;">
+          If you did not request this, you can safely ignore this email.
+        </p>
+      </div>
+    `,
+  });
+}
+
 export async function sendDeletionCode(email: string, code: string, shopName: string): Promise<void> {
   const transporter = getTransporter();
   await transporter.sendMail({

@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     const [
       categories, suppliers, brands, customers,
       returns, returnItems, expenses,
-      users, shop, settings, activities,
+      users, shop, settings, activities, returnInstallmentPayments,
     ] = await Promise.all([
       prisma.category.findMany({ where: { shopId } }),
       prisma.supplier.findMany({ where: { shopId } }),
@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
       prisma.shop.findUnique({ where: { id: shopId }, select: { name: true, shopType: true, currency: true, createdAt: true } }),
       prisma.shopSettings.findUnique({ where: { shopId } }),
       prisma.activity.findMany({ where: { shopId }, orderBy: { createdAt: 'desc' }, take: 1000 }),
+      prisma.returnInstallmentPayment.findMany({ where: { returnItem: { return: { shopId } } } }),
     ]);
 
     const data = {
@@ -60,6 +61,7 @@ export async function GET(request: NextRequest) {
       sales,
       returns,
       returnItems,
+      returnInstallmentPayments,
       expenses,
       recentActivities: activities,
     };

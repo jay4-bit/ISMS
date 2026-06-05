@@ -5,6 +5,16 @@ export async function GET(request: NextRequest) {
   try {
     const shopId = request.headers.get('x-shop-id') || undefined;
     if (!shopId) { return NextResponse.json({ error: 'Shop ID required' }, { status: 400 }); }
+
+    const shop = await prisma.shop.findUnique({
+      where: { id: shopId },
+      select: { id: true, logo: true, name: true },
+    });
+
+    if (!shop) {
+      return NextResponse.json({ error: 'Shop not found. Please log in again.' }, { status: 404 });
+    }
+
     let settings = await prisma.shopSettings.findUnique({
       where: { shopId }
     });
@@ -13,7 +23,7 @@ export async function GET(request: NextRequest) {
       settings = await prisma.shopSettings.create({
         data: {
           shopId,
-          businessName: 'My Shop',
+          businessName: shop.name,
           taxRate: 0,
           lowStockAlert: true,
           expiryAlert: true,
@@ -22,12 +32,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const shop = await prisma.shop.findUnique({
-      where: { id: shopId },
-      select: { logo: true },
-    });
-
-    return NextResponse.json({ settings, logo: shop?.logo || null });
+    return NextResponse.json({ settings, logo: shop.logo || null });
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'Unknown error';
     console.error('Get settings error:', msg);

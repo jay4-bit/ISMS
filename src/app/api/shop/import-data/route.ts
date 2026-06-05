@@ -263,16 +263,43 @@ export async function POST(request: NextRequest) {
               refundAmount: ri.refundAmount || 0, supplierId: ri.supplierId,
               supplierName: ri.supplierName, awardedType: ri.awardedType || 'REFUND',
               awardedAmount: ri.awardedAmount || 0, repairCost: ri.repairCost || 0,
+              returnCost: ri.returnCost || 0,
               replacementProductId: ri.replacementProductId,
               replacementProductName: ri.replacementProductName,
               replacementProductPrice: ri.replacementProductPrice,
               originalProductValue: ri.originalProductValue,
               priceDifference: ri.priceDifference || 0,
               differencePaidBy: ri.differencePaidBy || 'CLIENT',
+              replacementPaymentMethod: ri.replacementPaymentMethod || null,
+              replacementPaidAmount: ri.replacementPaidAmount || 0,
+              replacementDiscount: ri.replacementDiscount || 0,
+              replacementIsInstallment: ri.replacementIsInstallment || false,
+              replacementInstallmentTotal: ri.replacementInstallmentTotal || null,
+              replacementInstallmentPaid: ri.replacementInstallmentPaid || null,
+              replacementInstallmentCustomerName: ri.replacementInstallmentCustomerName || null,
+              replacementInstallmentCustomerPhone: ri.replacementInstallmentCustomerPhone || null,
+              replacementRefundGiven: ri.replacementRefundGiven || 0,
               notes: ri.notes,
             },
           });
         }
+      }
+
+      // Import ReturnInstallmentPayments
+      for (const rip of (body.returnInstallmentPayments || [])) {
+        const returnItemId = idMap[rip.returnItemId] || rip.returnItemId;
+        await tx.returnInstallmentPayment.create({
+          data: {
+            returnItemId,
+            amount: rip.amount || 0,
+            amountPaid: rip.amountPaid || 0,
+            balance: rip.balance || 0,
+            paidAt: rip.paidAt ? new Date(rip.paidAt) : null,
+            notes: rip.notes || null,
+            createdAt: rip.createdAt ? new Date(rip.createdAt) : undefined,
+          },
+        });
+        result.imported++;
       }
 
       // 9. Expenses

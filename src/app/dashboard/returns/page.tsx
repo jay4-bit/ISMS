@@ -11,6 +11,7 @@ interface Product {
   name: string;
   sku: string;
   sellingPrice: number;
+  purchaseCost: number;
   stockQuantity: number;
   supplier?: { id: string; name: string };
   electronicsFields?: { imei?: string | null } | null;
@@ -34,6 +35,7 @@ interface ReturnItem {
   awardedType: string;
   awardedAmount: number;
   repairCost: number;
+  returnCost: number;
   replacementProductId?: string;
   replacementProductName?: string;
   replacementProductPrice?: number;
@@ -41,7 +43,27 @@ interface ReturnItem {
   originalProductValue?: number;
   priceDifference?: number;
   differencePaidBy?: string;
+  replacementPaymentMethod?: string;
+  replacementPaidAmount?: number;
+  replacementDiscount?: number;
+  replacementIsInstallment?: boolean;
+  replacementInstallmentTotal?: number;
+  replacementInstallmentPaid?: number;
+  replacementInstallmentCustomerName?: string;
+  replacementInstallmentCustomerPhone?: string;
+  replacementRefundGiven?: number;
+  returnInstallmentPayments?: ReturnInstallmentPayment[];
   notes?: string;
+}
+
+interface ReturnInstallmentPayment {
+  id: string;
+  amount: number;
+  amountPaid: number;
+  balance: number;
+  paidAt: string | null;
+  notes: string | null;
+  createdAt: string;
 }
 
 interface ReturnRecord {
@@ -65,6 +87,9 @@ export default function ReturnsPage() {
   const [reason, setReason] = useState('');
   const [search, setSearch] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [payingItem, setPayingItem] = useState<ReturnItem | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentNotes, setPaymentNotes] = useState('');
   const { settings } = useSettings();
   const { shop, user } = useAuth();
 
@@ -91,8 +116,11 @@ export default function ReturnsPage() {
     finally { setLoading(false); }
   }
 
+  const returnedProductIds = new Set(returns.flatMap(r => r.items.map(i => i.productId)));
+
   function addReturnItem(product: Product) {
     if (returnItems.find(item => item.productId === product.id)) return;
+    if (returnedProductIds.has(product.id)) return;
     setReturnItems([...returnItems, { 
       productId: product.id, 
       product, 
@@ -105,12 +133,22 @@ export default function ReturnsPage() {
       awardedType: 'REFUND',
       awardedAmount: product.sellingPrice,
       repairCost: 0,
+      returnCost: 0,
       replacementProductId: '',
       replacementProductName: '',
       replacementProductPrice: 0,
       originalProductValue: product.sellingPrice,
       priceDifference: 0,
       differencePaidBy: 'CLIENT',
+      replacementPaymentMethod: '',
+      replacementPaidAmount: 0,
+      replacementDiscount: 0,
+      replacementIsInstallment: false,
+      replacementInstallmentTotal: 0,
+      replacementInstallmentPaid: 0,
+      replacementInstallmentCustomerName: '',
+      replacementInstallmentCustomerPhone: '',
+      replacementRefundGiven: 0,
       notes: ''
     }]);
   }
@@ -139,6 +177,7 @@ export default function ReturnsPage() {
           } else if (value === 'REPAIR') {
             updated.awardedAmount = 0;
             updated.refundAmount = 0;
+            updated.returnCost = 0;
             updated.replacementProductId = '';
             updated.replacementProductName = '';
           } else if (value === 'STORE_CREDIT') {
@@ -155,7 +194,19 @@ export default function ReturnsPage() {
             updated.replacementProductName = replacementProduct.name;
             updated.replacementProductPrice = replacementProduct.sellingPrice;
             updated.originalProductValue = updated.product.sellingPrice * updated.quantity;
-            updated.priceDifference = (replacementProduct.sellingPrice * updated.quantity) - (updated.product.sellingPrice * updated.quantity);
+            const diff = (replacementProduct.sellingPrice * updated.quantity) - (updated.product.sellingPrice * updated.quantity);
+            updated.priceDifference = diff;
+            if (diff > 0) {
+              updated.differencePaidBy = 'CLIENT';
+              updated.replacementPaidAmount = diff;
+              updated.replacementDiscount = 0;
+              updated.replacementPaymentMethod = 'CASH';
+              updated.replacementInstallmentTotal = diff;
+              updated.replacementInstallmentPaid = 0;
+            } else if (diff < 0) {
+              updated.differencePaidBy = 'BUSINESS';
+              updated.replacementRefundGiven = Math.abs(diff);
+            }
           }
         }
         
@@ -165,6 +216,16 @@ export default function ReturnsPage() {
           } else if (value < 0) {
             updated.differencePaidBy = 'BUSINESS';
           }
+        }
+        
+        if (field === 'replacementPaidAmount') {
+          const diff = updated.priceDifference || 0;
+          updated.replacementDiscount = Math.max(0, diff - value);
+        }
+        
+        if (field === 'replacementDiscount') {
+          const diff = updated.priceDifference || 0;
+          updated.replacementPaidAmount = Math.max(0, diff - value);
         }
         
         if (field === 'supplierId') {
@@ -184,6 +245,16 @@ export default function ReturnsPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const missingReturnCost = returnItems.some(item => item.awardedType !== 'REPAIR' && (!item.returnCost || item.returnCost <= 0));
+    if (missingReturnCost) {
+      alert('Return cost is required for all items (except Repair). Please fill in the Return Cost field.');
+      return;
+    }
+    const missingRepairCost = returnItems.some(item => item.awardedType === 'REPAIR' && (!item.repairCost || item.repairCost <= 0));
+    if (missingRepairCost) {
+      alert('Repair cost is required for Repair items. Please fill in the Repair Cost field.');
+      return;
+    }
     try {
       const res = await fetch('/api/returns', { 
         method: 'POST', 
@@ -207,6 +278,23 @@ export default function ReturnsPage() {
       });
       if (res.ok) { setDeleteConfirm(null); fetchData(); }
     } catch (error) { console.error('Delete failed:', error); }
+  }
+
+  async function recordReturnPayment() {
+    if (!payingItem || !paymentAmount) return;
+    try {
+      const res = await fetch('/api/returns', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
+        body: JSON.stringify({ id: payingItem.id, amount: parseFloat(paymentAmount), notes: paymentNotes }),
+      });
+      if (res.ok) {
+        setPayingItem(null);
+        setPaymentAmount('');
+        setPaymentNotes('');
+        fetchData();
+      }
+    } catch (error) { console.error('Record payment failed:', error); }
   }
 
   const totalRefunds = returns.reduce((sum, r) => sum + r.items.reduce((s, i) => s + i.refundAmount, 0), 0);
@@ -409,7 +497,7 @@ export default function ReturnsPage() {
                 style={{ ...styles.input }}
               >
                 <option value="">-- Select a product --</option>
-                {soldProducts.filter(p => !returnItems.find(item => item.productId === p.id)).map(p => (
+                {soldProducts.filter(p => !returnItems.find(item => item.productId === p.id) && !returnedProductIds.has(p.id)).map(p => (
                   <option key={p.id} value={p.id}>{p.name} ({p.sku}){p.electronicsFields?.imei ? ` [IMEI: ${p.electronicsFields.imei}]` : ''}</option>
                 ))}
               </select>
@@ -417,11 +505,12 @@ export default function ReturnsPage() {
 
             {returnItems.length > 0 && (
               <div style={{ marginBottom: '0.75rem', maxHeight: '350px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '0.4rem' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.7rem' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.7rem' }}>
                   <thead>
                     <tr style={{ background: 'var(--background)' }}>
                       <th style={{ padding: '0.35rem 0.3rem', textAlign: 'left', color: 'var(--muted-foreground)' }}>Product</th>
                       <th style={{ padding: '0.35rem 0.3rem', textAlign: 'center', color: 'var(--muted-foreground)' }}>Qty</th>
+                      <th style={{ padding: '0.35rem 0.3rem', textAlign: 'right', color: 'var(--muted-foreground)' }}>Return Cost</th>
                       <th style={{ padding: '0.35rem 0.3rem', textAlign: 'left', color: 'var(--muted-foreground)' }}>Awarded</th>
                       <th style={{ padding: '0.35rem 0.3rem', textAlign: 'left', color: 'var(--muted-foreground)' }}>Replacement</th>
                       <th style={{ padding: '0.35rem 0.3rem', textAlign: 'right', color: 'var(--muted-foreground)' }}>Price Diff</th>
@@ -445,12 +534,14 @@ export default function ReturnsPage() {
                             <input type="number" min="1" value={item.quantity} onChange={(e) => updateReturnItem(item.productId, 'quantity', parseInt(e.target.value))} style={{ width: '38px', padding: '0.2rem', border: '1px solid var(--border)', borderRadius: '0.2rem', background: 'var(--card)', color: 'var(--foreground)', textAlign: 'center', fontSize: '0.7rem' }} />
                           </td>
                           <td style={{ padding: '0.35rem 0.3rem' }}>
-                            <select value={item.awardedType} onChange={(e) => updateReturnItem(item.productId, 'awardedType', e.target.value)} style={{ width: '100%', minWidth: '80px', padding: '0.25rem', border: '1px solid var(--border)', borderRadius: '0.2rem', background: 'var(--card)', color: awardedTypeColors[item.awardedType], fontWeight: '500', fontSize: '0.65rem' }}>
-                              <option value="REFUND">💰 Money Back</option>
-                              <option value="REPLACEMENT">📦 New Product</option>
-                              <option value="REPAIR">🔧 Repair Cost</option>
-                              <option value="STORE_CREDIT">🎫 Store Credit</option>
-                            </select>
+                            <input type="number" min="0" step="0.01" value={item.returnCost || ''} onChange={(e) => updateReturnItem(item.productId, 'returnCost', parseFloat(e.target.value) || 0)} disabled={item.awardedType === 'REPAIR'} style={{ width: '70px', padding: '0.2rem', border: '1px solid var(--border)', borderRadius: '0.2rem', background: item.awardedType === 'REPAIR' ? 'transparent' : 'var(--card)', color: item.awardedType === 'REPAIR' ? 'var(--muted-foreground)' : '#f59e0b', textAlign: 'right', fontSize: '0.7rem', opacity: item.awardedType === 'REPAIR' ? 0.4 : 1 }} placeholder={item.awardedType === 'REPAIR' ? '0.00' : 'Required'} />
+                          </td>
+                          <td style={{ padding: '0.35rem 0.3rem' }}>
+                              <select value={item.awardedType} onChange={(e) => updateReturnItem(item.productId, 'awardedType', e.target.value)} style={{ width: '100%', minWidth: '80px', padding: '0.25rem', border: '1px solid var(--border)', borderRadius: '0.2rem', background: 'var(--card)', color: awardedTypeColors[item.awardedType], fontWeight: '500', fontSize: '0.65rem' }}>
+                                  <option value="REFUND">💰 Money Back</option>
+                                  <option value="REPLACEMENT">📦 New Product</option>
+                                  <option value="REPAIR">🔧 Repair Cost</option>
+                                </select>
                           </td>
                           <td style={{ padding: '0.35rem 0.3rem' }}>
                             {isReplacement ? (
@@ -468,9 +559,58 @@ export default function ReturnsPage() {
                                     </div>
                                   </div>
                                 )}
+                                {item.priceDifference > 0 && item.differencePaidBy === 'CLIENT' && (
+                                  <div style={{ marginTop: '0.3rem', borderTop: '1px dashed #334155', paddingTop: '0.3rem' }}>
+                                    <div style={{ fontSize: '0.6rem', fontWeight: '600', color: '#22c55e', marginBottom: '0.2rem' }}>CLIENT TOP-UP</div>
+                                    <div style={{ display: 'flex', gap: '0.2rem', marginBottom: '0.2rem', alignItems: 'center' }}>
+                                      <select value={item.replacementPaymentMethod || 'CASH'} onChange={(e) => updateReturnItem(item.productId, 'replacementPaymentMethod', e.target.value)} style={{ flex: 1, padding: '0.2rem', border: '1px solid var(--border)', borderRadius: '0.2rem', background: 'var(--card)', color: 'var(--foreground)', fontSize: '0.6rem' }}>
+                                        <option value="CASH">Cash</option>
+                                        <option value="CARD">Card</option>
+                                        <option value="MOBILE">Mobile</option>
+                                      </select>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.2rem', marginBottom: '0.2rem', alignItems: 'center' }}>
+                                      <span style={{ fontSize: '0.55rem', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>Paid:</span>
+                                      <input type="number" min="0" step="0.01" value={item.replacementPaidAmount ?? ''} onChange={(e) => updateReturnItem(item.productId, 'replacementPaidAmount', parseFloat(e.target.value) || 0)} style={{ flex: 1, padding: '0.2rem', border: '1px solid var(--border)', borderRadius: '0.2rem', background: 'var(--card)', color: '#22c55e', textAlign: 'right', fontSize: '0.6rem' }} placeholder="0" />
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.2rem', marginBottom: '0.2rem', alignItems: 'center' }}>
+                                      <span style={{ fontSize: '0.55rem', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>Disc:</span>
+                                      <input type="number" min="0" step="0.01" value={item.replacementDiscount ?? ''} onChange={(e) => updateReturnItem(item.productId, 'replacementDiscount', parseFloat(e.target.value) || 0)} style={{ flex: 1, padding: '0.2rem', border: '1px solid var(--border)', borderRadius: '0.2rem', background: 'var(--card)', color: '#ef4444', textAlign: 'right', fontSize: '0.6rem' }} placeholder="0" />
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', marginBottom: '0.2rem' }}>
+                                      <input type="checkbox" id={`install-${item.productId}`} checked={item.replacementIsInstallment || false} onChange={(e) => updateReturnItem(item.productId, 'replacementIsInstallment', e.target.checked)} style={{ margin: 0 }} />
+                                      <label htmlFor={`install-${item.productId}`} style={{ fontSize: '0.55rem', color: 'var(--muted-foreground)', cursor: 'pointer' }}>Installment</label>
+                                    </div>
+                                    {item.replacementIsInstallment && (
+                                      <>
+                                        <div style={{ display: 'flex', gap: '0.2rem', alignItems: 'center', marginBottom: '0.2rem' }}>
+                                          <span style={{ fontSize: '0.55rem', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>Name:</span>
+                                          <input type="text" value={item.replacementInstallmentCustomerName ?? ''} onChange={(e) => updateReturnItem(item.productId, 'replacementInstallmentCustomerName', e.target.value)} style={{ flex: 1, padding: '0.2rem', border: '1px solid var(--border)', borderRadius: '0.2rem', background: 'var(--card)', color: 'var(--foreground)', fontSize: '0.6rem' }} placeholder="Customer name" />
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '0.2rem', alignItems: 'center', marginBottom: '0.2rem' }}>
+                                          <span style={{ fontSize: '0.55rem', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>Phone:</span>
+                                          <input type="text" value={item.replacementInstallmentCustomerPhone ?? ''} onChange={(e) => updateReturnItem(item.productId, 'replacementInstallmentCustomerPhone', e.target.value)} style={{ flex: 1, padding: '0.2rem', border: '1px solid var(--border)', borderRadius: '0.2rem', background: 'var(--card)', color: 'var(--foreground)', fontSize: '0.6rem' }} placeholder="Phone" />
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '0.2rem', alignItems: 'center' }}>
+                                          <span style={{ fontSize: '0.55rem', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>Upfront:</span>
+                                          <input type="number" min="0" step="0.01" value={item.replacementInstallmentPaid ?? ''} onChange={(e) => updateReturnItem(item.productId, 'replacementInstallmentPaid', parseFloat(e.target.value) || 0)} style={{ flex: 1, padding: '0.2rem', border: '1px solid var(--border)', borderRadius: '0.2rem', background: 'var(--card)', color: '#f59e0b', textAlign: 'right', fontSize: '0.6rem' }} placeholder="0" />
+                                        </div>
+                                      </>
+                                    )}
+                                  </div>
+                                )}
+                                {item.priceDifference < 0 && item.differencePaidBy === 'BUSINESS' && (
+                                  <div style={{ marginTop: '0.3rem', borderTop: '1px dashed #334155', paddingTop: '0.3rem' }}>
+                                    <div style={{ fontSize: '0.6rem', fontWeight: '600', color: '#ef4444', marginBottom: '0.2rem' }}>BUSINESS OWES CLIENT</div>
+                                    <div style={{ display: 'flex', gap: '0.2rem', alignItems: 'center' }}>
+                                      <span style={{ fontSize: '0.55rem', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>Refunded:</span>
+                                      <input type="number" min="0" step="0.01" value={item.replacementRefundGiven ?? Math.abs(item.priceDifference || 0)} onChange={(e) => updateReturnItem(item.productId, 'replacementRefundGiven', parseFloat(e.target.value) || 0)} style={{ flex: 1, padding: '0.2rem', border: '1px solid var(--border)', borderRadius: '0.2rem', background: 'var(--card)', color: '#ef4444', textAlign: 'right', fontSize: '0.6rem' }} placeholder="0" />
+                                    </div>
+                                  </div>
+                                )}
                               </>
                             ) : item.awardedType === 'REPAIR' ? (
-                              <input type="number" placeholder="0.00" value={item.repairCost || ''} onChange={(e) => updateReturnItem(item.productId, 'repairCost', parseFloat(e.target.value) || 0)} style={{ width: '100%', padding: '0.25rem', border: '1px solid var(--border)', borderRadius: '0.2rem', background: 'var(--card)', color: 'var(--warning)', fontSize: '0.65rem' }} min="0" step="0.01" />
+                              <input type="number" placeholder="Required" value={item.repairCost || ''} onChange={(e) => updateReturnItem(item.productId, 'repairCost', parseFloat(e.target.value) || 0)} style={{ width: '100%', padding: '0.25rem', border: '1px solid var(--border)', borderRadius: '0.2rem', background: 'var(--card)', color: 'var(--warning)', fontSize: '0.65rem' }} min="0" step="0.01" />
                             ) : (
                               <input type="number" placeholder="0.00" value={item.awardedAmount || ''} onChange={(e) => updateReturnItem(item.productId, 'awardedAmount', parseFloat(e.target.value) || 0)} style={{ width: '100%', padding: '0.25rem', border: '1px solid var(--border)', borderRadius: '0.2rem', background: 'var(--card)', color: 'var(--foreground)', fontSize: '0.65rem' }} min="0" step="0.01" />
                             )}
@@ -539,6 +679,7 @@ export default function ReturnsPage() {
                     <tr style={{ background: 'var(--background)' }}>
                       <th style={{ padding: '0.35rem 0.3rem', textAlign: 'left', color: 'var(--muted-foreground)', fontWeight: '500' }}>Product</th>
                       <th style={{ padding: '0.35rem 0.3rem', textAlign: 'center', color: 'var(--muted-foreground)', fontWeight: '500' }}>Qty</th>
+                      <th style={{ padding: '0.35rem 0.3rem', textAlign: 'right', color: 'var(--muted-foreground)', fontWeight: '500' }}>Return Cost</th>
                       <th style={{ padding: '0.35rem 0.3rem', textAlign: 'left', color: 'var(--muted-foreground)', fontWeight: '500' }}>Status</th>
                       <th style={{ padding: '0.35rem 0.3rem', textAlign: 'left', color: 'var(--muted-foreground)', fontWeight: '500' }}>Replacement</th>
                       <th style={{ padding: '0.35rem 0.3rem', textAlign: 'right', color: 'var(--muted-foreground)', fontWeight: '500' }}>Refund</th>
@@ -558,6 +699,7 @@ export default function ReturnsPage() {
                             )}
                           </td>
                           <td style={{ padding: '0.35rem 0.3rem', textAlign: 'center' }}>{item.quantity}</td>
+                          <td style={{ padding: '0.35rem 0.3rem', textAlign: 'right', fontWeight: '600', color: item.awardedType === 'REPAIR' ? 'var(--muted-foreground)' : '#f59e0b', fontSize: '0.75rem', opacity: item.awardedType === 'REPAIR' ? 0.4 : 1, textDecoration: item.awardedType === 'REPAIR' ? 'line-through' : 'none' }}>{formatCurr(item.returnCost || 0)}</td>
                           <td style={{ padding: '0.35rem 0.3rem' }}>
                             <span style={{ 
                               padding: '0.1rem 0.3rem', 
@@ -578,6 +720,23 @@ export default function ReturnsPage() {
                                 {item.priceDifference !== undefined && item.priceDifference > 0 && (
                                   <div style={{ fontSize: '0.55rem', color: item.differencePaidBy === 'CLIENT' ? '#22c55e' : '#ef4444' }}>
                                     {item.differencePaidBy === 'CLIENT' ? 'Client paid' : 'Given to client'}
+                                  </div>
+                                )}
+                                {(item.priceDifference ?? 0) > 0 && item.differencePaidBy === 'CLIENT' && item.replacementPaidAmount !== undefined && (
+                                  <div style={{ marginTop: '0.3rem', fontSize: '0.6rem', borderTop: '1px dashed #334155', paddingTop: '0.25rem' }}>
+                                    <div style={{ color: '#22c55e' }}>Paid: {formatCurr(item.replacementPaidAmount)} {item.replacementPaymentMethod ? `(${item.replacementPaymentMethod})` : ''}</div>
+                                    {(item.replacementDiscount || 0) > 0 && <div style={{ color: '#ef4444' }}>Discount: {formatCurr(item.replacementDiscount || 0)}</div>}
+                                    {item.replacementIsInstallment && (
+                                      <div>
+                                        <div style={{ color: '#f59e0b' }}>Installment — Paid: {formatCurr(item.replacementInstallmentPaid || 0)} / Total: {formatCurr(item.replacementInstallmentTotal || 0)}</div>
+                                        {item.replacementInstallmentCustomerName && <div style={{ color: 'var(--muted-foreground)' }}>Customer: {item.replacementInstallmentCustomerName}{item.replacementInstallmentCustomerPhone ? ` (${item.replacementInstallmentCustomerPhone})` : ''}</div>}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                                {(item.priceDifference ?? 0) < 0 && item.differencePaidBy === 'BUSINESS' && (
+                                  <div style={{ marginTop: '0.3rem', fontSize: '0.6rem', borderTop: '1px dashed #334155', paddingTop: '0.25rem' }}>
+                                    <div style={{ color: '#ef4444' }}>Refunded to client: {formatCurr(item.replacementRefundGiven || 0)}</div>
                                   </div>
                                 )}
                               </div>
@@ -612,9 +771,80 @@ export default function ReturnsPage() {
               </div>
             </div>
 
+            {selectedReturn.items.filter((i: ReturnItem) => i.replacementIsInstallment).length > 0 && (
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={styles.label}>Installment Payments</label>
+                {selectedReturn.items.filter((i: ReturnItem) => i.replacementIsInstallment).map((item: ReturnItem) => (
+                  <div key={item.id} style={{ background: 'var(--background)', borderRadius: '0.4rem', padding: '0.75rem', marginBottom: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                      <div>
+                        <span style={{ fontWeight: '600', fontSize: '0.75rem' }}>{item.product?.name}</span>
+                        {item.replacementInstallmentCustomerName && (
+                          <span style={{ fontSize: '0.65rem', color: 'var(--muted-foreground)', marginLeft: '0.5rem' }}>
+                            {item.replacementInstallmentCustomerName}{item.replacementInstallmentCustomerPhone ? ` (${item.replacementInstallmentCustomerPhone})` : ''}
+                          </span>
+                        )}
+                      </div>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--muted-foreground)' }}>
+                        Paid: <strong style={{ color: '#22c55e' }}>{formatCurr(item.replacementInstallmentPaid || 0)}</strong>
+                        {' / '}Total: <strong>{formatCurr(item.replacementInstallmentTotal || 0)}</strong>
+                        {' — Due: '}<strong style={{ color: ((item.replacementInstallmentTotal || 0) - (item.replacementInstallmentPaid || 0)) > 0 ? '#f59e0b' : '#22c55e' }}>
+                          {formatCurr(Math.max(0, (item.replacementInstallmentTotal || 0) - (item.replacementInstallmentPaid || 0)))}
+                        </strong>
+                      </span>
+                    </div>
+                    {(item.returnInstallmentPayments || []).length > 0 && (
+                      <div style={{ marginTop: '0.3rem', fontSize: '0.65rem' }}>
+                        <div style={{ color: 'var(--muted-foreground)', marginBottom: '0.15rem' }}>Payment History:</div>
+                        {(item.returnInstallmentPayments || []).map((p: ReturnInstallmentPayment) => (
+                          <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.15rem 0', borderBottom: '1px solid #1e293b' }}>
+                            <span style={{ color: 'var(--muted-foreground)' }}>{p.paidAt ? formatDate(p.paidAt) : '-'}</span>
+                            <span style={{ color: '#22c55e' }}>+{formatCurr(p.amountPaid)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {((item.replacementInstallmentTotal || 0) - (item.replacementInstallmentPaid || 0)) > 0 && (
+                      <button onClick={() => { setPayingItem(item); setPaymentAmount(''); setPaymentNotes(''); }} style={{ marginTop: '0.4rem', padding: '0.3rem 0.6rem', background: 'linear-gradient(135deg, #22c55e, #16a34a)', border: 'none', borderRadius: '0.3rem', color: 'white', cursor: 'pointer', fontSize: '0.65rem', fontWeight: '600' }}>
+                        Record Payment
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <button onClick={() => setShowViewModal(false)} style={styles.primaryBtn}>Close</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {payingItem && (
+        <div style={styles.modalOverlay} onClick={() => setPayingItem(null)}>
+          <div style={{ ...styles.modal, maxWidth: '400px' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+              <h2 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--foreground)' }}>Record Installment Payment</h2>
+              <button onClick={() => setPayingItem(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted-foreground)' }}><X size={18} /></button>
+            </div>
+            <div style={{ marginBottom: '0.75rem', padding: '0.5rem', background: 'var(--background)', borderRadius: '0.4rem', fontSize: '0.75rem' }}>
+              <div><strong>{payingItem.product?.name}</strong></div>
+              <div>Total: {formatCurr(payingItem.replacementInstallmentTotal || 0)}</div>
+              <div>Paid: <span style={{ color: '#22c55e' }}>{formatCurr(payingItem.replacementInstallmentPaid || 0)}</span></div>
+              <div>Due: <span style={{ color: '#f59e0b' }}>{formatCurr(Math.max(0, (payingItem.replacementInstallmentTotal || 0) - (payingItem.replacementInstallmentPaid || 0)))}</span></div>
+            </div>
+            <div style={{ marginBottom: '0.75rem' }}>
+              <label style={styles.label}>Payment Amount</label>
+              <input type="number" value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} placeholder="0.00" min="0" step="0.01" style={styles.input} />
+            </div>
+            <div style={{ marginBottom: '0.75rem' }}>
+              <label style={styles.label}>Notes (optional)</label>
+              <input type="text" value={paymentNotes} onChange={(e) => setPaymentNotes(e.target.value)} placeholder="Payment notes" style={styles.input} />
+            </div>
+            <button onClick={recordReturnPayment} disabled={!paymentAmount} style={{ ...styles.primaryBtn, width: '100%', justifyContent: 'center', opacity: !paymentAmount ? 0.5 : 1 }}>
+              Record Payment
+            </button>
           </div>
         </div>
       )}

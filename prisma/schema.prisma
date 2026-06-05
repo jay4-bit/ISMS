@@ -74,6 +74,8 @@ model User {
   isActive     Boolean  @default(true)
   emailVerified Boolean @default(false)
   emailVerificationCode String?
+  resetPasswordCode String?
+  resetPasswordCodeExpires DateTime?
   shopId       String
   shop         Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   createdAt    DateTime @default(now())
@@ -434,8 +436,32 @@ model ReturnItem {
   originalProductValue        Float?
   priceDifference             Float     @default(0)
   differencePaidBy           String    @default("CLIENT")
+  returnCost      Float           @default(0)
+  replacementPaymentMethod   String?
+  replacementPaidAmount      Float           @default(0)
+  replacementDiscount        Float           @default(0)
+  replacementIsInstallment   Boolean         @default(false)
+  replacementInstallmentTotal Float?
+  replacementInstallmentPaid  Float?
+  replacementInstallmentCustomerName String?
+  replacementInstallmentCustomerPhone String?
+  replacementRefundGiven       Float           @default(0)
   notes           String?
   createdAt       DateTime         @default(now())
+
+  returnInstallmentPayments ReturnInstallmentPayment[]
+}
+
+model ReturnInstallmentPayment {
+  id            String   @id @default(cuid())
+  returnItemId  String
+  returnItem    ReturnItem @relation(fields: [returnItemId], references: [id], onDelete: Cascade)
+  amount        Float    // total installment amount at time of payment
+  amountPaid    Float    // this payment amount
+  balance       Float    // remaining balance after this payment
+  paidAt        DateTime?
+  notes         String?
+  createdAt     DateTime @default(now())
 }
 
 enum AwardedType {
