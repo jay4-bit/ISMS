@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Package, AlertTriangle, TrendingUp, TrendingDown, DollarSign, ShoppingCart, ArrowRight, Receipt, RotateCcw, BadgeDollarSign, Activity, User, LogIn, ShoppingBag } from 'lucide-react';
+import { Package, AlertTriangle, TrendingUp, TrendingDown, DollarSign, ShoppingCart, ArrowRight, Receipt, RotateCcw, BadgeDollarSign, Activity, User, LogIn, ShoppingBag, Users } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useAuth } from '@/components/AuthProvider';
 import { useSettings } from '@/context/SettingsContext';
@@ -34,6 +34,9 @@ interface ActivityItem {
   details?: string;
   createdAt: string;
 }
+
+const accountActions = new Set(['LOGIN', 'USER_CREATED']);
+const businessActions = new Set(['SALE_CREATED', 'SALE_RETURNED', 'EXPENSE_ADDED', 'PRODUCT_CREATED']);
 
 const actionIcons: Record<string, any> = {
   LOGIN: LogIn,
@@ -358,40 +361,102 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <div className="card" style={{ marginTop: '1.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Activity size={20} color="#3b82f6" />
-            <h3 style={{ fontSize: '1rem', fontWeight: '600' }}>User Activities</h3>
-          </div>
-          <Link href="/dashboard/activities" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', color: '#3b82f6', textDecoration: 'none' }}>
-            View all <ArrowRight size={14} />
-          </Link>
-        </div>
-        {recentActivities.length > 0 ? (
-          <div>
-            {recentActivities.map((a) => {
-              const Icon = actionIcons[a.action] || Activity;
-              return (
-                <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0', borderBottom: '1px solid var(--border)' }}>
-                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(59,130,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Icon size={14} color="#3b82f6" />
+      <div className="grid-cols-2" style={{ marginTop: '1.5rem' }}>
+        <div className="card" style={{ padding: '0.75rem' }}>
+          {(() => {
+            const accountActs = recentActivities.filter(a => accountActions.has(a.action));
+            const uniqueUsers = [...new Set(accountActs.map(a => a.userName).filter(Boolean))];
+            const loginsToday = accountActs.filter(a => a.action === 'LOGIN' && new Date(a.createdAt).toDateString() === new Date().toDateString()).length;
+            const newUsers = accountActs.filter(a => a.action === 'USER_CREATED').length;
+            return (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <Users size={15} color="#8b5cf6" />
+                    <h3 style={{ fontSize: '0.85rem', fontWeight: '600' }}>Accounts</h3>
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--foreground)' }}>
-                      <strong>{a.userName || 'System'}</strong> {a.details || a.action.replace(/_/g, ' ').toLowerCase()}
-                    </div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--muted-foreground)', marginTop: '0.15rem' }}>
-                      {new Date(a.createdAt).toLocaleString()}
-                    </div>
+                  <Link href="/dashboard/activities" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.15rem', fontSize: '0.7rem', color: '#3b82f6', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                    View all <ArrowRight size={11} />
+                  </Link>
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.6rem' }}>
+                  <div style={{ flex: 1, textAlign: 'center', padding: '0.3rem', background: 'rgba(139,92,246,0.08)', borderRadius: '0.3rem' }}>
+                    <div style={{ fontSize: '1rem', fontWeight: '700', color: '#8b5cf6' }}>{uniqueUsers.length}</div>
+                    <div style={{ fontSize: '0.55rem', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Active Users</div>
+                  </div>
+                  <div style={{ flex: 1, textAlign: 'center', padding: '0.3rem', background: 'rgba(59,130,246,0.08)', borderRadius: '0.3rem' }}>
+                    <div style={{ fontSize: '1rem', fontWeight: '700', color: '#3b82f6' }}>{loginsToday}</div>
+                    <div style={{ fontSize: '0.55rem', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logins Today</div>
+                  </div>
+                  <div style={{ flex: 1, textAlign: 'center', padding: '0.3rem', background: 'rgba(34,197,94,0.08)', borderRadius: '0.3rem' }}>
+                    <div style={{ fontSize: '1rem', fontWeight: '700', color: '#22c55e' }}>{newUsers}</div>
+                    <div style={{ fontSize: '0.55rem', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>New Users</div>
                   </div>
                 </div>
-              );
-            })}
+                {accountActs.length > 0 ? (
+                  <div>
+                    {accountActs.slice(0, 2).map((a) => {
+                      const Icon = actionIcons[a.action] || Activity;
+                      return (
+                        <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.3rem 0', borderBottom: '1px solid var(--border)' }}>
+                          <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'rgba(139,92,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <Icon size={10} color="#8b5cf6" />
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--foreground)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              <strong>{a.userName || 'System'}</strong> {a.action === 'LOGIN' ? 'logged in' : 'was created'}
+                            </div>
+                            <div style={{ fontSize: '0.55rem', color: 'var(--muted-foreground)' }}>
+                              {new Date(a.createdAt).toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p style={{ color: 'var(--muted-foreground)', fontSize: '0.7rem' }}>No account activity yet</p>
+                )}
+              </>
+            );
+          })()}
+        </div>
+
+        <div className="card" style={{ padding: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Activity size={15} color="#3b82f6" />
+              <h3 style={{ fontSize: '0.85rem', fontWeight: '600' }}>Business Activities</h3>
+            </div>
+            <Link href="/dashboard/activities" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.15rem', fontSize: '0.7rem', color: '#3b82f6', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+              View all <ArrowRight size={11} />
+            </Link>
           </div>
-        ) : (
-          <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>No activities recorded yet</p>
-        )}
+          {recentActivities.filter(a => businessActions.has(a.action)).length > 0 ? (
+            <div>
+              {recentActivities.filter(a => businessActions.has(a.action)).slice(0, 3).map((a) => {
+                const Icon = actionIcons[a.action] || Activity;
+                return (
+                  <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0', borderBottom: '1px solid var(--border)' }}>
+                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(59,130,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Icon size={11} color="#3b82f6" />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--foreground)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <strong>{a.userName || 'System'}</strong> {a.details?.replace(/^[^—]*—\s*/, '').substring(0, 40) || a.action.replace(/_/g, ' ').toLowerCase()}
+                      </div>
+                      <div style={{ fontSize: '0.6rem', color: 'var(--muted-foreground)' }}>
+                        {new Date(a.createdAt).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>No business activities yet</p>
+          )}
+        </div>
       </div>
     </div>
   );
