@@ -198,8 +198,19 @@ export async function POST(request: NextRequest) {
     }
     
     if (hasElectronics) {
+      // Validate IMEI uniqueness
+      if (electronicsData.imei) {
+        const existing = await prisma.electronicsProduct.findUnique({ where: { imei: electronicsData.imei } });
+        if (existing) {
+          return NextResponse.json({ error: `IMEI ${electronicsData.imei} is already in use by another product` }, { status: 400 });
+        }
+      }
       console.log('Creating electronics fields:', electronicsData);
       productData.electronicsFields = { create: electronicsData };
+      // IMEI-tracked phone: each unique IMEI = one physical unit
+      if (electronicsData.imei) {
+        productData.stockQuantity = 1;
+      }
     } else {
       console.log('No electronics fields found in body');
     }
@@ -369,10 +380,21 @@ export async function PUT(request: NextRequest) {
     });
 
     if (hasElectronicsUpdate) {
+      // Validate IMEI uniqueness (exclude current product)
+      if (electronicsData.imei) {
+        const existing = await prisma.electronicsProduct.findUnique({ where: { imei: electronicsData.imei } });
+        if (existing && existing.productId !== id) {
+          return NextResponse.json({ error: `IMEI ${electronicsData.imei} is already in use by another product` }, { status: 400 });
+        }
+      }
       if (existingProduct?.electronicsFields) {
         updateData.electronicsFields = { update: electronicsData };
       } else {
         updateData.electronicsFields = { create: electronicsData };
+      }
+      // IMEI-tracked phone: each unique IMEI = one physical unit
+      if (electronicsData.imei) {
+        updateData.stockQuantity = 1;
       }
     }
 

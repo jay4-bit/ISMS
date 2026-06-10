@@ -55,6 +55,14 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       const res = await fetch('/api/settings', { headers: { 'x-shop-id': shopId } });
       if (!res.ok) {
         const text = await res.text();
+        if (res.status === 404 && text.includes('Shop not found')) {
+          localStorage.removeItem('user');
+          localStorage.removeItem('shop');
+          localStorage.removeItem('token');
+          localStorage.removeItem('permissions');
+          localStorage.removeItem('loginTime');
+          window.location.href = '/';
+        }
         console.error('Settings fetch failed:', res.status, text);
         setLoading(false);
         return;

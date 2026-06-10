@@ -15,6 +15,13 @@ interface Expense {
   date: string;
 }
 
+interface ReturnItemOption {
+  id: string;
+  productName: string;
+  returnNumber: string;
+  existingRepairCost: number;
+}
+
 const EXPENSE_CATEGORIES = [
   { value: 'RENT', label: 'Rent', color: '#8b5cf6' },
   { value: 'UTILITIES', label: 'Utilities', color: 'var(--primary)' },
@@ -28,11 +35,13 @@ const EXPENSE_CATEGORIES = [
 
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [returnItems, setReturnItems] = useState<ReturnItemOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [filterCategory, setFilterCategory] = useState('');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [selectedReturnItemId, setSelectedReturnItemId] = useState('');
   const [formData, setFormData] = useState({
     category: 'OTHER', amount: '', description: '', reference: '', date: new Date().toISOString().split('T')[0]
   });
@@ -43,11 +52,39 @@ export default function ExpensesPage() {
 
   async function fetchExpenses() {
     try {
-      const res = await fetch('/api/expenses', { headers: { 'x-shop-id': shop?.id || '' } });
-      const data = await res.json();
-      setExpenses(data.expenses || []);
+      const headers = { 'x-shop-id': shop?.id || '' };
+      const [expRes, retRes] = await Promise.all([
+        fetch('/api/expenses', { headers }),
+        fetch('/api/returns', { headers })
+      ]);
+      const expData = await expRes.json();
+      const retData = await retRes.json();
+      setExpenses(expData.expenses || []);
+      // Flatten return items for maintenance dropdown
+      const items: ReturnItemOption[] = [];
+      for (const r of (retData.returns || [])) {
+        for (const i of r.items) {
+          items.push({
+            id: i.id,
+            productName: i.product?.name || 'Unknown',
+            returnNumber: r.returnNumber,
+            existingRepairCost: i.repairCost || 0,
+          });
+        }
+      }
+      setReturnItems(items);
+
+      // Check query params for maintenance auto-open
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('maintenance') === '1' && params.get('returnItemId')) {
+          setFormData(prev => ({ ...prev, category: 'MAINTENANCE' }));
+          setSelectedReturnItemId(params.get('returnItemId')!);
+          setShowModal(true);
+        }
+      }
     } catch (error) {
-      console.error('Failed to fetch expenses:', error);
+      console.error('Failed to fetch data:', error);
     } finally {
       setLoading(false);
     }
@@ -60,12 +97,14 @@ export default function ExpensesPage() {
         category: expense.category,
         amount: expense.amount.toString(),
         description: expense.description,
-        reference: expense.reference || '',
+        reference: expense.reference?.replace(/^RETURN_ITEM:/, '') || '',
         date: expense.date.split('T')[0]
       });
+      setSelectedReturnItemId('');
     } else {
       setEditingExpense(null);
       setFormData({ category: 'OTHER', amount: '', description: '', reference: '', date: new Date().toISOString().split('T')[0] });
+      setSelectedReturnItemId('');
     }
     setShowModal(true);
   }
@@ -74,11 +113,14 @@ export default function ExpensesPage() {
     e.preventDefault();
     try {
       const method = editingExpense ? 'PUT' : 'POST';
-      const body = editingExpense ? { ...formData, id: editingExpense.id } : { ...formData, userId: user?.id, userName: user?.name };
+      const payload: any = editingExpense ? { ...formData, id: editingExpense.id } : { ...formData, userId: user?.id, userName: user?.name };
+      if (formData.category === 'MAINTENANCE' && selectedReturnItemId) {
+        payload.returnItemId = selectedReturnItemId;
+      }
       const res = await fetch('/api/expenses', {
         method,
         headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
-        body: JSON.stringify(body)
+        body: JSON.stringify(payload)
       });
       if (res.ok) {
         setShowModal(false);
@@ -221,7 +263,14 @@ export default function ExpensesPage() {
                         {cat?.label || expense.category}
                       </span>
                     </td>
-                    <td>{expense.description}</td>
+                    <td>
+                      {expense.description}
+                      {expense.category === 'MAINTENANCE' && expense.reference?.startsWith('RETURN_ITEM:') && (
+                        <div style={{ fontSize: '0.7rem', color: 'var(--warning)', marginTop: '0.15rem' }}>
+                          {returnItems.find(i => i.id === expense.reference?.replace('RETURN_ITEM:', ''))?.productName || 'Linked to return'}
+                        </div>
+                      )}
+                    </td>
                     <td>{expense.reference || '-'}</td>
                     <td style={{ fontWeight: '600', color: 'var(--destructive)' }}>{formatCurr(expense.amount)}</td>
                     <td>
@@ -256,7 +305,7 @@ export default function ExpensesPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                 <div>
                   <label className="label">Category</label>
-                  <select className="select" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} required>
+                  <select className="select" value={formData.category} onChange={e => { setFormData({ ...formData, category: e.target.value }); setSelectedReturnItemId(''); }} required>
                     {EXPENSE_CATEGORIES.map(cat => (<option key={cat.value} value={cat.value}>{cat.label}</option>))}
                   </select>
                 </div>
@@ -265,6 +314,19 @@ export default function ExpensesPage() {
                   <input type="number" step="0.01" min="0" className="input" value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} required />
                 </div>
               </div>
+              {formData.category === 'MAINTENANCE' && (
+                <div style={{ marginBottom: '1rem' }}>
+                  <label className="label">Return Item (Product to Maintain)</label>
+                  <select className="select" value={selectedReturnItemId} onChange={e => setSelectedReturnItemId(e.target.value)}>
+                    <option value="">-- Select returned product --</option>
+                    {returnItems.map(item => (
+                      <option key={item.id} value={item.id}>
+                        {item.productName} ({item.returnNumber}) {item.existingRepairCost > 0 ? `— Current: ${formatCurr(item.existingRepairCost)}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div style={{ marginBottom: '1rem' }}>
                 <label className="label">Description</label>
                 <input type="text" className="input" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} required />

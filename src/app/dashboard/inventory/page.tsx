@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   Package, Plus, Search, Edit, Trash2, X, Camera, 
   Barcode, Printer, Tag, AlertTriangle, TrendingUp, 
   TrendingDown, DollarSign, ShoppingCart, Settings,
   CameraOff, Zap, Hash, ScanLine, FolderPlus, Lock, Eye, Upload, Download,
-  Smartphone, Headphones
+  Smartphone, Headphones, Wrench
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useAuth } from '@/components/AuthProvider';
@@ -124,6 +125,7 @@ const VARIANT_TYPES = [
 
 export default function InventoryPage() {
   const { user, shop } = useAuth();
+  const router = useRouter();
   const isWinger = user?.role === 'WINGER';
   const isCashier = user?.role === 'CASHIER';
   const isReadOnly = isCashier || isWinger;
@@ -154,6 +156,8 @@ export default function InventoryPage() {
   const [importResult, setImportResult] = useState<{ success: number; failed: number; errors: string[] } | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [returnItemMap, setReturnItemMap] = useState<Record<string, string>>({});
+  const [fixedProductIds, setFixedProductIds] = useState<Set<string>>(new Set());
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -234,16 +238,40 @@ export default function InventoryPage() {
     console.log('Shop ID:', shop?.id, 'Shop Type:', shop?.shopType);
     try {
       const headers = { 'x-shop-id': shop?.id || '' };
-      const [productsRes, categoriesRes, suppliersRes, brandsRes] = await Promise.all([
+      const [productsRes, categoriesRes, suppliersRes, brandsRes, returnsRes] = await Promise.all([
         fetch('/api/inventory', { headers }),
         fetch('/api/categories', { headers }),
         fetch('/api/suppliers', { headers }),
-        fetch('/api/brands', { headers })
+        fetch('/api/brands', { headers }),
+        fetch('/api/returns', { headers })
       ]);
       const productsData = await productsRes.json();
       const categoriesData = await categoriesRes.json();
       const suppliersData = await suppliersRes.json();
       const brandsData = await brandsRes.json();
+      const returnsData = await returnsRes.json();
+      
+      // Build map of productId -> returnItemId for products with return items
+      const rMap: Record<string, string> = {};
+      for (const r of (returnsData.returns || [])) {
+        for (const i of r.items) {
+          if (i.productId && i.id) {
+            rMap[i.productId] = i.id;
+          }
+        }
+      }
+      setReturnItemMap(rMap);
+
+      // Build set of productIds that have been fixed (return item with repairCost > 0)
+      const fixedSet = new Set<string>();
+      for (const r of (returnsData.returns || [])) {
+        for (const i of r.items) {
+          if (i.productId && (i.repairCost || 0) > 0) {
+            fixedSet.add(i.productId);
+          }
+        }
+      }
+      setFixedProductIds(fixedSet);
       
       console.log('=== FRONTEND RECEIVED ===');
       console.log('Products count:', productsData.products?.length);
@@ -1128,9 +1156,12 @@ export default function InventoryPage() {
                       </span>
                     </td>
                     <td style={{ padding: '0.5rem', textAlign: 'center' }}>
-                      <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
-                        <button onClick={() => { setViewingProduct(product); setShowViewModal(true); }} style={{ padding: '0.3rem', background: '#64748b', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="View"><Eye size={12} /></button>
-                        {!isReadOnly && (
+                    <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
+                      <button onClick={() => { setViewingProduct(product); setShowViewModal(true); }} style={{ padding: '0.3rem', background: '#64748b', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="View"><Eye size={12} /></button>
+                      {returnItemMap[product.id] && (
+                        <button onClick={() => router.push(`/dashboard/expenses?maintenance=1&returnItemId=${returnItemMap[product.id]}&category=MAINTENANCE`)} style={{ padding: '0.3rem', background: '#f59e0b', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="Fix / Maintenance"><Wrench size={12} /></button>
+                      )}
+                      {!isReadOnly && (
                           <>
                             <button onClick={() => openModal(product)} style={{ padding: '0.3rem', background: 'var(--primary)', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="Edit"><Edit size={12} /></button>
                             <button onClick={() => handleDelete(product.id)} style={{ padding: '0.3rem', background: 'var(--destructive)', border: 'none', borderRadius: '0.25rem', color: 'white', cursor: 'pointer' }} title="Delete"><Trash2 size={12} /></button>
@@ -1243,8 +1274,8 @@ export default function InventoryPage() {
                   </tr>
                 ) : filteredProducts.map((product, index) => {
                   const ef = product.electronicsFields;
-                  const stockStatus = product.isFaulty ? 'Faulty' : product.stockQuantity === 0 ? 'Out of Stock' : product.stockQuantity <= product.lowStockThreshold ? 'Low Stock' : 'In Stock';
-                  const stockColor = product.isFaulty ? '#a855f7' : product.stockQuantity === 0 ? 'var(--destructive)' : product.stockQuantity <= product.lowStockThreshold ? 'var(--warning)' : 'var(--success)';
+                  const stockStatus = product.isFaulty ? 'Faulty' : fixedProductIds.has(product.id) ? 'Fixed' : product.stockQuantity === 0 ? 'Out of Stock' : product.stockQuantity <= product.lowStockThreshold ? 'Low Stock' : 'In Stock';
+                  const stockColor = product.isFaulty ? '#a855f7' : fixedProductIds.has(product.id) ? '#06b6d4' : product.stockQuantity === 0 ? 'var(--destructive)' : product.stockQuantity <= product.lowStockThreshold ? 'var(--warning)' : 'var(--success)';
                   const condColor = ef?.condition === 'NEW' ? 'var(--success)' : ef?.condition === 'USED' ? 'var(--warning)' : 'var(--primary)';
                   return (
                     <tr key={product.id} style={{ background: index % 2 === 0 ? 'var(--card)' : 'var(--background)', transition: 'background 0.2s' }} className="table-row">
@@ -1283,6 +1314,9 @@ export default function InventoryPage() {
                       <td style={{ padding: '0.75rem', textAlign: 'center' }}>
                         <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
                           <button onClick={() => { setViewingProduct(product); setShowViewModal(true); }} style={{ padding: '0.4rem', background: '#64748b', border: 'none', borderRadius: '0.375rem', color: 'white', cursor: 'pointer' }} title="View"><Eye size={14} /></button>
+                          {returnItemMap[product.id] && (
+                            <button onClick={() => router.push(`/dashboard/expenses?maintenance=1&returnItemId=${returnItemMap[product.id]}&category=MAINTENANCE`)} style={{ padding: '0.4rem', background: '#f59e0b', border: 'none', borderRadius: '0.375rem', color: 'white', cursor: 'pointer' }} title="Fix / Maintenance"><Wrench size={14} /></button>
+                          )}
                           {!isReadOnly && (
                             <>
                               <button onClick={() => openModal(product)} style={{ padding: '0.4rem', background: 'var(--primary)', border: 'none', borderRadius: '0.375rem', color: 'white', cursor: 'pointer' }} title="Edit"><Edit size={14} /></button>
@@ -2155,16 +2189,16 @@ export default function InventoryPage() {
                     <div>
                       <span style={{
                         padding: '0.2rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', fontWeight: '500',
-                        background: viewingProduct.isFaulty ? '#a855f720' : viewingProduct.stockQuantity === 0 ? 'color-mix(in srgb, var(--destructive) 12.5%, transparent)' : viewingProduct.stockQuantity <= viewingProduct.lowStockThreshold ? 'color-mix(in srgb, var(--warning) 12.5%, transparent)' : 'color-mix(in srgb, var(--success) 12.5%, transparent)',
-                        color: viewingProduct.isFaulty ? '#a855f7' : viewingProduct.stockQuantity === 0 ? 'var(--destructive)' : viewingProduct.stockQuantity <= viewingProduct.lowStockThreshold ? 'var(--warning)' : 'var(--success)'
+                        background: viewingProduct.isFaulty ? '#a855f720' : fixedProductIds.has(viewingProduct.id) ? '#06b6d420' : viewingProduct.stockQuantity === 0 ? 'color-mix(in srgb, var(--destructive) 12.5%, transparent)' : viewingProduct.stockQuantity <= viewingProduct.lowStockThreshold ? 'color-mix(in srgb, var(--warning) 12.5%, transparent)' : 'color-mix(in srgb, var(--success) 12.5%, transparent)',
+                        color: viewingProduct.isFaulty ? '#a855f7' : fixedProductIds.has(viewingProduct.id) ? '#06b6d4' : viewingProduct.stockQuantity === 0 ? 'var(--destructive)' : viewingProduct.stockQuantity <= viewingProduct.lowStockThreshold ? 'var(--warning)' : 'var(--success)'
                       }}>
-                        {viewingProduct.isFaulty ? 'Faulty' : viewingProduct.stockQuantity === 0 ? 'Out of Stock' : viewingProduct.stockQuantity <= viewingProduct.lowStockThreshold ? 'Low Stock' : 'In Stock'}
+                        {viewingProduct.isFaulty ? 'Faulty' : fixedProductIds.has(viewingProduct.id) ? 'Fixed' : viewingProduct.stockQuantity === 0 ? 'Out of Stock' : viewingProduct.stockQuantity <= viewingProduct.lowStockThreshold ? 'Low Stock' : 'In Stock'}
                       </span>
                     </div>
                   </div>
                   <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Low Stock Threshold</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.lowStockThreshold}</div></div>
                   <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Reorder Point</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.reorderPoint}</div></div>
-                  <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Faulty</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.isFaulty ? 'Yes' : 'No'}</div></div>
+                  <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Faulty / Fixed</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.isFaulty ? 'Faulty' : fixedProductIds.has(viewingProduct.id) ? 'Fixed' : 'No'}</div></div>
                 </div>
               </div>
 

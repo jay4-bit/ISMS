@@ -56,23 +56,39 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { category, amount, description, reference, date, userId, userName } = body;
+    const { category, amount, description, reference, date, userId, userName, returnItemId } = body;
 
     if (!category || !amount || !description) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+
+    const refValue = (category === 'MAINTENANCE' && returnItemId)
+      ? `RETURN_ITEM:${returnItemId}`
+      : (reference || null);
 
     const expense = await prisma.expense.create({
       data: {
         category,
         amount: parseFloat(amount),
         description,
-        reference: reference || null,
+        reference: refValue,
         date: date ? new Date(date) : new Date(),
         createdBy: 'system',
         shopId,
       },
     });
+
+    if (category === 'MAINTENANCE' && returnItemId) {
+      const retItem = await prisma.returnItem.update({
+        where: { id: returnItemId },
+        data: { repairCost: parseFloat(amount) },
+      });
+      // Mark the product as fixed (no longer faulty) — stock was already restored on return
+      await prisma.product.update({
+        where: { id: retItem.productId },
+        data: { isFaulty: false },
+      });
+    }
 
     logActivity({
       shopId, userId: userId || 'system', userName: userName || 'System',

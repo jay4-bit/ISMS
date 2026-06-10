@@ -224,7 +224,7 @@ model ElectronicsProduct {
   brand                 String?
   model                 String?
   condition             String?
-  imei                  String?
+  imei                  String?   @unique
   serialNumber          String?
   color                 String?
   storage               String?

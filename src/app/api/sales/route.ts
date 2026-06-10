@@ -6,7 +6,7 @@ import { logActivity } from '@/lib/activity-log';
 async function generateReceiptNumber(shopId: string): Promise<string> {
   const lastSale = await prisma.sale.findFirst({
     where: { shopId },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { receiptNumber: 'desc' },
     select: { receiptNumber: true },
   });
   let nextNum = 1;
@@ -115,10 +115,8 @@ export async function POST(request: NextRequest) {
     const paid = isCredit ? amountPaid : total;
     const change = paymentMethod === 'CASH' ? Math.max(0, amountPaid - total) : 0;
 
-    const receiptNumber = await generateReceiptNumber(shopId);
-
 const saleData: any = {
-      receiptNumber,
+      receiptNumber: '',
       shopId,
       subtotal,
       discount: discount || 0,
@@ -150,12 +148,16 @@ const saleData: any = {
       saleData.nextPaymentDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     }
 
-    // Validate all product IDs exist
+    // Validate all product IDs exist and have sufficient stock
     for (const item of items) {
       const productExists = await prisma.product.findUnique({ where: { id: item.product.id } });
       if (!productExists) {
         console.error('Product not found:', item.product.id);
         return NextResponse.json({ error: `Product not found: ${item.product.id}` }, { status: 400 });
+      }
+      const qty = item.quantity || 1;
+      if (productExists.stockQuantity < qty) {
+        return NextResponse.json({ error: `Insufficient stock for ${productExists.name}. Available: ${productExists.stockQuantity}, requested: ${qty}` }, { status: 400 });
       }
     }
 
@@ -168,13 +170,27 @@ const saleData: any = {
 
     console.log('All validations passed, creating sale with data:', JSON.stringify(saleData, null, 2));
 
-    const sale = await prisma.sale.create({
-      data: saleData,
-      include: {
-        items: { include: { product: { include: { electronicsFields: true } } } },
-        cashier: { select: { name: true, email: true } },
-      },
-    });
+    let sale;
+    let receiptNumber;
+    const maxRetries = 5;
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      receiptNumber = await generateReceiptNumber(shopId);
+      saleData.receiptNumber = receiptNumber;
+      try {
+        sale = await prisma.sale.create({
+          data: saleData,
+          include: {
+            items: { include: { product: { include: { electronicsFields: true } } } },
+            cashier: { select: { name: true, email: true } },
+          },
+        });
+        break;
+      } catch (err: any) {
+        if (err?.code === 'P2002' && attempt < maxRetries - 1) continue;
+        throw err;
+      }
+    }
+    if (!sale) throw new Error('Failed to create sale after retries');
     console.log('Sale created successfully:', sale.id);
 
     for (const item of items) {

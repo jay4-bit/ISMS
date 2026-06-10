@@ -202,6 +202,16 @@ export async function POST(request: NextRequest) {
 
     const returnNumber = await generateReturnNumber(shopId);
 
+    // Validate replacement product stock before processing
+    for (const item of items) {
+      if (item.awardedType === 'REPLACEMENT' && item.replacementProductId) {
+        const repProduct = await prisma.product.findUnique({ where: { id: item.replacementProductId } });
+        if (repProduct && repProduct.stockQuantity < (item.quantity || 1)) {
+          return NextResponse.json({ error: `Insufficient stock for replacement product ${repProduct.name}. Available: ${repProduct.stockQuantity}, needed: ${item.quantity || 1}` }, { status: 400 });
+        }
+      }
+    }
+
     const returnRecord = await prisma.return.create({
       data: {
         returnNumber,
@@ -225,6 +235,12 @@ export async function POST(request: NextRequest) {
         await prisma.product.update({
           where: { id: item.replacementProductId },
           data: { stockQuantity: { decrement: item.quantity } },
+        });
+      } else if (item.awardedType === 'REFUND') {
+        // Money back → product comes back to inventory as faulty
+        await prisma.product.update({
+          where: { id: item.productId },
+          data: { isFaulty: true, stockQuantity: { increment: item.quantity } },
         });
       } else {
         if (item.status === 'FAULTY' || item.status === 'DISCARDED') {
@@ -334,10 +350,14 @@ export async function DELETE(request: NextRequest) {
     });
 
     for (const item of returnItems) {
+      const prod = await prisma.product.findUnique({
+        where: { id: item.productId },
+        select: { stockQuantity: true },
+      });
       await prisma.product.update({
         where: { id: item.productId },
         data: {
-          stockQuantity: { decrement: item.quantity },
+          stockQuantity: Math.max(0, (prod?.stockQuantity || 0) - item.quantity),
           isFaulty: false,
         },
       });

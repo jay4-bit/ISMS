@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const lowStockItems = products
       .filter(p => p.stockQuantity <= p.lowStockThreshold && !p.isFaulty)
       .slice(0, 5);
-    const totalInventoryValue = products.reduce((sum, p) => sum + p.purchaseCost * p.stockQuantity, 0);
+    const totalInventoryValue = products.reduce((sum, p) => sum + p.purchaseCost * Math.max(0, p.stockQuantity), 0);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);

@@ -245,11 +245,6 @@ export default function ReturnsPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const missingReturnCost = returnItems.some(item => item.awardedType !== 'REPAIR' && (!item.returnCost || item.returnCost <= 0));
-    if (missingReturnCost) {
-      alert('Return cost is required for all items (except Repair). Please fill in the Return Cost field.');
-      return;
-    }
     const missingRepairCost = returnItems.some(item => item.awardedType === 'REPAIR' && (!item.repairCost || item.repairCost <= 0));
     if (missingRepairCost) {
       alert('Repair cost is required for Repair items. Please fill in the Repair Cost field.');
@@ -297,7 +292,7 @@ export default function ReturnsPage() {
     } catch (error) { console.error('Record payment failed:', error); }
   }
 
-  const totalRefunds = returns.reduce((sum, r) => sum + r.items.reduce((s, i) => s + i.refundAmount, 0), 0);
+  const totalRefundedToClient = returns.reduce((sum, r) => sum + r.items.reduce((s, i) => s + i.refundAmount + (i.replacementRefundGiven || 0), 0), 0);
   const totalRepairCosts = returns.reduce((sum, r) => sum + r.items.reduce((s, i) => s + (i.repairCost || 0), 0), 0);
   const totalAwarded = returns.reduce((sum, r) => sum + r.items.reduce((s, i) => s + (i.awardedAmount || 0), 0), 0);
   const replacements = returns.reduce((sum, r) => sum + r.items.filter((i: ReturnItem) => i.awardedType === 'REPLACEMENT').length, 0);
@@ -343,7 +338,7 @@ export default function ReturnsPage() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
         <div style={styles.statCard}><div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Undo2 size={16} color="#3b82f6" /><div><div className="stat-value" style={styles.statValue}>{returns.length}</div><div className="stat-label" style={styles.statLabel}>Total Returns</div></div></div></div>
-        <div style={styles.statCard}><div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><DollarSign size={16} color="#22c55e" /><div><div className="stat-value" style={{ ...styles.statValue, color: 'var(--success)' }}>{formatCurr(totalAwarded)}</div><div className="stat-label" style={styles.statLabel}>Total Refunded</div></div></div></div>
+        <div style={styles.statCard}><div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><DollarSign size={16} color="#22c55e" /><div><div className="stat-value" style={{ ...styles.statValue, color: 'var(--success)' }}>{formatCurr(totalRefundedToClient)}</div><div className="stat-label" style={styles.statLabel}>Total Refunded</div></div></div></div>
         <div style={styles.statCard}><div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Wrench size={16} color="#f59e0b" /><div><div className="stat-value" style={{ ...styles.statValue, color: 'var(--warning)' }}>{formatCurr(totalRepairCosts)}</div><div className="stat-label" style={styles.statLabel}>Repair Costs</div></div></div></div>
         <div style={styles.statCard}><div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><ArrowUpDown size={16} color="#ec4899" /><div><div className="stat-value" style={{ ...styles.statValue, color: clientPaidDiff > 0 ? '#22c55e' : '#ef4444' }}>{formatCurr(Math.abs(clientPaidDiff))}</div><div className="stat-label" style={styles.statLabel}>{clientPaidDiff >= 0 ? 'Extra from Client' : 'Extra to Client'}</div></div></div></div>
       </div>
@@ -534,7 +529,7 @@ export default function ReturnsPage() {
                             <input type="number" min="1" value={item.quantity} onChange={(e) => updateReturnItem(item.productId, 'quantity', parseInt(e.target.value))} style={{ width: '38px', padding: '0.2rem', border: '1px solid var(--border)', borderRadius: '0.2rem', background: 'var(--card)', color: 'var(--foreground)', textAlign: 'center', fontSize: '0.7rem' }} />
                           </td>
                           <td style={{ padding: '0.35rem 0.3rem' }}>
-                            <input type="number" min="0" step="0.01" value={item.returnCost || ''} onChange={(e) => updateReturnItem(item.productId, 'returnCost', parseFloat(e.target.value) || 0)} disabled={item.awardedType === 'REPAIR'} style={{ width: '70px', padding: '0.2rem', border: '1px solid var(--border)', borderRadius: '0.2rem', background: item.awardedType === 'REPAIR' ? 'transparent' : 'var(--card)', color: item.awardedType === 'REPAIR' ? 'var(--muted-foreground)' : '#f59e0b', textAlign: 'right', fontSize: '0.7rem', opacity: item.awardedType === 'REPAIR' ? 0.4 : 1 }} placeholder={item.awardedType === 'REPAIR' ? '0.00' : 'Required'} />
+                            <input type="number" min="0" step="0.01" value={item.returnCost || ''} onChange={(e) => updateReturnItem(item.productId, 'returnCost', parseFloat(e.target.value) || 0)} disabled={item.awardedType === 'REPAIR'} style={{ width: '70px', padding: '0.2rem', border: '1px solid var(--border)', borderRadius: '0.2rem', background: item.awardedType === 'REPAIR' ? 'transparent' : 'var(--card)', color: item.awardedType === 'REPAIR' ? 'var(--muted-foreground)' : '#f59e0b', textAlign: 'right', fontSize: '0.7rem', opacity: item.awardedType === 'REPAIR' ? 0.4 : 1 }} placeholder="0.00" />
                           </td>
                           <td style={{ padding: '0.35rem 0.3rem' }}>
                               <select value={item.awardedType} onChange={(e) => updateReturnItem(item.productId, 'awardedType', e.target.value)} style={{ width: '100%', minWidth: '80px', padding: '0.25rem', border: '1px solid var(--border)', borderRadius: '0.2rem', background: 'var(--card)', color: awardedTypeColors[item.awardedType], fontWeight: '500', fontSize: '0.65rem' }}>
