@@ -303,8 +303,8 @@ export default function ActivitiesPage() {
   ];
 
   return (
-    <div style={{ padding: '1.5rem', color: 'var(--foreground)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+    <div className="activities-page" style={{ padding: '1.5rem', color: 'var(--foreground)' }}>
+      <div className="activities-page-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
         <div>
           <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.85rem', color: 'var(--muted-foreground)', textDecoration: 'none', marginBottom: '0.5rem' }}>
             <ArrowLeft size={14} /> Back to Dashboard
@@ -330,7 +330,7 @@ export default function ActivitiesPage() {
 
       {tab === 'feed' && (
         <>
-          <div style={{ marginBottom: '1rem', display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="af-filter-bar" style={{ marginBottom: '1rem', display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
             <select value={userIdFilter} onChange={(e) => { setUserIdFilter(e.target.value); setPage(0); }} style={{ padding: '0.5rem 0.75rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--foreground)', fontSize: '0.85rem' }}>
               <option value="">All Users</option>
               {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
@@ -344,17 +344,17 @@ export default function ActivitiesPage() {
               <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted-foreground)' }}>No activities recorded yet</div>
             ) : (
               <div>
-                <div style={{ display: 'grid', gridTemplateColumns: '170px 110px 1fr 80px', gap: '0', padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)', background: 'var(--muted)', fontWeight: '600', fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>
-                  <div>Date & Time</div><div>User</div><div>Action / Details</div><div style={{ textAlign: 'center' }}>Type</div>
+                <div className="af-row af-header" style={{ display: 'grid', gridTemplateColumns: '170px 110px 1fr 80px', gap: '0', padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)', background: 'var(--muted)', fontWeight: '600', fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>
+                  <div className="af-col-date">Date & Time</div><div className="af-col-user">User</div><div className="af-col-detail">Action / Details</div><div className="af-col-type" style={{ textAlign: 'center' }}>Type</div>
                 </div>
                 {activities.map((a) => {
                   const Icon = actionIcons[a.action] || Activity;
                   return (
-                    <div key={a.id} style={{ display: 'grid', gridTemplateColumns: '170px 110px 1fr 80px', gap: '0', padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)', fontSize: '0.85rem', alignItems: 'center' }}>
-                      <div style={{ color: 'var(--muted-foreground)', fontSize: '0.8rem' }}>{new Date(a.createdAt).toLocaleString()}</div>
-                      <div style={{ fontWeight: '500' }}>{a.userName || 'System'}</div>
-                      <div style={{ color: 'var(--muted-foreground)' }}>{a.details || a.action.replace(/_/g, ' ').toLowerCase()}</div>
-                      <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <div key={a.id} className="af-row" style={{ display: 'grid', gridTemplateColumns: '170px 110px 1fr 80px', gap: '0', padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)', fontSize: '0.85rem', alignItems: 'center' }}>
+                      <div className="af-col-date" style={{ color: 'var(--muted-foreground)', fontSize: '0.8rem' }}>{new Date(a.createdAt).toLocaleString()}</div>
+                      <div className="af-col-user" style={{ fontWeight: '500' }}>{a.userName || 'System'}</div>
+                      <div className="af-col-detail" style={{ color: 'var(--muted-foreground)' }}>{a.details || a.action.replace(/_/g, ' ').toLowerCase()}</div>
+                      <div className="af-col-type" style={{ display: 'flex', justifyContent: 'center' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.2rem 0.5rem', borderRadius: '0.375rem', background: 'rgba(59,130,246,0.1)', color: '#3b82f6', fontSize: '0.7rem', fontWeight: '500' }}>
                           <Icon size={12} /> {a.action.replace(/_/g, ' ').toLowerCase()}
                         </span>
@@ -377,15 +377,15 @@ export default function ActivitiesPage() {
 
       {tab === 'kpi' && (
         <>
-          <div style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="af-kpi-filters" style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
             <Filter size={16} style={{ color: 'var(--muted-foreground)', marginRight: '0.25rem' }} />
             <button onClick={() => setRangePreset('day')} style={btnRange('day')}>Day</button>
             <button onClick={() => setRangePreset('week')} style={btnRange('week')}>Week</button>
             <button onClick={() => setRangePreset('month')} style={btnRange('month')}>Month</button>
             <button onClick={() => setRangePreset('3months')} style={btnRange('3months')}>3 Months</button>
             <button onClick={() => { setRangePreset('all'); setExportStartDate(''); setExportEndDate(''); }} style={btnRange('all')}>All Time</button>
-            <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginLeft: '0.5rem' }}><Calendar size={12} style={{ verticalAlign: 'middle', marginRight: '0.25rem' }} />{rangeLabel}</span>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginLeft: '0.75rem', borderLeft: '1px solid var(--border)', paddingLeft: '0.75rem' }}>
+            <span className="af-kpi-range-label" style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginLeft: '0.5rem' }}><Calendar size={12} style={{ verticalAlign: 'middle', marginRight: '0.25rem' }} />{rangeLabel}</span>
+            <div className="af-kpi-custom" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginLeft: '0.75rem', borderLeft: '1px solid var(--border)', paddingLeft: '0.75rem' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>Custom:</span>
               <input type="date" value={exportStartDate} onChange={(e) => { setExportStartDate(e.target.value); setRangePreset('all'); }} style={{ padding: '0.3rem 0.5rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.375rem', color: 'var(--foreground)', fontSize: '0.8rem' }} />
               <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>to</span>
