@@ -14,6 +14,7 @@ interface Settings {
   lowStockAlert: boolean;
   expiryAlert: boolean;
   expiryAlertDays: number;
+  dashboardConfig: Record<string, boolean> | null;
 }
 
 interface SettingsContextType {
@@ -34,6 +35,7 @@ const defaultSettings: Settings = {
   lowStockAlert: true,
   expiryAlert: true,
   expiryAlertDays: 7,
+  dashboardConfig: null,
 };
 
 const SettingsContext = createContext<SettingsContextType>({
@@ -52,6 +54,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const fetchSettings = async (shopId?: string) => {
     try {
       if (!shopId) { setLoading(false); return; }
+      // Reset state immediately when shop changes to avoid showing stale data
+      setSettings(defaultSettings);
+      setLogo(null);
+      setLoading(true);
       const res = await fetch('/api/settings', { headers: { 'x-shop-id': shopId } });
       if (!res.ok) {
         const text = await res.text();
@@ -62,6 +68,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
           localStorage.removeItem('permissions');
           localStorage.removeItem('loginTime');
           window.location.href = '/';
+          return;
         }
         console.error('Settings fetch failed:', res.status, text);
         setLoading(false);

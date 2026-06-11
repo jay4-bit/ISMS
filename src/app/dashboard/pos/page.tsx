@@ -528,7 +528,6 @@ export default function POSPage() {
                 className="product-card"
               >
                 <div style={styles.productName}>{product.name}</div>
-                <div style={styles.productSku}>{product.sku}</div>
                 {product.electronicsFields?.imei && (
                   <div style={{ fontSize: '0.65rem', color: 'var(--warning)', marginBottom: '0.5rem', fontFamily: 'monospace' }}>
                     IMEI: {product.electronicsFields.imei}
@@ -766,12 +765,12 @@ export default function POSPage() {
               <button onClick={() => setShowManualEntry(false)} style={styles.closeBtn}><X size={20} /></button>
             </div>
             <div style={styles.manualForm}>
-              <label style={styles.inputLabel}>Barcode / SKU</label>
+              <label style={styles.inputLabel}>Barcode</label>
               <input
                 type="text"
                 value={manualCode}
                 onChange={(e) => setManualCode(e.target.value)}
-                placeholder="Enter barcode or SKU"
+                placeholder="Enter barcode"
                 style={styles.inputField}
                 autoFocus
               />

@@ -48,43 +48,28 @@ const AuthContext = createContext<AuthContextType>({
   hasPermission: () => true
 });
 
+function getLocalItem(key: string) {
+  if (typeof window !== 'undefined') {
+    try {
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : null;
+    } catch {
+      try { localStorage.removeItem(key); } catch {}
+      return null;
+    }
+  }
+  return null;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [shop, setShop] = useState<Shop | null>(null);
+  const [user, setUser] = useState<User | null>(() => getLocalItem('user'));
+  const [shop, setShop] = useState<Shop | null>(() => getLocalItem('shop'));
   const [loading, setLoading] = useState(true);
-  const [permissions, setPermissions] = useState<RolePermission[]>([]);
+  const [permissions, setPermissions] = useState<RolePermission[]>(() => getLocalItem('permissions') || []);
   const permissionsLoaded = useRef(false);
   const router = useRouter();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const storedShop = localStorage.getItem('shop');
-    const storedPermissions = localStorage.getItem('permissions');
-
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {
-        localStorage.removeItem('user');
-      }
-    }
-
-    if (storedShop) {
-      try {
-        setShop(JSON.parse(storedShop));
-      } catch {
-        localStorage.removeItem('shop');
-      }
-    }
-
-    if (storedPermissions) {
-      try {
-        setPermissions(JSON.parse(storedPermissions));
-      } catch {
-        localStorage.removeItem('permissions');
-      }
-    }
-
     setLoading(false);
   }, []);
 

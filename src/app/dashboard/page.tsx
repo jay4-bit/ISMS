@@ -12,6 +12,9 @@ interface DashboardStats {
   lowStockCount: number;
   lowStockItems: any[];
   totalInventoryValue: number;
+  totalSellingValue: number;
+  avgPurchaseCost: number;
+  avgSellingPrice: number;
   todaySales: number;
   todayProfit: number;
   salesCount: number;
@@ -54,6 +57,7 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const { shop } = useAuth();
   const { settings } = useSettings();
+  const showWidget = (id: string) => settings.dashboardConfig?.[id] !== false;
 
   useEffect(() => {
     if (shop?.id) fetchDashboardData();
@@ -98,8 +102,9 @@ export default function DashboardPage() {
         <p style={{ color: '#64748b' }}>Welcome back, {shop?.name || 'Admin'}</p>
       </div>
 
-      <div className="grid-cols-4" style={{ marginBottom: '1.5rem' }}>
-        <div className="stat-card">
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+        {showWidget('stat-total-products') && (
+        <div className="stat-card" style={{ flex: '1 1 200px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <div className="stat-value">{stats?.totalProducts || 0}</div>
@@ -111,9 +116,10 @@ export default function DashboardPage() {
             View inventory <ArrowRight size={16} />
           </Link>
         </div>
+        )}
 
-        {settings.lowStockAlert && (
-          <div className="stat-card" style={{ border: (stats?.lowStockCount || 0) > 0 ? '1px solid #f59e0b' : undefined }}>
+        {showWidget('stat-low-stock-alerts') && settings.lowStockAlert && (
+          <div className="stat-card" style={{ flex: '1 1 200px', border: (stats?.lowStockCount || 0) > 0 ? '1px solid #f59e0b' : undefined }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <div className="stat-value" style={{ color: (stats?.lowStockCount || 0) > 0 ? '#f59e0b' : undefined }}>
@@ -126,8 +132,8 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {settings.expiryAlert && (
-          <div className="stat-card" style={{ border: (stats?.expiringCount || stats?.expiredCount || 0) > 0 ? '1px solid #ef4444' : undefined }}>
+        {showWidget('stat-expiry-alerts') && settings.expiryAlert && (
+          <div className="stat-card" style={{ flex: '1 1 200px', border: (stats?.expiringCount || stats?.expiredCount || 0) > 0 ? '1px solid #ef4444' : undefined }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <div className="stat-value" style={{ color: (stats?.expiringCount || stats?.expiredCount || 0) > 0 ? '#ef4444' : undefined }}>
@@ -140,7 +146,8 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div className="stat-card">
+        {showWidget('stat-today-sales') && (
+        <div className="stat-card" style={{ flex: '1 1 200px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <div className="stat-value">{formatCurrency(stats?.todaySales || 0)}</div>
@@ -152,8 +159,10 @@ export default function DashboardPage() {
             Go to POS <ArrowRight size={16} />
           </Link>
         </div>
+        )}
 
-        <div className="stat-card">
+        {showWidget('stat-net-profit') && (
+        <div className="stat-card" style={{ flex: '1 1 200px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <div className="stat-value" style={{ color: (stats?.netProfit || 0) >= 0 ? '#22c55e' : '#ef4444' }}>
@@ -164,9 +173,23 @@ export default function DashboardPage() {
             <TrendingUp size={24} color={(stats?.netProfit || 0) >= 0 ? '#22c55e' : '#ef4444'} />
           </div>
         </div>
+        )}
+
+        {showWidget('stat-total-selling-value') && (
+        <div className="stat-card" style={{ flex: '1 1 200px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div className="stat-value">{formatCurrency(stats?.totalSellingValue || 0)}</div>
+              <div className="stat-label">Total Selling Value</div>
+            </div>
+            <DollarSign size={24} color="#22c55e" />
+          </div>
+        </div>
+        )}
       </div>
 
       <div className="grid-cols-3" style={{ marginBottom: '1.5rem' }}>
+        {showWidget('summary-today-transactions') && (
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
             <Receipt size={20} color="#3b82f6" />
@@ -179,7 +202,9 @@ export default function DashboardPage() {
             Total sales made today
           </p>
         </div>
+        )}
 
+        {showWidget('summary-returns-today') && (
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
             <RotateCcw size={20} color="#ef4444" />
@@ -192,7 +217,9 @@ export default function DashboardPage() {
             Refunds + repair costs
           </p>
         </div>
+        )}
 
+        {showWidget('summary-expenses-today') && (
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
             <BadgeDollarSign size={20} color="#f59e0b" />
@@ -205,9 +232,11 @@ export default function DashboardPage() {
             Operational costs today
           </p>
         </div>
+        )}
       </div>
 
-      <div className="grid-cols-2" style={{ marginBottom: '1.5rem' }}>
+      <div className="grid-cols-3" style={{ marginBottom: '1.5rem' }}>
+        {showWidget('inventory-value-cost') && (
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <h3 style={{ fontSize: '1rem', fontWeight: '600' }}>Inventory Value (Cost)</h3>
@@ -219,7 +248,34 @@ export default function DashboardPage() {
             Total purchase cost of all products in stock
           </p>
         </div>
+        )}
 
+        {showWidget('avg-cost-price') && (
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: '600' }}>Avg Cost / Price</h3>
+          </div>
+          <div style={{ display: 'flex', gap: '1.5rem' }}>
+            <div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>Avg Purchase Cost</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#f59e0b' }}>
+                {formatCurrency(stats?.avgPurchaseCost || 0)}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>Avg Selling Price</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#22c55e' }}>
+                {formatCurrency(stats?.avgSellingPrice || 0)}
+              </div>
+            </div>
+          </div>
+          <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.75rem' }}>
+            Average across all non-faulty products
+          </p>
+        </div>
+        )}
+
+        {showWidget('quick-actions') && (
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <h3 style={{ fontSize: '1rem', fontWeight: '600' }}>Quick Actions</h3>
@@ -236,9 +292,11 @@ export default function DashboardPage() {
             </Link>
           </div>
         </div>
+        )}
       </div>
 
       <div className="grid-cols-3">
+        {showWidget('fast-moving-items') && (
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
             <TrendingUp size={20} color="#22c55e" />
@@ -250,7 +308,6 @@ export default function DashboardPage() {
                 <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid #e2e8f0' }}>
                   <div>
                     <div style={{ fontWeight: '500' }}>{item.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{item.sku}</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontWeight: '600', color: '#22c55e' }}>{item.stockQuantity} sold</div>
@@ -262,7 +319,9 @@ export default function DashboardPage() {
             <p style={{ color: '#64748b', fontSize: '0.875rem' }}>No sales data yet</p>
           )}
         </div>
+        )}
 
+        {showWidget('slow-moving-items') && (
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
             <TrendingDown size={20} color="#f59e0b" />
@@ -274,7 +333,6 @@ export default function DashboardPage() {
                 <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid #e2e8f0' }}>
                   <div>
                     <div style={{ fontWeight: '500' }}>{item.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{item.sku}</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontWeight: '600', color: '#f59e0b' }}>{item.stockQuantity} in stock</div>
@@ -286,8 +344,9 @@ export default function DashboardPage() {
             <p style={{ color: '#64748b', fontSize: '0.875rem' }}>No slow moving items</p>
           )}
         </div>
+        )}
 
-        {settings.lowStockAlert && (
+        {showWidget('low-stock-items') && settings.lowStockAlert && (
           <div className="card">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
               <AlertTriangle size={20} color="#f59e0b" />
@@ -316,7 +375,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {settings.expiryAlert && (
+        {showWidget('expiring-expired-items') && settings.expiryAlert && (
           <div className="card">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
               <AlertTriangle size={20} color="#ef4444" />
@@ -362,6 +421,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid-cols-2" style={{ marginTop: '1.5rem' }}>
+        {showWidget('accounts-activity-feed') && (
         <div className="card" style={{ padding: '0.75rem' }}>
           {(() => {
             const accountActs = recentActivities.filter(a => accountActions.has(a.action));
@@ -421,7 +481,9 @@ export default function DashboardPage() {
             );
           })()}
         </div>
+        )}
 
+        {showWidget('business-activity-feed') && (
         <div className="card" style={{ padding: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -457,6 +519,7 @@ export default function DashboardPage() {
             <p style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>No business activities yet</p>
           )}
         </div>
+        )}
       </div>
     </div>
   );

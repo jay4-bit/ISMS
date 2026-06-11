@@ -519,7 +519,6 @@ export default function ActivitiesPage() {
                                           {item.productName || item.details || item.action?.replace(/_/g, ' ') || '-'}
                                         </div>
                                         <div style={{ color: 'var(--muted-foreground)', fontSize: '0.7rem' }}>
-                                          {item.productSku && `SKU: ${item.productSku} · `}
                                           {item.quantity && `Qty: ${item.quantity}`}
                                           {item.reason && `Reason: ${item.reason}`}
                                           {item.status && `Status: ${item.status}`}

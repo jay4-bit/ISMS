@@ -658,6 +658,127 @@ body {
   }
 }
 
+/* Compact settings page — base level */
+.settings-container {
+  padding: 1rem !important;
+}
+.settings-container h1 {
+  font-size: 1.35rem !important;
+}
+.settings-container h1 + p {
+  font-size: 0.8rem !important;
+}
+.settings-tabs button.settings-tab {
+  padding: 0.5rem 0.75rem !important;
+  font-size: 0.8rem !important;
+  gap: 0.35rem !important;
+}
+.settings-tabs button.settings-tab svg {
+  width: 15px !important;
+  height: 15px !important;
+}
+.settings-content {
+  padding: 1rem !important;
+}
+.settings-content input,
+.settings-content select {
+  padding: 0.6rem !important;
+  font-size: 0.85rem !important;
+}
+.settings-section-header h2 {
+  font-size: 1.1rem !important;
+}
+.settings-alert-card {
+  padding: 0.75rem !important;
+}
+.settings-user-card {
+  padding: 0.75rem !important;
+}
+
+/* Compact settings page on smaller laptop screens (≤14" / 1366px) */
+@media (max-width: 1400px) {
+  .settings-container {
+    padding: 0.75rem !important;
+  }
+  .settings-container h1 {
+    font-size: 1.15rem !important;
+  }
+  .settings-container h1 + p {
+    font-size: 0.75rem !important;
+  }
+  .settings-tabs button.settings-tab {
+    padding: 0.45rem 0.6rem !important;
+    font-size: 0.75rem !important;
+  }
+  .settings-tabs button.settings-tab svg {
+    width: 13px !important;
+    height: 13px !important;
+  }
+  .settings-content {
+    padding: 0.75rem !important;
+  }
+  .settings-content input,
+  .settings-content select {
+    padding: 0.5rem !important;
+    font-size: 0.8rem !important;
+  }
+  .settings-section-header h2 {
+    font-size: 1rem !important;
+  }
+  .settings-alert-card {
+    padding: 0.625rem !important;
+  }
+  .settings-user-card {
+    padding: 0.625rem !important;
+    gap: 0.5rem !important;
+  }
+}
+
+/* Extra compact settings page on narrow windows (≤1100px) */
+@media (max-width: 1100px) {
+  .settings-container {
+    padding: 0.5rem !important;
+  }
+  .settings-container h1 {
+    font-size: 1rem !important;
+  }
+  .settings-container h1 + p {
+    font-size: 0.7rem !important;
+  }
+  .settings-tabs {
+    flex-wrap: wrap !important;
+    gap: 0.3rem !important;
+    padding: 0.3rem !important;
+  }
+  .settings-tabs button.settings-tab {
+    padding: 0.35rem 0.5rem !important;
+    font-size: 0.7rem !important;
+    gap: 0.25rem !important;
+    flex: 1 1 auto !important;
+  }
+  .settings-tabs button.settings-tab svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+  .settings-content {
+    padding: 0.5rem !important;
+  }
+  .settings-content input,
+  .settings-content select {
+    padding: 0.4rem !important;
+    font-size: 0.75rem !important;
+  }
+  .settings-section-header h2 {
+    font-size: 0.9rem !important;
+  }
+  .settings-alert-card {
+    padding: 0.5rem !important;
+  }
+  .settings-user-card {
+    padding: 0.5rem !important;
+  }
+}
+
 /* Mobile profit & loss page (≤768px) — see responsive section below */
 
 .responsive-container {

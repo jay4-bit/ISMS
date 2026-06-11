@@ -58,7 +58,7 @@ const DASHBOARD_PATHS = [
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, shop, logout, hasPermission } = useAuth();
+  const { user, shop, logout, hasPermission, loading: authLoading } = useAuth();
   const { settings, logo } = useSettings();
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
@@ -86,11 +86,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, []);
 
   useEffect(() => {
+    if (authLoading) return;
     const token = localStorage.getItem('token');
     if (!token) {
       router.replace('/');
     }
-  }, [router]);
+  }, [router, authLoading]);
 
   useEffect(() => {
     if (pathname === '/dashboard' && !hasPermission('dashboard', 'read') && !redirectAttempted.current) {
@@ -100,7 +101,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [pathname, hasPermission, router]);
 
-  if (!user || !shop) {
+  if (authLoading || !user || !shop) {
     return (
       <div style={styles.loading}>
         <div style={styles.spinner}></div>

@@ -20,6 +20,11 @@ export async function GET(request: NextRequest) {
       .filter(p => p.stockQuantity <= p.lowStockThreshold && !p.isFaulty)
       .slice(0, 5);
     const totalInventoryValue = products.reduce((sum, p) => sum + p.purchaseCost * Math.max(0, p.stockQuantity), 0);
+    const totalSellingValue = products.reduce((sum, p) => sum + p.sellingPrice * Math.max(0, p.stockQuantity), 0);
+
+    const nonFaulty = products.filter(p => !p.isFaulty);
+    const avgPurchaseCost = nonFaulty.length > 0 ? nonFaulty.reduce((sum, p) => sum + p.purchaseCost, 0) / nonFaulty.length : 0;
+    const avgSellingPrice = nonFaulty.length > 0 ? nonFaulty.reduce((sum, p) => sum + p.sellingPrice, 0) / nonFaulty.length : 0;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -97,6 +102,9 @@ export async function GET(request: NextRequest) {
         lowStockCount,
         lowStockItems,
         totalInventoryValue,
+        totalSellingValue,
+        avgPurchaseCost,
+        avgSellingPrice,
         todaySales: todayRevenue,
         todayProfit,
         salesCount,

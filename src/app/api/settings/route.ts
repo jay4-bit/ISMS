@@ -32,7 +32,10 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({ settings, logo: shop.logo || null });
+    // Parse dashboardConfig JSON string
+    const parsed = { ...settings, dashboardConfig: settings.dashboardConfig ? JSON.parse(settings.dashboardConfig) : null };
+
+    return NextResponse.json({ settings: parsed, logo: shop.logo || null });
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'Unknown error';
     console.error('Get settings error:', msg);
@@ -59,6 +62,7 @@ export async function PUT(request: NextRequest) {
         lowStockAlert: body.lowStockAlert,
         expiryAlert: body.expiryAlert,
         expiryAlertDays: body.expiryAlertDays,
+        dashboardConfig: body.dashboardConfig !== undefined ? JSON.stringify(body.dashboardConfig) : undefined,
       },
       create: {
         shopId,
@@ -72,10 +76,12 @@ export async function PUT(request: NextRequest) {
         lowStockAlert: body.lowStockAlert ?? true,
         expiryAlert: body.expiryAlert ?? true,
         expiryAlertDays: body.expiryAlertDays || 7,
+        dashboardConfig: body.dashboardConfig !== undefined ? JSON.stringify(body.dashboardConfig) : undefined,
       },
     });
 
-    return NextResponse.json({ settings });
+    const parsed = { ...settings, dashboardConfig: settings.dashboardConfig ? JSON.parse(settings.dashboardConfig) : null };
+    return NextResponse.json({ settings: parsed });
   } catch (error) {
     console.error('Update settings error:', error);
     const message = error instanceof Error ? error.message : 'Failed to update settings';

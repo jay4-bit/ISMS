@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Undo2, Plus, X, AlertTriangle, RefreshCw, DollarSign, Wrench, FileText, Package, ArrowUpDown, Eye, Pencil, Trash2, CheckCircle } from 'lucide-react';
-import { formatCurrency, formatDate, getCurrencySymbol } from '@/lib/utils';
+import { formatCurrency, formatDate, formatShortDate, getCurrencySymbol } from '@/lib/utils';
 import { useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/components/AuthProvider';
 
@@ -377,7 +377,7 @@ export default function ReturnsPage() {
               return (
                 <tr key={returnRecord.id} style={{ borderBottom: '1px solid #334155' }}>
                   <td style={{ padding: '0.5rem 0.4rem', fontWeight: '600', whiteSpace: 'nowrap' }}>{returnRecord.returnNumber}</td>
-                  <td style={{ padding: '0.5rem 0.4rem', whiteSpace: 'nowrap' }}>{formatDate(returnRecord.createdAt)}</td>
+                  <td style={{ padding: '0.5rem 0.4rem', whiteSpace: 'nowrap' }}>{formatShortDate(returnRecord.createdAt)}</td>
                   <td style={{ padding: '0.5rem 0.4rem', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {returnRecord.items.map((item: ReturnItem) => (
                       <div key={item.id} style={{ fontSize: '0.7rem', marginBottom: '0.15rem', display: 'flex', gap: '0.2rem', flexWrap: 'nowrap' }}>
@@ -493,7 +493,7 @@ export default function ReturnsPage() {
               >
                 <option value="">-- Select a product --</option>
                 {soldProducts.filter(p => !returnItems.find(item => item.productId === p.id) && !returnedProductIds.has(p.id)).map(p => (
-                  <option key={p.id} value={p.id}>{p.name} ({p.sku}){p.electronicsFields?.imei ? ` [IMEI: ${p.electronicsFields.imei}]` : ''}</option>
+                  <option key={p.id} value={p.id}>{p.name}{p.electronicsFields?.imei ? ` [IMEI: ${p.electronicsFields.imei}]` : ''}</option>
                 ))}
               </select>
             </div>
@@ -520,7 +520,6 @@ export default function ReturnsPage() {
                         <tr key={item.productId} style={{ borderBottom: '1px solid #334155' }}>
                           <td style={{ padding: '0.35rem 0.3rem' }}>
                             <div style={{ fontWeight: '500', color: 'var(--foreground)', fontSize: '0.7rem' }}>{item.product.name}</div>
-                            <div style={{ fontSize: '0.6rem', color: 'var(--muted-foreground)' }}>{item.product.sku}</div>
                             {item.product.electronicsFields?.imei && (
                               <div style={{ fontSize: '0.55rem', color: 'var(--warning)', fontFamily: 'monospace' }}>IMEI: {item.product.electronicsFields.imei}</div>
                             )}
@@ -688,7 +687,6 @@ export default function ReturnsPage() {
                         <tr key={item.id} style={{ borderTop: '1px solid #334155' }}>
                           <td style={{ padding: '0.35rem 0.3rem' }}>
                             <div style={{ fontWeight: '500', color: 'var(--foreground)', fontSize: '0.75rem' }}>{item.product?.name}</div>
-                            <div style={{ fontSize: '0.6rem', color: 'var(--muted-foreground)' }}>{item.product?.sku}</div>
                             {item.product?.electronicsFields?.imei && (
                               <div style={{ fontSize: '0.55rem', color: 'var(--warning)', fontFamily: 'monospace' }}>IMEI: {item.product.electronicsFields.imei}</div>
                             )}

@@ -5,7 +5,8 @@ import {
   Settings as SettingsIcon, Building2, Phone, Mail, MapPin, DollarSign, 
   Users, UserPlus, Edit, Trash2, X, Save, Bell, Shield, Palette,
   Check, AlertTriangle, Key, User, Sun, Moon, RotateCcw,
-  Eye, Lock, Plus, Clock, CalendarDays, Upload, Image as ImageIcon, Database, Download
+  Eye, Lock, Plus, Clock, CalendarDays, Upload, Image as ImageIcon, Database, Download,
+  LayoutDashboard
 } from 'lucide-react';
 import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
 import { CURRENCIES, useSettings } from '@/context/SettingsContext';
@@ -32,12 +33,13 @@ interface Settings {
   lowStockAlert: boolean;
   expiryAlert: boolean;
   expiryAlertDays: number;
+  dashboardConfig: Record<string, boolean> | null;
 }
 
 export default function SettingsPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'business' | 'users' | 'alerts' | 'permissions' | 'types' | 'profile' | 'theme' | 'reminders' | 'data'>('business');
+  const [activeTab, setActiveTab] = useState<'business' | 'users' | 'alerts' | 'permissions' | 'types' | 'profile' | 'theme' | 'reminders' | 'data' | 'dashboard'>('business');
   const [showUserModal, setShowUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -61,6 +63,7 @@ export default function SettingsPage() {
     lowStockAlert: true,
     expiryAlert: true,
     expiryAlertDays: 7,
+    dashboardConfig: null,
   });
 
   const [userForm, setUserForm] = useState({
@@ -138,7 +141,11 @@ export default function SettingsPage() {
       if (res.ok) {
         const data = await res.json();
         if (data.settings) {
-          setSettings(prev => ({ ...prev, ...data.settings }));
+          const s = { ...data.settings };
+          if (typeof s.dashboardConfig === 'string') {
+            try { s.dashboardConfig = JSON.parse(s.dashboardConfig); } catch { s.dashboardConfig = null; }
+          }
+          setSettings(prev => ({ ...prev, ...s }));
         }
         showNotification('Settings saved successfully!', 'success');
         refreshSettings();
@@ -465,9 +472,31 @@ export default function SettingsPage() {
     { id: 'permissions', label: 'Permissions', icon: Shield },
     { id: 'reminders', label: 'Reminders', icon: Clock },
     { id: 'alerts', label: 'Alerts', icon: Bell },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'theme', label: 'Theme', icon: Sun },
     ...(authUser?.role === 'OWNER' ? [{ id: 'data' as const, label: 'Data', icon: Database }] : []),
+  ];
+
+  const DASHBOARD_WIDGETS = [
+    { id: 'stat-total-products', label: 'Total Products', desc: 'Total products count card' },
+    { id: 'stat-low-stock-alerts', label: 'Low Stock Alerts', desc: 'Low stock alert stat card' },
+    { id: 'stat-expiry-alerts', label: 'Expiry Alerts', desc: 'Expiry alert stat card' },
+    { id: 'stat-today-sales', label: "Today's Sales", desc: 'Today sales revenue stat card' },
+    { id: 'stat-net-profit', label: 'Net Profit Today', desc: 'Net profit stat card' },
+    { id: 'summary-today-transactions', label: "Today's Transactions", desc: 'Transaction count summary' },
+    { id: 'summary-returns-today', label: 'Returns Today', desc: 'Today returns summary' },
+    { id: 'summary-expenses-today', label: 'Expenses Today', desc: 'Today expenses summary' },
+    { id: 'inventory-value-cost', label: 'Inventory Value', desc: 'Total inventory cost value' },
+    { id: 'stat-total-selling-value', label: 'Total Selling Value', desc: 'Total retail value of all stock' },
+    { id: 'avg-cost-price', label: 'Avg Cost / Price', desc: 'Average purchase cost and selling price' },
+    { id: 'quick-actions', label: 'Quick Actions', desc: 'Quick action buttons' },
+    { id: 'fast-moving-items', label: 'Fast Moving Items', desc: 'Best-selling products list' },
+    { id: 'slow-moving-items', label: 'Slow Moving Items', desc: 'Slow-selling products list' },
+    { id: 'low-stock-items', label: 'Low Stock Items', desc: 'Products below stock threshold' },
+    { id: 'expiring-expired-items', label: 'Expiring Items', desc: 'Expiring and expired products' },
+    { id: 'accounts-activity-feed', label: 'Accounts Activity', desc: 'User login and registration activity' },
+    { id: 'business-activity-feed', label: 'Business Activities', desc: 'Sales, returns, expenses, products activity' },
   ];
 
   const roles = [
@@ -1028,6 +1057,48 @@ export default function SettingsPage() {
 
             <button onClick={handleSaveSettings} style={styles.saveBtn}>
               <Save size={18} /> Save Alert Settings
+            </button>
+          </div>
+        )}
+
+        {activeTab === 'dashboard' && (
+          <div style={styles.section}>
+            <div style={styles.sectionHeader} className="settings-section-header">
+              <LayoutDashboard size={20} />
+              <h2>Dashboard Widgets</h2>
+            </div>
+            <p style={{ color: 'var(--muted-foreground)', fontSize: '0.8rem', marginBottom: '1rem' }}>
+              Toggle which widgets appear on your dashboard. Changes take effect immediately after saving.
+            </p>
+
+            {DASHBOARD_WIDGETS.map(widget => {
+              const visible = settings.dashboardConfig?.[widget.id] !== false;
+              return (
+                <div key={widget.id} style={styles.alertCard} className="settings-alert-card">
+                  <div style={styles.alertInfo}>
+                    <div style={styles.alertTitle}>{widget.label}</div>
+                    <div style={styles.alertDesc}>{widget.desc}</div>
+                  </div>
+                  <label style={{ ...styles.toggle }}>
+                    <input
+                      type="checkbox"
+                      checked={visible}
+                      onChange={(e) => {
+                        const cfg = { ...(settings.dashboardConfig || {}) };
+                        cfg[widget.id] = e.target.checked;
+                        setSettings({ ...settings, dashboardConfig: cfg });
+                      }}
+                      style={styles.toggleInput}
+                    />
+                    <span style={{ ...styles.toggleSlider, background: visible ? '#3b82f6' : 'var(--border)' }} />
+                    <span style={{ ...styles.toggleKnob, transform: visible ? 'translateX(24px)' : 'translateX(0)' }} />
+                  </label>
+                </div>
+              );
+            })}
+
+            <button onClick={handleSaveSettings} style={styles.saveBtn}>
+              <Save size={18} /> Save Dashboard Settings
             </button>
           </div>
         )}

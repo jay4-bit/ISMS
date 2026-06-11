@@ -1123,7 +1123,6 @@ export default function InventoryPage() {
             <thead>
               <tr style={{ background: 'var(--card)' }}>
                 <th style={{ minWidth: '160px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>PRODUCT</th>
-                <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>SKU</th>
                 <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>CATEGORY</th>
                 <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>BRAND</th>
                 <th style={{ padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>BATCH</th>
@@ -1143,7 +1142,6 @@ export default function InventoryPage() {
                     <td style={{ padding: '0.5rem' }}>
                       <div style={{ fontWeight: '500', color: 'var(--foreground)', fontSize: '0.8rem' }}>{product.name}</div>
                     </td>
-                    <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem', fontFamily: 'monospace' }}>{product.sku}</td>
                     <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>{product.category?.name || '-'}</td>
                     <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>{pf.brandName || '-'}</td>
                     <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem', fontFamily: 'monospace' }}>{pf.batchNumber || '-'}</td>
@@ -1175,28 +1173,28 @@ export default function InventoryPage() {
             </tbody>
           </table>
         ) : isLiquor ? (
-          <table className="table" style={{ fontSize: '0.8rem', width: '100%', borderCollapse: 'collapse' }}>
+          <table className="table" style={{ fontSize: '0.8rem', width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'var(--card)' }}>
-                <th style={{ minWidth: '180px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>PRODUCT</th>
-                <th style={{ width: '90px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>CATEGORY</th>
-                <th style={{ width: '70px', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>SIZE (ml)</th>
-                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>COST PRICE</th>
-                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>SELLING PRICE</th>
-                <th style={{ width: '60px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>STOCK</th>
-                <th style={{ width: '80px', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>ACTIONS</th>
+                <th style={{ width: '30%', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>PRODUCT</th>
+                <th style={{ width: '16%', padding: '0.5rem', textAlign: 'left', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>CATEGORY</th>
+                <th style={{ width: '10%', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>SIZE (ml)</th>
+                <th style={{ width: '13%', padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>COST PRICE</th>
+                <th style={{ width: '13%', padding: '0.5rem', textAlign: 'right', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>SELLING PRICE</th>
+                <th style={{ width: '8%', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>STOCK</th>
+                <th style={{ width: '10%', padding: '0.5rem', textAlign: 'center', borderBottom: '2px solid var(--border)', color: 'var(--muted-foreground)', fontWeight: '600', fontSize: '0.7rem' }}>ACTIONS</th>
               </tr>
             </thead>
             <tbody>
               {filteredProducts.map((product, index) => (
                 <tr key={product.id} style={{ background: index % 2 === 0 ? 'var(--card)' : 'var(--background)' }}>
-                  <td style={{ padding: '0.5rem' }}>
+                  <td style={{ padding: '0.5rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     <div style={{ fontWeight: '500', color: 'var(--foreground)', fontSize: '0.8rem' }}>{product.name}</div>
                   </td>
                   <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>{product.category?.name || '-'}</td>
-                  <td style={{ padding: '0.5rem', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>{(product as any).liquorFields?.size ? `${(product as any).liquorFields.size}ml` : '-'}</td>
-                  <td style={{ padding: '0.5rem', textAlign: 'right', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>{formatCurrency(product.purchaseCost, shop?.currency ?? 'TZS')}</td>
-                  <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: 'var(--success)', fontSize: '0.75rem' }}>{formatCurrency(product.sellingPrice, shop?.currency ?? 'TZS')}</td>
+                  <td style={{ padding: '0.5rem', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>{(product as any).liquorFields?.size ? `${(product as any).liquorFields.size}ml` : '-'}</td>
+                  <td style={{ padding: '0.5rem', textAlign: 'right', color: 'var(--muted-foreground)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{formatCurrency(product.purchaseCost, shop?.currency ?? 'TZS')}</td>
+                  <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: '600', color: 'var(--success)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{formatCurrency(product.sellingPrice, shop?.currency ?? 'TZS')}</td>
                   <td style={{ padding: '0.5rem', textAlign: 'center' }}>
                     <span style={{ fontWeight: '600', fontSize: '0.75rem', color: product.stockQuantity <= product.lowStockThreshold ? 'var(--warning)' : product.stockQuantity === 0 ? 'var(--destructive)' : 'var(--foreground)' }}>
                       {product.stockQuantity}
@@ -2132,7 +2130,6 @@ export default function InventoryPage() {
                 <h3 style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Basic Information</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                   <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Name</div><div style={{ color: 'var(--foreground)', fontWeight: '500', fontSize: '0.85rem' }}>{viewingProduct.name}</div></div>
-                  <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>SKU</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem', fontFamily: 'monospace' }}>{viewingProduct.sku}</div></div>
                   <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Barcode</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem', fontFamily: 'monospace' }}>{viewingProduct.barcode || '-'}</div></div>
                   <div><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Category</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.category?.name || '-'}</div></div>
                   <div style={{ gridColumn: 'span 2' }}><div style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Description</div><div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>{viewingProduct.description || '-'}</div></div>

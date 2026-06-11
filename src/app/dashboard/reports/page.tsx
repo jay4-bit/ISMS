@@ -50,8 +50,8 @@ export default function ReportsPage() {
         csv += `"${formatDate(ret.createdAt)}","${ret.returnNumber}","${ret.reason}",${itemCount},${totalRefund}\n`;
       });
     } else if (reportType === 'inventory') {
-      csv = 'Product,SKU,Category,Stock,Cost,Price,Value\n';
-      reportData.products?.forEach((p: any) => { csv += `"${p.name}","${p.sku}","${p.category?.name}",${p.stockQuantity},${p.purchaseCost},${p.sellingPrice},${p.sellingPrice * p.stockQuantity}\n`; });
+      csv = 'Product,Category,Stock,Cost,Price,Value\n';
+      reportData.products?.forEach((p: any) => { csv += `"${p.name}","${p.category?.name}",${p.stockQuantity},${p.purchaseCost},${p.sellingPrice},${p.sellingPrice * p.stockQuantity}\n`; });
     }
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -72,7 +72,7 @@ export default function ReportsPage() {
           <div style={{ flex: 1, minWidth: '200px' }}><label className="label">Search Product / Keyword</label>
             <div style={{ position: 'relative' }}>
               <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-foreground)' }} />
-              <input type="text" className="input" placeholder="Search by product name or SKU..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ padding: '0.5rem', paddingLeft: '34px', width: '100%' }} />
+              <input type="text" className="input" placeholder="Search by product name..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ padding: '0.5rem', paddingLeft: '34px', width: '100%' }} />
             </div>
           </div>
           <div><label className="label">Start Date</label><input type="date" className="input" style={{ width: '180px' }} value={dateRange.startDate} onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })} /></div>
@@ -112,8 +112,8 @@ export default function ReportsPage() {
           </div>
           <div className="card table-responsive" style={{ padding: 0, overflow: 'hidden' }}>
             <table className="table">
-              <thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Stock</th><th>Cost</th><th>Price</th><th>Value</th><th>Status</th></tr></thead>
-              <tbody>{reportData.products?.map((product: any) => (<tr key={product.id}><td style={{ fontWeight: '500' }}>{product.name}</td><td>{product.sku}</td><td>{product.category?.name}</td><td style={{ color: product.stockQuantity <= product.lowStockThreshold ? '#f59e0b' : undefined }}>{product.stockQuantity}</td><td>{formatCurrency(product.purchaseCost)}</td><td>{formatCurrency(product.sellingPrice)}</td><td style={{ fontWeight: '600' }}>{formatCurrency(product.sellingPrice * product.stockQuantity)}</td><td>{product.isFaulty ? <span className="badge badge-danger">Faulty</span> : product.stockQuantity <= product.lowStockThreshold ? <span className="badge badge-warning">Low Stock</span> : <span className="badge badge-success">OK</span>}</td></tr>))}</tbody>
+              <thead><tr><th>Product</th><th>Category</th><th>Stock</th><th>Cost</th><th>Price</th><th>Value</th><th>Status</th></tr></thead>
+              <tbody>{reportData.products?.map((product: any) => (<tr key={product.id}><td style={{ fontWeight: '500' }}>{product.name}</td><td>{product.category?.name}</td><td style={{ color: product.stockQuantity <= product.lowStockThreshold ? '#f59e0b' : undefined }}>{product.stockQuantity}</td><td>{formatCurrency(product.purchaseCost)}</td><td>{formatCurrency(product.sellingPrice)}</td><td style={{ fontWeight: '600' }}>{formatCurrency(product.sellingPrice * product.stockQuantity)}</td><td>{product.isFaulty ? <span className="badge badge-danger">Faulty</span> : product.stockQuantity <= product.lowStockThreshold ? <span className="badge badge-warning">Low Stock</span> : <span className="badge badge-success">OK</span>}</td></tr>))}</tbody>
             </table>
           </div>
         </div>

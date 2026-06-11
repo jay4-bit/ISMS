@@ -265,20 +265,18 @@ export default function StockCountPage() {
                 <thead>
                   <tr>
                     <th>Product</th>
-                    <th>SKU</th>
                     <th>System Qty</th>
                     <th>Counted Qty</th>
                     <th>Variance</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.sku.toLowerCase().includes(search.toLowerCase())).map(product => {
+                    {products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.sku.toLowerCase().includes(search.toLowerCase())).map(product => {
                     const counted = countedItems[product.id] ?? product.stockQuantity;
                     const variance = counted - product.stockQuantity;
                     return (
                       <tr key={product.id} style={{ background: variance !== 0 ? '#fef3c7' : undefined }}>
                         <td>{product.name}</td>
-                        <td>{product.sku}</td>
                         <td>{product.stockQuantity}</td>
                         <td>
                           <input

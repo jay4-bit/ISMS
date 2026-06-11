@@ -59,6 +59,14 @@ export function formatDate(date: Date | string): string {
   }).format(new Date(date));
 }
 
+export function formatShortDate(date: Date | string): string {
+  const d = new Date(date);
+  const month = d.toLocaleString('en-us', { month: 'short' }).toLowerCase();
+  const day = d.getDate();
+  const year = d.getFullYear().toString().slice(-2);
+  return `${month} ${day}, ${year}`;
+}
+
 export function generateReceiptNumber(): string {
   const timestamp = Date.now().toString(36).toUpperCase();
   const random = Math.random().toString(36).substring(2, 6).toUpperCase();

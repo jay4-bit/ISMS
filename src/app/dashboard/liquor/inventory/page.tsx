@@ -229,13 +229,13 @@ export default function LiquorInventoryPage() {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
           <thead>
             <tr style={{ background: '#0f172a' }}>
-              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>PRODUCT</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>CATEGORY</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>SIZE (ml)</th>
-              <th style={{ padding: '0.75rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>COST PRICE</th>
-              <th style={{ padding: '0.75rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>SELLING PRICE</th>
-              <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>STOCK</th>
-              <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>ACTIONS</th>
+              <th style={{ width: '200px', padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>PRODUCT</th>
+              <th style={{ width: '130px', padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>CATEGORY</th>
+              <th style={{ width: '80px', padding: '0.75rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>SIZE (ml)</th>
+              <th style={{ width: '110px', padding: '0.75rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>COST PRICE</th>
+              <th style={{ width: '110px', padding: '0.75rem', textAlign: 'right', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>SELLING PRICE</th>
+              <th style={{ width: '70px', padding: '0.75rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>STOCK</th>
+              <th style={{ width: '100px', padding: '0.75rem', textAlign: 'center', borderBottom: '2px solid #334155', color: '#94a3b8', fontWeight: '600', fontSize: '0.7rem' }}>ACTIONS</th>
             </tr>
           </thead>
           <tbody>
@@ -243,9 +243,9 @@ export default function LiquorInventoryPage() {
               <tr key={product.id} style={{ background: idx % 2 === 0 ? '#1e293b' : '#0f172a' }}>
                 <td style={{ padding: '0.75rem', fontWeight: '500', color: '#f1f5f9' }}>{product.name}</td>
                 <td style={{ padding: '0.75rem', color: '#94a3b8', fontSize: '0.75rem' }}>{['Whisky','Whiskey','Beer','Wine','Vodka','Gin','Rum','Brandy','Champagne','Spirits','Liqueur','Tequila','Cider','Sake','Cocktail Mixers','Accessories','Fortified Wine','Vermouth'].includes(product.category?.name||'') ? product.category!.name : '-'}</td>
-                <td style={{ padding: '0.75rem', color: '#94a3b8', fontSize: '0.75rem' }}>{product.liquorFields?.size ? `${product.liquorFields.size}ml` : '-'}</td>
-                <td style={{ padding: '0.75rem', textAlign: 'right', color: '#94a3b8', fontSize: '0.75rem' }}>{formatCurrency(product.purchaseCost)}</td>
-                <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#22c55e', fontSize: '0.75rem' }}>{formatCurrency(product.sellingPrice)}</td>
+                <td style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.75rem' }}>{product.liquorFields?.size ? `${product.liquorFields.size}ml` : '-'}</td>
+                <td style={{ padding: '0.75rem', textAlign: 'right', color: '#94a3b8', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{formatCurrency(product.purchaseCost)}</td>
+                <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#22c55e', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{formatCurrency(product.sellingPrice)}</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>
                   <span style={{
                     fontWeight: '600', fontSize: '0.75rem',
@@ -310,7 +310,6 @@ export default function LiquorInventoryPage() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>SKU</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.sku}</div></div>
               </div>
               {viewingProduct.liquorFields && (
                 <>

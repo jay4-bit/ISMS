@@ -623,6 +623,7 @@ model ShopSettings {
   pharmacyName    String?
   pharmacistName  String?
   pharmacistLicense String?
+  dashboardConfig   String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
