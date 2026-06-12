@@ -32,7 +32,9 @@ import {
   Sun,
   Moon,
   Clock,
-  Activity
+  Activity,
+  BookOpen,
+  HandCoins
 } from 'lucide-react';
 import { SHOP_TYPE_CONFIG } from '@/lib/auth';
 import { useSettings } from '@/context/SettingsContext';
@@ -54,6 +56,8 @@ const DASHBOARD_PATHS = [
   { name: 'Reports', href: '/dashboard/reports', icon: BarChart3, permission: 'reports' },
   { name: 'Users', href: '/dashboard/users', icon: Users, permission: 'users' },
   { name: 'Activities', href: '/dashboard/activities', icon: Activity, permission: 'activities' },
+  { name: 'Accountings', href: '/dashboard/accountings', icon: BookOpen, permission: 'accountings' },
+  { name: 'Debts', href: '/dashboard/debts', icon: HandCoins, permission: 'debts' },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings, permission: 'settings' },
 ];
 

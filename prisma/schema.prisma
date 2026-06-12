@@ -61,6 +61,7 @@ model Shop {
   activities  Activity[]
   reminders   Reminder[]
   customRoles CustomRole[]
+  debts       Debt[]
 
   @@unique([name, shopType])
 }
@@ -665,4 +666,48 @@ model Activity {
   action    String
   details   String?
   createdAt DateTime @default(now())
+}
+
+enum DebtType {
+  DEBTOR
+  CREDITOR
+}
+
+enum DebtStatus {
+  ACTIVE
+  SETTLED
+  CANCELLED
+}
+
+model Debt {
+  id          String     @id @default(cuid())
+  personName  String
+  personPhone String?
+  type        DebtType
+  amount      Float
+  paidAmount  Float      @default(0)
+  description String?
+  dueDate     DateTime?
+  status      DebtStatus @default(ACTIVE)
+  shopId      String
+  shop        Shop       @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  createdBy   String?
+  notes       String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  payments    DebtPayment[]
+
+  @@index([shopId, type])
+}
+
+model DebtPayment {
+  id        String   @id @default(cuid())
+  debtId    String
+  debt      Debt     @relation(fields: [debtId], references: [id], onDelete: Cascade)
+  amount    Float
+  paidAt    DateTime @default(now())
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@index([debtId])
 }

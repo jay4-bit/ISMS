@@ -1718,3 +1718,12 @@ body {
   background: var(--muted);
   color: var(--foreground);
 }
+
+.debt-status-select {
+  color: var(--foreground) !important;
+  background: transparent !important;
+}
+.debt-status-select option {
+  color: #000000 !important;
+  background: #ffffff !important;
+}

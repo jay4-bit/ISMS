@@ -13,6 +13,8 @@ export const MODULES = [
   { id: 'reports', name: 'Reports', description: 'Generate business reports' },
   { id: 'users', name: 'Users', description: 'Manage system users' },
   { id: 'activities', name: 'Activities', description: 'View user activities and KPIs' },
+  { id: 'accountings', name: 'Accountings', description: 'View accounting records and analysis' },
+  { id: 'debts', name: 'Debts', description: 'Track debtors and creditors' },
   { id: 'settings', name: 'Settings', description: 'Configure system settings' },
 ];
 
@@ -33,6 +35,8 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, { module: string; canRead:
     { module: 'reports', canRead: true, canWrite: true, canDelete: false },
     { module: 'users', canRead: true, canWrite: false, canDelete: false },
     { module: 'activities', canRead: true, canWrite: false, canDelete: false },
+    { module: 'accountings', canRead: true, canWrite: false, canDelete: false },
+    { module: 'debts', canRead: true, canWrite: true, canDelete: false },
     { module: 'settings', canRead: true, canWrite: false, canDelete: false },
   ],
   CASHIER: [
