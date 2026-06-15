@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
         awardedType: item.awardedType || 'REFUND',
         awardedAmount: item.awardedAmount || 0,
         repairCost: item.repairCost || 0,
-        returnCost: item.returnCost ?? (product?.purchaseCost || 0) * item.quantity,
+        returnCost: item.returnCost ?? 0,
         replacementProductName: item.replacementProductName || null,
         replacementProductId: item.replacementProductId || null,
         replacementProductPrice: replacementProductPrice,

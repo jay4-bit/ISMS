@@ -315,7 +315,131 @@ export async function POST(request: NextRequest) {
         result.imported++;
       }
 
-      // 10. Activities
+      // 10. Purchase Orders
+      for (const po of (body.purchaseOrders || [])) {
+        const exists = await tx.purchaseOrder.findUnique({ where: { orderNumber: po.orderNumber } }).catch(() => null);
+        if (exists) { idMap[po.id] = exists.id; result.skipped++; continue; }
+        const supplierId = idMap[po.supplierId] || po.supplierId;
+        const created = await tx.purchaseOrder.create({
+          data: {
+            orderNumber: po.orderNumber,
+            supplierId,
+            status: po.status || 'PENDING',
+            totalAmount: po.totalAmount || 0,
+            paidAmount: po.paidAmount || 0,
+            notes: po.notes,
+            expectedDelivery: po.expectedDelivery ? new Date(po.expectedDelivery) : null,
+            receivedAt: po.receivedAt ? new Date(po.receivedAt) : null,
+            createdBy: idMap[po.createdBy] || po.createdBy || userId,
+            shopId,
+            createdAt: po.createdAt ? new Date(po.createdAt) : undefined,
+            items: po.items && Array.isArray(po.items) ? {
+              create: po.items.map((item: any) => ({
+                productId: idMap[item.productId] || item.productId || null,
+                quantityOrdered: item.quantityOrdered || 1,
+                quantityReceived: item.quantityReceived || 0,
+                unitCost: item.unitCost || 0,
+                totalCost: item.totalCost || 0,
+                productName: item.productName || null,
+                productSku: item.productSku || null,
+                productBarcode: item.productBarcode || null,
+                sellingPrice: item.sellingPrice || null,
+                wholesalePrice: item.wholesalePrice || null,
+                electronicsBrand: item.electronicsBrand || null,
+                electronicsModel: item.electronicsModel || null,
+                electronicsImei: item.electronicsImei || null,
+                electronicsColor: item.electronicsColor || null,
+                electronicsStorage: item.electronicsStorage || null,
+                electronicsCondition: item.electronicsCondition || null,
+                pharmacyBrandName: item.pharmacyBrandName || null,
+                pharmacyGenericName: item.pharmacyGenericName || null,
+                pharmacyBatchNumber: item.pharmacyBatchNumber || null,
+                pharmacyManufacturingDate: item.pharmacyManufacturingDate ? new Date(item.pharmacyManufacturingDate) : null,
+                pharmacyExpiryDate: item.pharmacyExpiryDate ? new Date(item.pharmacyExpiryDate) : null,
+                pharmacyCategoryName: item.pharmacyCategoryName || null,
+                clothingBrand: item.clothingBrand || null,
+                clothingVariants: item.clothingVariants || null,
+                clothingCategoryName: item.clothingCategoryName || null,
+              })),
+            } : undefined,
+          },
+        });
+        idMap[po.id] = created.id;
+        result.imported++;
+      }
+
+      // 11. Stock Counts
+      for (const sc of (body.stockCounts || [])) {
+        const exists = await tx.stockCount.findUnique({ where: { countNumber: sc.countNumber } }).catch(() => null);
+        if (exists) { result.skipped++; continue; }
+        const created = await tx.stockCount.create({
+          data: {
+            countNumber: sc.countNumber,
+            status: sc.status || 'COMPLETED',
+            notes: sc.notes,
+            startedAt: sc.startedAt ? new Date(sc.startedAt) : undefined,
+            completedAt: sc.completedAt ? new Date(sc.completedAt) : (sc.status === 'COMPLETED' ? new Date() : null),
+            createdBy: idMap[sc.createdBy] || sc.createdBy || userId,
+            shopId,
+            items: sc.items && Array.isArray(sc.items) ? {
+              create: sc.items.map((item: any) => ({
+                productId: idMap[item.productId] || item.productId,
+                systemQty: item.systemQty || 0,
+                countedQty: item.countedQty ?? null,
+                variance: item.variance ?? null,
+                notes: item.notes || null,
+              })),
+            } : undefined,
+          },
+        });
+        result.imported++;
+      }
+
+      // 12. Debts + Debt Payments
+      for (const d of (body.debts || [])) {
+        const created = await tx.debt.create({
+          data: {
+            personName: d.personName,
+            phone: d.phone || null,
+            type: d.type || 'DEBTOR',
+            amount: d.amount || 0,
+            paidAmount: d.paidAmount || 0,
+            status: d.status || 'ACTIVE',
+            notes: d.notes || null,
+            dueDate: d.dueDate ? new Date(d.dueDate) : null,
+            shopId,
+            createdAt: d.createdAt ? new Date(d.createdAt) : undefined,
+            payments: d.payments && Array.isArray(d.payments) ? {
+              create: d.payments.map((p: any) => ({
+                amount: p.amount || 0,
+                paidAt: p.paidAt ? new Date(p.paidAt) : undefined,
+                notes: p.notes || null,
+              })),
+            } : undefined,
+          },
+        });
+        idMap[d.id] = created.id;
+        result.imported++;
+      }
+
+      // 13. Stock Movements
+      for (const sm of (body.stockMovements || [])) {
+        const productId = idMap[sm.productId] || sm.productId;
+        await tx.stockMovement.create({
+          data: {
+            productId,
+            type: sm.type || 'ADJUSTMENT',
+            quantity: sm.quantity || 0,
+            reference: sm.reference || null,
+            reason: sm.reason || null,
+            createdBy: idMap[sm.createdBy] || sm.createdBy || userId,
+            createdAt: sm.createdAt ? new Date(sm.createdAt) : undefined,
+          },
+        });
+        result.imported++;
+      }
+
+      // 13. Activities
       for (const act of (body.recentActivities || [])) {
         await tx.activity.create({
           data: {

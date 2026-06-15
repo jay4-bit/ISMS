@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { logActivity } from '@/lib/activity-log';
 
 function generateBarcode(sku: string): string {
   const prefix = '2';
@@ -302,8 +303,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log('Product created:', product.id);
-    console.log('Liquor fields saved:', product.liquorFields);
+    logActivity({
+      shopId,
+      userId: body.userId || 'system',
+      userName: body.userName || 'System',
+      action: 'PRODUCT_CREATED',
+      details: `Product "${productName}" created (SKU: ${productSku})`,
+    });
 
     return NextResponse.json({ product });
   } catch (error) {
@@ -503,6 +509,14 @@ export async function PUT(request: NextRequest) {
       include: { category: true, electronicsFields: true, liquorFields: true, clothingFields: true, pharmacyFields: true, variants: true },
     });
 
+    logActivity({
+      shopId: request.headers.get('x-shop-id') || '',
+      userId: body.userId || 'system',
+      userName: body.userName || 'System',
+      action: 'PRODUCT_UPDATED',
+      details: `Product "${product.name}" updated`,
+    });
+
     return NextResponse.json({ product });
   } catch (error) {
     console.error('Update product error:', error);
@@ -519,7 +533,19 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Product ID required' }, { status: 400 });
     }
 
+    const shopId = request.headers.get('x-shop-id') || '';
+    const product = await prisma.product.findUnique({ where: { id } });
+    const productName = product?.name || id;
+
     await prisma.product.delete({ where: { id } });
+
+    logActivity({
+      shopId,
+      userId: request.headers.get('x-user-id') || 'system',
+      userName: request.headers.get('x-user-name') || 'System',
+      action: 'PRODUCT_DELETED',
+      details: `Product "${productName}" deleted`,
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

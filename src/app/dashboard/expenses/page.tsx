@@ -81,6 +81,7 @@ export default function ExpensesPage() {
           setFormData(prev => ({ ...prev, category: 'MAINTENANCE' }));
           setSelectedReturnItemId(params.get('returnItemId')!);
           setShowModal(true);
+          window.history.replaceState({}, '', '/dashboard/expenses');
         }
       }
     } catch (error) {

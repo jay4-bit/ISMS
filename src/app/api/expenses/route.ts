@@ -146,7 +146,44 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Expense ID and Shop ID required' }, { status: 400 });
     }
 
+    // Find the expense first to check if it's a maintenance record
+    const expense = await prisma.expense.findUnique({ where: { id, shopId } });
+
+    if (!expense) {
+      return NextResponse.json({ error: 'Expense not found' }, { status: 404 });
+    }
+
     await prisma.expense.delete({ where: { id, shopId } });
+
+    // If maintenance expense, revert product to faulty if no other maintenance for this return item
+    if (expense.category === 'MAINTENANCE' && expense.reference?.startsWith('RETURN_ITEM:')) {
+      const returnItemId = expense.reference.replace('RETURN_ITEM:', '');
+      const remainingCount = await prisma.expense.count({
+        where: { shopId, category: 'MAINTENANCE', reference: expense.reference },
+      });
+      const retItem = await prisma.returnItem.findUnique({ where: { id: returnItemId }, select: { productId: true } });
+      if (retItem) {
+        if (remainingCount > 0) {
+          const sum = await prisma.expense.aggregate({
+            where: { shopId, category: 'MAINTENANCE', reference: expense.reference },
+            _sum: { amount: true },
+          });
+          await prisma.returnItem.update({
+            where: { id: returnItemId },
+            data: { repairCost: sum._sum.amount || 0 },
+          });
+        } else {
+          await prisma.returnItem.update({
+            where: { id: returnItemId },
+            data: { repairCost: 0 },
+          });
+          await prisma.product.update({
+            where: { id: retItem.productId },
+            data: { isFaulty: true },
+          });
+        }
+      }
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

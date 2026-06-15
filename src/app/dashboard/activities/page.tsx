@@ -107,6 +107,9 @@ export default function ActivitiesPage() {
   const [userReportStart, setUserReportStart] = useState('');
   const [userReportEnd, setUserReportEnd] = useState('');
   const [widgetPage, setWidgetPage] = useState<Record<string, number>>({});
+  const [feedRangePreset, setFeedRangePreset] = useState<RangePreset>('all');
+  const [feedStartDate, setFeedStartDate] = useState('');
+  const [feedEndDate, setFeedEndDate] = useState('');
 
   const kpiRange = rangePreset === 'all' && !exportStartDate && !exportEndDate
     ? { start: '', end: '' }
@@ -114,7 +117,7 @@ export default function ActivitiesPage() {
 
   useEffect(() => {
     if (shop?.id) fetchActivities();
-  }, [shop?.id, page, userIdFilter, userNameFilter]);
+  }, [shop?.id, page, userIdFilter, userNameFilter, feedRangePreset, feedStartDate, feedEndDate]);
 
   useEffect(() => {
     if (shop?.id) fetchUsers();
@@ -130,6 +133,14 @@ export default function ActivitiesPage() {
       const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(page * PAGE_SIZE) });
       if (userIdFilter) params.set('userId', userIdFilter);
       if (userNameFilter) params.set('userName', userNameFilter);
+      if (feedStartDate || feedEndDate) {
+        if (feedStartDate) params.set('startDate', feedStartDate);
+        if (feedEndDate) params.set('endDate', feedEndDate);
+      } else if (feedRangePreset !== 'all') {
+        const range = getRangeDates(feedRangePreset);
+        if (range.start) params.set('startDate', range.start);
+        if (range.end) params.set('endDate', range.end);
+      }
       const res = await fetch(`/api/activities?${params}`, { headers: { 'x-shop-id': shop?.id || '' } });
       const data = await res.json();
       setActivities(data.activities || []);
@@ -160,7 +171,10 @@ export default function ActivitiesPage() {
 
   async function handleExportFeed() {
     try {
-      const res = await fetch(`/api/activities?limit=10000`, { headers: { 'x-shop-id': shop?.id || '' } });
+      const exportParams = new URLSearchParams({ limit: '10000' });
+      if (feedStartDate) exportParams.set('startDate', feedStartDate);
+      if (feedEndDate) exportParams.set('endDate', feedEndDate);
+      const res = await fetch(`/api/activities?${exportParams}`, { headers: { 'x-shop-id': shop?.id || '' } });
       const data = await res.json();
       const rows = (data.activities || []).map((a: any) =>
         `${a.createdAt},${a.userName || 'System'},${a.action},${a.details || ''}`
@@ -336,6 +350,23 @@ export default function ActivitiesPage() {
               {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
             </select>
             <input type="text" placeholder="Filter by user name..." value={userNameFilter} onChange={(e) => { setUserNameFilter(e.target.value); setPage(0); }} style={{ padding: '0.5rem 0.75rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.5rem', color: 'var(--foreground)', fontSize: '0.85rem', width: '220px' }} />
+            <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              {(['day', 'week', 'month', '3months', 'all'] as RangePreset[]).map(p => (
+                <button key={p} onClick={() => { setFeedRangePreset(p); setFeedStartDate(''); setFeedEndDate(''); setPage(0); }} style={{
+                  padding: '0.3rem 0.65rem', borderRadius: '0.375rem', border: '1px solid var(--border)',
+                  background: feedRangePreset === p && !feedStartDate && !feedEndDate ? 'var(--foreground)' : 'var(--card)',
+                  color: feedRangePreset === p && !feedStartDate && !feedEndDate ? 'var(--background)' : 'var(--foreground)',
+                  cursor: 'pointer', fontWeight: feedRangePreset === p && !feedStartDate && !feedEndDate ? '600' as const : '400' as const,
+                  fontSize: '0.75rem',
+                }}>
+                  {p === 'day' ? '24h' : p === 'week' ? '7d' : p === 'month' ? '30d' : p === '3months' ? '3m' : 'All'}
+                </button>
+              ))}
+              <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>|</span>
+              <input type="date" value={feedStartDate} onChange={(e) => { setFeedStartDate(e.target.value); setFeedRangePreset('all'); setPage(0); }} style={{ padding: '0.3rem 0.5rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.375rem', color: 'var(--foreground)', fontSize: '0.75rem', maxWidth: '130px' }} />
+              <span style={{ fontSize: '0.7rem', color: 'var(--muted-foreground)' }}>–</span>
+              <input type="date" value={feedEndDate} onChange={(e) => { setFeedEndDate(e.target.value); setFeedRangePreset('all'); setPage(0); }} style={{ padding: '0.3rem 0.5rem', background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '0.375rem', color: 'var(--foreground)', fontSize: '0.75rem', maxWidth: '130px' }} />
+            </div>
           </div>
           <div style={{ background: 'var(--card)', borderRadius: '0.75rem', border: '1px solid var(--border)', overflow: 'hidden' }}>
             {loading ? (

@@ -3,16 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import { 
   Settings as SettingsIcon, Building2, Phone, Mail, MapPin, DollarSign, 
-  Users, UserPlus, Edit, Trash2, X, Save, Bell, Shield, Palette,
-  Check, AlertTriangle, Key, User, Sun, Moon, RotateCcw,
-  Eye, Lock, Plus, Clock, CalendarDays, Upload, Image as ImageIcon, Database, Download,
-  LayoutDashboard
+  Users, Trash2, X, Save, Bell, Palette,
+  AlertTriangle, Key, User, Sun, Moon, Clock, CalendarDays, Upload, Image as ImageIcon, Database, Download,
+  LayoutDashboard, UserPlus, Plus, Check, Edit
 } from 'lucide-react';
-import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { CURRENCIES, useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/components/AuthProvider';
 import { useTheme } from '@/context/ThemeContext';
-import { MODULES } from '@/lib/permissions';
 
 interface User {
   id: string;
@@ -39,7 +37,7 @@ interface Settings {
 export default function SettingsPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'business' | 'users' | 'alerts' | 'permissions' | 'types' | 'profile' | 'theme' | 'reminders' | 'data' | 'dashboard'>('business');
+  const [activeTab, setActiveTab] = useState<'business' | 'users' | 'alerts' | 'types' | 'profile' | 'theme' | 'reminders' | 'data' | 'dashboard'>('business');
   const [showUserModal, setShowUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -79,14 +77,6 @@ export default function SettingsPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const [permSelectedRole, setPermSelectedRole] = useState('CASHIER');
-  const [permissions, setPermissions] = useState<any[]>([]);
-  const [permSaving, setPermSaving] = useState(false);
-  const [allRoles, setAllRoles] = useState<any[]>([]);
-  const [showRoleModal, setShowRoleModal] = useState(false);
-  const [editingRole, setEditingRole] = useState<any>(null);
-  const [roleForm, setRoleForm] = useState({ name: '', description: '', color: '#6b7280' });
-
   const [reminders, setReminders] = useState<any[]>([]);
   const [showReminderModal, setShowReminderModal] = useState(false);
   const [editingReminder, setEditingReminder] = useState<any>(null);
@@ -100,7 +90,7 @@ export default function SettingsPage() {
   const [importLoading, setImportLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
-  useEffect(() => { if (shop?.id) { fetchData(); fetchRoles(); fetchReminders(); } }, [shop?.id]);
+  useEffect(() => { if (shop?.id) { fetchData(); fetchReminders(); } }, [shop?.id]);
 
   async function fetchData() {
     try {
@@ -307,68 +297,6 @@ export default function SettingsPage() {
     }
   }
 
-  async function fetchRoles() {
-    try {
-      const res = await fetch('/api/roles', { headers: { 'x-shop-id': shop?.id || '' } });
-      const data = await res.json();
-      setAllRoles(data.roles || []);
-    } catch (error) {
-      console.error('Failed to fetch roles:', error);
-    }
-  }
-
-  function openRoleModal(role?: any) {
-    if (role && !role.builtIn) {
-      setEditingRole(role);
-      setRoleForm({ name: role.name, description: role.description || '', color: role.color || '#6b7280' });
-    } else {
-      setEditingRole(null);
-      setRoleForm({ name: '', description: '', color: '#6b7280' });
-    }
-    setShowRoleModal(true);
-  }
-
-  async function handleSaveRole() {
-    if (!roleForm.name.trim()) { showNotification('Role name is required', 'error'); return; }
-    try {
-      const url = '/api/roles';
-      const method = editingRole ? 'PUT' : 'POST';
-      const body = editingRole
-        ? { id: editingRole.id, name: roleForm.name, description: roleForm.description, color: roleForm.color }
-        : { name: roleForm.name, description: roleForm.description, color: roleForm.color };
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
-        body: JSON.stringify(body),
-      });
-      if (res.ok) {
-        showNotification(editingRole ? 'Role updated!' : 'Role created!', 'success');
-        setShowRoleModal(false);
-        fetchRoles();
-      } else {
-        const data = await res.json();
-        showNotification(data.error || 'Failed to save role', 'error');
-      }
-    } catch (error) {
-      showNotification('Failed to save role', 'error');
-    }
-  }
-
-  async function handleDeleteRole(role: any) {
-    if (!confirm(`Delete role "${role.label}"? Users with this role will be reassigned to CASHIER.`)) return;
-    try {
-      const res = await fetch(`/api/roles?id=${role.id}`, { method: 'DELETE', headers: { 'x-shop-id': shop?.id || '' } });
-      if (res.ok) {
-        showNotification('Role deleted', 'success');
-        if (permSelectedRole === role.name) setPermSelectedRole('CASHIER');
-        fetchRoles();
-        fetchData();
-      }
-    } catch (error) {
-      showNotification('Failed to delete role', 'error');
-    }
-  }
-
   async function handleUpdateUserRole(userId: string, newRole: string) {
     try {
       const res = await fetch('/api/users', {
@@ -469,7 +397,6 @@ export default function SettingsPage() {
     { id: 'business', label: 'Business', icon: Building2 },
     { id: 'types', label: 'Business Types', icon: Palette },
     { id: 'users', label: 'Users & Roles', icon: Users },
-    { id: 'permissions', label: 'Permissions', icon: Shield },
     { id: 'reminders', label: 'Reminders', icon: Clock },
     { id: 'alerts', label: 'Alerts', icon: Bell },
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -507,108 +434,6 @@ export default function SettingsPage() {
     { value: 'WINGER', label: 'Winger', desc: 'Can assist sales and inventory', color: '#22c55e', builtIn: true },
     { value: 'ASSISTANT', label: 'Assistant', desc: 'Can process sales and manage stock', color: '#ec4899', builtIn: true },
   ];
-
-  const displayRoles = React.useMemo(() => {
-    const builtIn = roles.map(r => ({ ...r, id: r.value }));
-    const custom = allRoles.filter(r => !r.builtIn).map(r => ({
-      value: r.name,
-      label: r.label || r.name,
-      desc: r.description || 'Custom role',
-      color: r.color || '#6b7280',
-      id: r.id,
-      builtIn: false,
-    }));
-    return [...builtIn, ...custom];
-  }, [allRoles]);
-
-  useEffect(() => {
-    if (shop?.id && permSelectedRole) fetchPermissions();
-  }, [shop?.id, permSelectedRole]);
-
-  async function fetchPermissions() {
-    try {
-      const res = await fetch(`/api/permissions?role=${permSelectedRole}`, {
-        headers: { 'x-shop-id': shop?.id || '' },
-      });
-      const data = await res.json();
-      if (data.permissions?.length > 0) {
-        setPermissions(data.permissions);
-      } else {
-        setPermissions([]);
-      }
-    } catch (error) {
-      console.error('Failed to fetch permissions:', error);
-    }
-  }
-
-  function getPermission(moduleId: string): any {
-    return permissions.find((p: any) => p.role === permSelectedRole && p.module === moduleId) || {
-      role: permSelectedRole,
-      module: moduleId,
-      canRead: false,
-      canWrite: false,
-      canDelete: false,
-    };
-  }
-
-  function updatePermission(moduleId: string, field: string, value: boolean) {
-    setPermissions((prev: any[]) => {
-      const existing = prev.findIndex((p: any) => p.role === permSelectedRole && p.module === moduleId);
-      if (existing >= 0) {
-        const updated = [...prev];
-        updated[existing] = { ...updated[existing], [field]: value };
-        return updated;
-      } else {
-        return [...prev, { role: permSelectedRole, module: moduleId, canRead: false, canWrite: false, canDelete: false, [field]: value }];
-      }
-    });
-  }
-
-  async function savePermissions() {
-    setPermSaving(true);
-    try {
-      const rolePermissions = permissions.filter((p: any) => p.role === permSelectedRole);
-      console.log('Saving permissions:', { role: permSelectedRole, count: rolePermissions.length, data: rolePermissions });
-      const res = await fetch('/api/permissions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
-        body: JSON.stringify({ role: permSelectedRole, permissions: rolePermissions }),
-      });
-      let errorMsg = 'Failed to save permissions';
-      try {
-        const data = await res.json();
-        if (data.error) errorMsg = data.error;
-      } catch {
-        const text = await res.text();
-        errorMsg = `Server error (${res.status}): ${text.substring(0, 200)}`;
-      }
-      if (res.ok) {
-        showNotification('Permissions saved successfully!', 'success');
-      } else {
-        showNotification(errorMsg, 'error');
-      }
-    } catch (error) {
-      showNotification('Failed to save permissions', 'error');
-    } finally {
-      setPermSaving(false);
-    }
-  }
-
-  async function resetRolePermissions() {
-    if (!confirm(`Reset permissions for ${displayRoles.find(r => r.value === permSelectedRole)?.label} to defaults?`)) return;
-    try {
-      const res = await fetch(`/api/permissions?role=${permSelectedRole}`, {
-        method: 'PUT',
-        headers: { 'x-shop-id': shop?.id || '' },
-      });
-      if (res.ok) {
-        showNotification('Permissions reset to defaults', 'success');
-        setPermissions([]);
-      }
-    } catch (error) {
-      showNotification('Failed to reset permissions', 'error');
-    }
-  }
 
   if (loading) return <div style={styles.loading}>Loading...</div>;
 
@@ -805,7 +630,7 @@ export default function SettingsPage() {
 
             <div style={styles.usersList}>
               {users.map(user => {
-                const userRole = displayRoles.find(r => r.value === user.role) || { label: user.role, color: '#6b7280' };
+                const userRole = roles.find(r => r.value === user.role) || { label: user.role, color: '#6b7280' };
                 return (
                 <div key={user.id} style={styles.userCard} className="settings-user-card">
                   <div style={styles.userAvatar}>
@@ -825,7 +650,7 @@ export default function SettingsPage() {
                       border: `1px solid ${userRole.color}40`,
                     }}
                   >
-                    {displayRoles.map(r => (
+                    {roles.map(r => (
                       <option key={r.value} value={r.value}>{r.label}</option>
                     ))}
                   </select>
@@ -846,154 +671,6 @@ export default function SettingsPage() {
                 </div>
                 );
               })}
-            </div>
-
-            <div style={styles.rolesInfo}>
-              <h3><Shield size={18} /> Role Permissions</h3>
-              <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem', marginBottom: '1rem' }}>
-                Configure module access for each role. Go to Settings → Permissions for full configuration.
-              </p>
-              <div style={styles.rolesGrid}>
-                {displayRoles.map(role => (
-                  <div key={role.value} style={styles.roleCard}>
-                    <div style={styles.roleName}>{role.label}</div>
-                    <div style={styles.roleDesc}>{role.desc}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'permissions' && (
-          <div style={styles.section}>
-            <div style={styles.sectionHeader} className="settings-section-header">
-              <Shield size={20} />
-              <h2>Role Permissions</h2>
-              <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem', margin: 0 }}>
-                Configure what each role can access
-              </p>
-            </div>
-
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-              {displayRoles.map(role => (
-                <button
-                  key={role.value}
-                  onClick={() => setPermSelectedRole(role.value)}
-                  style={{
-                    ...permStyles.roleBtn,
-                    borderColor: permSelectedRole === role.value ? role.color : 'var(--border)',
-                    background: permSelectedRole === role.value ? `${role.color}15` : 'transparent',
-                    position: 'relative',
-                  }}
-                >
-                  <div style={{ ...permStyles.roleBadge, background: role.color }}>{role.label.charAt(0)}</div>
-                  <div style={permStyles.roleInfo}>
-                    <div style={permStyles.roleName}>{role.label}</div>
-                    <div style={permStyles.roleDesc}>{role.desc}</div>
-                  </div>
-                  {permSelectedRole === role.value && <Check size={16} color={role.color} />}
-                  {!role.builtIn && (
-                    <div
-                      onClick={(e) => { e.stopPropagation(); openRoleModal(allRoles.find(r => r.name === role.value)); }}
-                      style={{ position: 'absolute', top: '2px', right: '2px', cursor: 'pointer', padding: '2px', color: '#94a3b8', lineHeight: 1 }}
-                      title="Edit role"
-                    >
-                      <Edit size={12} />
-                    </div>
-                  )}
-                </button>
-              ))}
-              <button
-                onClick={() => { setEditingRole(null); setRoleForm({ name: '', description: '', color: '#6b7280' }); setShowRoleModal(true); }}
-                style={{
-                  ...permStyles.roleBtn,
-                  borderColor: 'var(--border)',
-                  borderStyle: 'dashed',
-                  minWidth: '120px',
-                  justifyContent: 'center',
-                }}
-              >
-                <Plus size={18} />
-                <span>Add Role</span>
-              </button>
-            </div>
-
-            <div style={{ border: '1px solid var(--border)', borderRadius: '0.75rem', overflow: 'hidden' }}>
-              <div style={{
-                display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '0.5rem',
-                padding: '0.75rem 1rem', background: 'var(--background)',
-                borderBottom: '1px solid var(--border)', fontWeight: '600',
-                color: 'var(--muted-foreground)', fontSize: '0.8rem'
-              }}>
-                <div>Module</div>
-                <div style={{ textAlign: 'center' }}>Read</div>
-                <div style={{ textAlign: 'center' }}>Write</div>
-                <div style={{ textAlign: 'center' }}>Delete</div>
-              </div>
-              {MODULES.map(module => {
-                const perm = getPermission(module.id);
-                return (
-                  <div key={module.id} style={{
-                    display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '0.5rem',
-                    padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)',
-                    alignItems: 'center',
-                  }}>
-                    <div>
-                      <div style={{ fontWeight: '600', color: 'var(--foreground)', fontSize: '0.9rem' }}>{module.name}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>{module.description}</div>
-                    </div>
-                    {(['canRead', 'canWrite', 'canDelete'] as const).map(field => (
-                      <div key={field} style={{ display: 'flex', justifyContent: 'center' }}>
-                        <label style={permStyles.checkbox}>
-                          <input
-                            type="checkbox"
-                            checked={perm[field]}
-                            onChange={(e) => updatePermission(module.id, field, e.target.checked)}
-                            style={permStyles.checkboxInput}
-                          />
-                          <span style={{
-                            ...permStyles.checkboxMark,
-                            ...(perm[field] ? permStyles.checkboxChecked : {}),
-                          }}>
-                            {perm[field] && <Check size={14} color="white" />}
-                          </span>
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })}
-            </div>
-
-            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', flexWrap: 'wrap' }}>
-              <button onClick={savePermissions} disabled={permSaving} style={permStyles.saveBtn}>
-                <Save size={18} /> {permSaving ? 'Saving...' : 'Save Permissions'}
-              </button>
-              <button onClick={resetRolePermissions} style={permStyles.resetBtn}>
-                <RotateCcw size={16} /> Reset to Defaults
-              </button>
-              <button onClick={() => {
-                MODULES.forEach(m => updatePermission(m.id, 'canRead', true));
-                MODULES.forEach(m => updatePermission(m.id, 'canWrite', true));
-                MODULES.forEach(m => updatePermission(m.id, 'canDelete', false));
-              }} style={permStyles.quickBtn}>
-                <Eye size={16} /> Read & Write
-              </button>
-              <button onClick={() => {
-                MODULES.forEach(m => updatePermission(m.id, 'canRead', true));
-                MODULES.forEach(m => updatePermission(m.id, 'canWrite', false));
-                MODULES.forEach(m => updatePermission(m.id, 'canDelete', false));
-              }} style={permStyles.quickBtn}>
-                <Eye size={16} /> Read Only
-              </button>
-              <button onClick={() => {
-                MODULES.forEach(m => updatePermission(m.id, 'canRead', false));
-                MODULES.forEach(m => updatePermission(m.id, 'canWrite', false));
-                MODULES.forEach(m => updatePermission(m.id, 'canDelete', false));
-              }} style={permStyles.quickBtn}>
-                <Lock size={16} /> No Access
-              </button>
             </div>
           </div>
         )}
@@ -1556,69 +1233,6 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {showRoleModal && (
-        <div style={styles.modalOverlay} onClick={() => setShowRoleModal(false)}>
-          <div style={styles.modal} onClick={e => e.stopPropagation()}>
-            <div style={styles.modalHeader}>
-              <h2>{editingRole ? 'Edit Role' : 'Create Custom Role'}</h2>
-              <button onClick={() => setShowRoleModal(false)} style={styles.closeBtn}><X size={20} /></button>
-            </div>
-            <div style={styles.modalBody}>
-              <div style={styles.field}>
-                <label style={styles.label}>Role Name *</label>
-                <input
-                  type="text"
-                  value={roleForm.name}
-                  onChange={(e) => setRoleForm({ ...roleForm, name: e.target.value })}
-                  style={styles.input}
-                  placeholder="e.g., SUPERVISOR, STOCK_MANAGER"
-                />
-              </div>
-              <div style={styles.field}>
-                <label style={styles.label}>Description</label>
-                <input
-                  type="text"
-                  value={roleForm.description}
-                  onChange={(e) => setRoleForm({ ...roleForm, description: e.target.value })}
-                  style={styles.input}
-                  placeholder="Brief description of this role"
-                />
-              </div>
-              <div style={styles.field}>
-                <label style={styles.label}>Color</label>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <input
-                    type="color"
-                    value={roleForm.color}
-                    onChange={(e) => setRoleForm({ ...roleForm, color: e.target.value })}
-                    style={{ width: '48px', height: '48px', borderRadius: '0.5rem', border: '1px solid var(--border)', cursor: 'pointer', padding: 0 }}
-                  />
-                  <input
-                    type="text"
-                    value={roleForm.color}
-                    onChange={(e) => setRoleForm({ ...roleForm, color: e.target.value })}
-                    style={{ ...styles.input, flex: 1, fontFamily: 'monospace' }}
-                    placeholder="#6b7280"
-                  />
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-                <button onClick={handleSaveRole} style={styles.submitBtn}>
-                  <Save size={18} /> {editingRole ? 'Update Role' : 'Create Role'}
-                </button>
-                {editingRole && (
-                  <button
-                    onClick={() => handleDeleteRole(editingRole)}
-                    style={{ ...styles.deleteBtn, marginLeft: 'auto', background: 'var(--destructive)', color: 'white', padding: '0.5rem 1rem', borderRadius: '0.5rem', fontWeight: '600' }}
-                  >
-                    <Trash2 size={16} /> Delete Role
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
 
       {showReminderModal && (
@@ -1722,7 +1336,7 @@ export default function SettingsPage() {
                   onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}
                   style={styles.select}
                 >
-                  {displayRoles.map(role => (
+                  {roles.map(role => (
                     <option key={role.value} value={role.value}>{role.label}</option>
                   ))}
                 </select>

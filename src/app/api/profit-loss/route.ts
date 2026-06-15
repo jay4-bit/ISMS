@@ -62,12 +62,22 @@ export async function GET(request: NextRequest) {
       where: { ...shopFilter, date: dateFilter }
     });
 
+    // Maintenance expenses linked to return items (via RETURN_ITEM: reference) are already
+    // counted as repairCost in totalReturnLoss — exclude them to avoid double-counting
+    const maintenanceExpenses = expenses.filter(e => e.category === 'MAINTENANCE' && e.reference?.startsWith('RETURN_ITEM:'));
+    const maintenanceExpenseIds = new Set(maintenanceExpenses.map(e => e.id));
+    const nonMaintenanceExpenses = expenses.filter(e => !maintenanceExpenseIds.has(e.id));
+
     const returns = await prisma.returnItem.findMany({
       where: {
         return: { ...shopFilter },
         createdAt: dateFilter
       },
-      include: { product: true, return: { select: { shopId: true } } }
+      include: {
+        product: { select: { id: true, name: true, purchaseCost: true } },
+        return: { select: { shopId: true, returnNumber: true, createdAt: true } }
+      },
+      orderBy: { createdAt: 'desc' }
     });
 
     // Collect replacement product IDs to fetch their purchase costs
@@ -263,6 +273,21 @@ export async function GET(request: NextRequest) {
     }
     
     const returnExpensesList = Object.values(returnBreakdown);
+
+    const returnItemsList = returns.map(item => ({
+      returnNumber: item.return.returnNumber,
+      returnDate: item.return.createdAt,
+      productName: item.product?.name || 'Unknown',
+      awardedType: item.awardedType || 'REFUND',
+      refundAmount: item.refundAmount || 0,
+      returnCost: item.returnCost || 0,
+      repairCost: item.repairCost || 0,
+      replacementProductName: item.replacementProductName || null,
+      priceDifference: item.priceDifference || 0,
+      differencePaidBy: item.differencePaidBy || 'CLIENT',
+      status: item.status,
+      quantity: item.quantity,
+    }));
     
     // Gross Profit = revenue minus actual COGS (after return reversals)
     totalProfit = totalRevenue - totalCost;
@@ -276,10 +301,10 @@ export async function GET(request: NextRequest) {
       totalPurchaseCost += po.totalAmount;
     }
 
-    const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+    const totalExpenses = nonMaintenanceExpenses.reduce((sum, exp) => sum + exp.amount, 0);
 
     const expenseBreakdown: Record<string, number> = {};
-    for (const exp of expenses) {
+    for (const exp of nonMaintenanceExpenses) {
       if (!expenseBreakdown[exp.category]) {
         expenseBreakdown[exp.category] = 0;
       }
@@ -310,7 +335,8 @@ export async function GET(request: NextRequest) {
       period,
       productList,
       expenseList,
-      returnExpensesList
+      returnExpensesList,
+      returnItemsList
     });
   } catch (error) {
     console.error('Profit/Loss error:', error);

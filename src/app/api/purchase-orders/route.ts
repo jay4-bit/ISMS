@@ -84,45 +84,64 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { supplierId, items, notes, expectedDelivery } = body;
 
+    if (!Array.isArray(items) || items.length === 0) {
+      return NextResponse.json({ error: 'Order must have at least one item' }, { status: 400 });
+    }
+    if (!supplierId) {
+      return NextResponse.json({ error: 'Supplier is required' }, { status: 400 });
+    }
+
     const orderNumber = await generateOrderNumber(shopId);
-    const totalAmount = items.reduce((sum: number, item: any) => sum + item.quantity * item.unitCost, 0);
+    const totalAmount = items.reduce((sum: number, item: any) => {
+      const qty = parseFloat(item.quantity) || 1;
+      const cost = parseFloat(item.unitCost) || 0;
+      return sum + qty * cost;
+    }, 0);
+
+    if (!isFinite(totalAmount)) {
+      return NextResponse.json({ error: 'Invalid item costs in order' }, { status: 400 });
+    }
 
     const order = await prisma.purchaseOrder.create({
       data: {
         orderNumber,
         supplierId,
         totalAmount,
-        notes,
+        notes: notes || null,
         expectedDelivery: expectedDelivery ? new Date(expectedDelivery) : null,
         createdBy: 'admin',
         shopId,
         items: {
-          create: items.map((item: any) => ({
-            productId: item.productId || null,
-            quantityOrdered: item.quantity || 1,
-            unitCost: item.unitCost,
-            totalCost: (item.quantity || 1) * item.unitCost,
-            productName: item.productName || null,
-            productSku: item.productSku || null,
-            productBarcode: item.productBarcode || null,
-            sellingPrice: item.sellingPrice || null,
-            wholesalePrice: item.wholesalePrice || null,
-            electronicsBrand: item.electronicsBrand || null,
-            electronicsModel: item.electronicsModel || null,
-            electronicsImei: item.electronicsImei || null,
-            electronicsColor: item.electronicsColor || null,
-            electronicsStorage: item.electronicsStorage || null,
-            electronicsCondition: item.electronicsCondition || null,
-            pharmacyBrandName: item.pharmacyBrandName || null,
-            pharmacyGenericName: item.pharmacyGenericName || null,
-            pharmacyBatchNumber: item.pharmacyBatchNumber || null,
-            pharmacyManufacturingDate: item.pharmacyManufacturingDate ? new Date(item.pharmacyManufacturingDate) : null,
-            pharmacyExpiryDate: item.pharmacyExpiryDate ? new Date(item.pharmacyExpiryDate) : null,
-            pharmacyCategoryName: item.pharmacyCategoryName || null,
-            clothingBrand: item.clothingBrand || null,
-            clothingVariants: item.clothingVariants || null,
-            clothingCategoryName: item.clothingCategoryName || null,
-          })),
+          create: items.map((item: any) => {
+            const qty = parseInt(item.quantity) || 1;
+            const cost = parseFloat(item.unitCost) || 0;
+            return {
+              productId: item.productId || null,
+              quantityOrdered: qty,
+              unitCost: cost,
+              totalCost: qty * cost,
+              productName: item.productName || null,
+              productSku: item.productSku || null,
+              productBarcode: item.productBarcode || null,
+              sellingPrice: item.sellingPrice ? parseFloat(item.sellingPrice) : null,
+              wholesalePrice: item.wholesalePrice ? parseFloat(item.wholesalePrice) : null,
+              electronicsBrand: item.electronicsBrand || null,
+              electronicsModel: item.electronicsModel || null,
+              electronicsImei: item.electronicsImei || null,
+              electronicsColor: item.electronicsColor || null,
+              electronicsStorage: item.electronicsStorage || null,
+              electronicsCondition: item.electronicsCondition || null,
+              pharmacyBrandName: item.pharmacyBrandName || null,
+              pharmacyGenericName: item.pharmacyGenericName || null,
+              pharmacyBatchNumber: item.pharmacyBatchNumber || null,
+              pharmacyManufacturingDate: item.pharmacyManufacturingDate ? new Date(item.pharmacyManufacturingDate) : null,
+              pharmacyExpiryDate: item.pharmacyExpiryDate ? new Date(item.pharmacyExpiryDate) : null,
+              pharmacyCategoryName: item.pharmacyCategoryName || null,
+              clothingBrand: item.clothingBrand || null,
+              clothingVariants: item.clothingVariants || null,
+              clothingCategoryName: item.clothingCategoryName || null,
+            };
+          }),
         },
       },
       include: { supplier: true },
@@ -131,7 +150,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ order });
   } catch (error) {
     console.error('Create purchase order error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
 
