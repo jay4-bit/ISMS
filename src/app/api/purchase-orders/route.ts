@@ -2,17 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 
 async function generateOrderNumber(shopId: string): Promise<string> {
-  const lastOrder = await prisma.purchaseOrder.findFirst({
-    where: { shopId },
-    orderBy: { createdAt: 'desc' },
-    select: { orderNumber: true },
-  });
-  let nextNum = 1;
-  if (lastOrder?.orderNumber) {
-    const match = lastOrder.orderNumber.match(/(\d+)$/);
-    if (match) nextNum = parseInt(match[1], 10) + 1;
+  for (let i = 0; i < 10; i++) {
+    const lastOrder = await prisma.purchaseOrder.findFirst({
+      where: { shopId },
+      orderBy: { orderNumber: 'desc' },
+      select: { orderNumber: true },
+    });
+    let nextNum = 1;
+    if (lastOrder?.orderNumber) {
+      const match = lastOrder.orderNumber.match(/(\d+)$/);
+      if (match) nextNum = parseInt(match[1], 10) + 1;
+    }
+    const candidate = 'PO' + String(nextNum).padStart(5, '0');
+    const existing = await prisma.purchaseOrder.findUnique({
+      where: { orderNumber: candidate },
+      select: { id: true },
+    });
+    if (!existing) return candidate;
   }
-  return 'PO' + String(nextNum).padStart(5, '0');
+  return 'PO' + Date.now();
 }
 
 export async function GET(request: NextRequest) {
@@ -91,7 +99,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Supplier is required' }, { status: 400 });
     }
 
-    const orderNumber = await generateOrderNumber(shopId);
     const totalAmount = items.reduce((sum: number, item: any) => {
       const qty = parseFloat(item.quantity) || 1;
       const cost = parseFloat(item.unitCost) || 0;
@@ -102,50 +109,70 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid item costs in order' }, { status: 400 });
     }
 
-    const order = await prisma.purchaseOrder.create({
-      data: {
-        orderNumber,
-        supplierId,
-        totalAmount,
-        notes: notes || null,
-        expectedDelivery: expectedDelivery ? new Date(expectedDelivery) : null,
-        createdBy: 'admin',
-        shopId,
-        items: {
-          create: items.map((item: any) => {
-            const qty = parseInt(item.quantity) || 1;
-            const cost = parseFloat(item.unitCost) || 0;
-            return {
-              productId: item.productId || null,
-              quantityOrdered: qty,
-              unitCost: cost,
-              totalCost: qty * cost,
-              productName: item.productName || null,
-              productSku: item.productSku || null,
-              productBarcode: item.productBarcode || null,
-              sellingPrice: item.sellingPrice ? parseFloat(item.sellingPrice) : null,
-              wholesalePrice: item.wholesalePrice ? parseFloat(item.wholesalePrice) : null,
-              electronicsBrand: item.electronicsBrand || null,
-              electronicsModel: item.electronicsModel || null,
-              electronicsImei: item.electronicsImei || null,
-              electronicsColor: item.electronicsColor || null,
-              electronicsStorage: item.electronicsStorage || null,
-              electronicsCondition: item.electronicsCondition || null,
-              pharmacyBrandName: item.pharmacyBrandName || null,
-              pharmacyGenericName: item.pharmacyGenericName || null,
-              pharmacyBatchNumber: item.pharmacyBatchNumber || null,
-              pharmacyManufacturingDate: item.pharmacyManufacturingDate ? new Date(item.pharmacyManufacturingDate) : null,
-              pharmacyExpiryDate: item.pharmacyExpiryDate ? new Date(item.pharmacyExpiryDate) : null,
-              pharmacyCategoryName: item.pharmacyCategoryName || null,
-              clothingBrand: item.clothingBrand || null,
-              clothingVariants: item.clothingVariants || null,
-              clothingCategoryName: item.clothingCategoryName || null,
-            };
-          }),
-        },
-      },
-      include: { supplier: true },
-    });
+    let order;
+    const maxRetries = 5;
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      const orderNumber = await generateOrderNumber(shopId);
+      try {
+        order = await prisma.purchaseOrder.create({
+          data: {
+            orderNumber,
+            supplierId,
+            totalAmount,
+            notes: notes || null,
+            expectedDelivery: expectedDelivery ? new Date(expectedDelivery) : null,
+            createdBy: 'admin',
+            shopId,
+            items: {
+              create: items.map((item: any) => {
+                const qty = parseInt(item.quantity) || 1;
+                const cost = parseFloat(item.unitCost) || 0;
+                return {
+                  productId: item.productId || null,
+                  quantityOrdered: qty,
+                  unitCost: cost,
+                  totalCost: qty * cost,
+                  productName: item.productName || null,
+                  productSku: item.productSku || null,
+                  productBarcode: item.productBarcode || null,
+                  sellingPrice: item.sellingPrice ? parseFloat(item.sellingPrice) : null,
+                  wholesalePrice: item.wholesalePrice ? parseFloat(item.wholesalePrice) : null,
+                  electronicsBrand: item.electronicsBrand || null,
+                  electronicsModel: item.electronicsModel || null,
+                  electronicsImei: item.electronicsImei || null,
+                  electronicsColor: item.electronicsColor || null,
+                  electronicsStorage: item.electronicsStorage || null,
+                  electronicsCondition: item.electronicsCondition || null,
+                  pharmacyBrandName: item.pharmacyBrandName || null,
+                  pharmacyGenericName: item.pharmacyGenericName || null,
+                  pharmacyBatchNumber: item.pharmacyBatchNumber || null,
+                  pharmacyManufacturingDate: item.pharmacyManufacturingDate ? new Date(item.pharmacyManufacturingDate) : null,
+                  pharmacyExpiryDate: item.pharmacyExpiryDate ? new Date(item.pharmacyExpiryDate) : null,
+                  pharmacyCategoryName: item.pharmacyCategoryName || null,
+                  clothingBrand: item.clothingBrand || null,
+                  clothingVariants: item.clothingVariants || null,
+                  ...(item.liquorSize ? {
+                    liquorSize: item.liquorSize ? parseFloat(item.liquorSize) : null,
+                    liquorCategoryName: item.liquorCategoryName || null,
+                    liquorExpiryDate: item.liquorExpiryDate ? new Date(item.liquorExpiryDate) : null,
+                  } : {}),
+                };
+              }),
+            },
+          },
+          include: { supplier: true },
+        });
+        break;
+      } catch (err: any) {
+        if (err?.code === 'P2002' && attempt < maxRetries - 1) continue;
+        console.error('Create purchase order error:', err);
+        const msg = err instanceof Error ? err.message : 'Unknown error';
+        return NextResponse.json({ error: msg }, { status: 500 });
+      }
+    }
+    if (!order) {
+      return NextResponse.json({ error: 'Failed to create order, please try again' }, { status: 500 });
+    }
 
     return NextResponse.json({ order });
   } catch (error) {
@@ -184,11 +211,12 @@ export async function PUT(request: NextRequest) {
           const isPhone = !!item.electronicsImei;
           const isPharmacyItem = !!item.pharmacyBrandName || !!item.pharmacyGenericName;
           const isClothingItem = !!item.clothingBrand;
-          const targetCategoryName = isPharmacyItem ? (item.pharmacyCategoryName || 'Medicines') : isClothingItem ? (item.clothingCategoryName || 'Clothing') : (isPhone ? 'Phones & Tablets' : 'Accessories');
+          const isLiquorItem = !!item.liquorSize || !!item.liquorCategoryName;
+          const targetCategoryName = isPharmacyItem ? (item.pharmacyCategoryName || 'Medicines') : isClothingItem ? (item.clothingCategoryName || 'Clothing') : isLiquorItem ? (item.liquorCategoryName || 'Liquor') : (isPhone ? 'Phones & Tablets' : 'Accessories');
           let cat = await prisma.category.findFirst({ where: { shopId, name: targetCategoryName } });
           if (!cat) cat = await prisma.category.create({ data: { name: targetCategoryName, shopId } });
 
-          const sku = item.productSku || (isPhone ? 'ELC-' : isPharmacyItem ? 'PHA-' : isClothingItem ? 'CLO-' : 'ACC-') + Date.now().toString(36).toUpperCase();
+          const sku = item.productSku || (isPhone ? 'ELC-' : isPharmacyItem ? 'PHA-' : isClothingItem ? 'CLO-' : isLiquorItem ? 'LIQ-' : 'ACC-') + Date.now().toString(36).toUpperCase();
           const name: string = item.productName || (isClothingItem ? (item.clothingBrand || 'Clothing Item') : [item.pharmacyBrandName, item.pharmacyGenericName].filter(Boolean).join(' ') || `${item.electronicsBrand || ''} ${item.electronicsModel || ''}`.trim() || 'New Product');
 
           const created = await prisma.product.create({
@@ -215,6 +243,14 @@ export async function PUT(request: NextRequest) {
                     expiryDate: item.pharmacyExpiryDate ? new Date(item.pharmacyExpiryDate) : null,
                   }
                 }
+              } : (isLiquorItem ? {
+                liquorFields: {
+                  create: {
+                    size: item.liquorSize ? parseFloat(item.liquorSize) : null,
+                    volume: item.liquorSize ? parseFloat(item.liquorSize) : null,
+                  }
+                },
+                expiryDate: item.liquorExpiryDate ? new Date(item.liquorExpiryDate) : null,
               } : (isClothingItem ? {
                 clothingFields: {
                   create: {
@@ -241,7 +277,7 @@ export async function PUT(request: NextRequest) {
                     condition: item.electronicsCondition || null,
                   }
                 }
-              }))
+              })))
             }
           });
 

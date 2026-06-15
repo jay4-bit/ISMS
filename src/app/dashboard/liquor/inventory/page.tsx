@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/components/AuthProvider';
-import LiquorProductForm from '@/components/LiquorProductForm';
 import { formatCurrency } from '@/lib/utils';
-import { Plus, Search, Eye, Edit, Trash2, Upload, Hash } from 'lucide-react';
+import { Plus, Search, Eye, Edit, Trash2, Upload, X } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -52,6 +51,8 @@ export default function LiquorInventoryPage() {
   const [showModal, setShowModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showSupplierModal, setShowSupplierModal] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ success: number; failed: number; errors: string[] } | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -59,12 +60,30 @@ export default function LiquorInventoryPage() {
   const [importData, setImportData] = useState('');
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [newSupplier, setNewSupplier] = useState({ name: '', email: '', phone: '', address: '' });
+  const [newCategoryName, setNewCategoryName] = useState('');
+
+  const [formData, setFormData] = useState({
+    name: '', sku: '', barcode: '', description: '', categoryId: '', supplierId: '',
+    purchaseCost: '', sellingPrice: '', wholesalePrice: '', stockQuantity: '',
+    lowStockThreshold: '10', reorderPoint: '20', hasExpiry: false, expiryDate: '',
+  });
+  const [liquorFields, setLiquorFields] = useState({ brand: '', size: '', notes: '' });
 
   useEffect(() => {
     fetchData();
     fetchCategories();
     fetchSuppliers();
   }, []);
+
+  function resetForm() {
+    setFormData({
+      name: '', sku: '', barcode: '', description: '', categoryId: '', supplierId: '',
+      purchaseCost: '', sellingPrice: '', wholesalePrice: '', stockQuantity: '',
+      lowStockThreshold: '10', reorderPoint: '20', hasExpiry: false, expiryDate: '',
+    });
+    setLiquorFields({ brand: '', size: '', notes: '' });
+  }
 
   async function fetchData() {
     try {
@@ -114,28 +133,72 @@ export default function LiquorInventoryPage() {
   });
 
   function openAddModal() {
+    resetForm();
     setEditingProduct(null);
     setShowModal(true);
   }
 
   function openEditModal(product: Product) {
+    setFormData({
+      name: product.name || '',
+      sku: product.sku || '',
+      barcode: product.barcode || '',
+      description: product.description || '',
+      categoryId: product.categoryId || '',
+      supplierId: product.supplierId || '',
+      purchaseCost: product.purchaseCost?.toString() || '',
+      sellingPrice: product.sellingPrice?.toString() || '',
+      wholesalePrice: product.wholesalePrice?.toString() || '',
+      stockQuantity: product.stockQuantity?.toString() || '',
+      lowStockThreshold: product.lowStockThreshold?.toString() || '10',
+      reorderPoint: product.reorderPoint?.toString() || '20',
+      hasExpiry: product.hasExpiry || false,
+      expiryDate: product.expiryDate ? product.expiryDate.split('T')[0] : '',
+    });
+    setLiquorFields({
+      brand: product.liquorFields?.brand || '',
+      size: product.liquorFields?.size?.toString() || '',
+      notes: product.liquorFields?.notes || '',
+    });
     setEditingProduct(product);
     setShowModal(true);
   }
 
-  async function handleSubmit(formData: any) {
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const name = formData.name.trim();
+    if (!name) { alert('Product name is required'); return; }
+    const payload: any = {
+      ...formData,
+      name,
+      sku: editingProduct ? formData.sku : `LIQ-${Date.now()}`,
+      purchaseCost: parseFloat(formData.purchaseCost) || 0,
+      sellingPrice: parseFloat(formData.sellingPrice) || 0,
+      wholesalePrice: formData.wholesalePrice ? parseFloat(formData.wholesalePrice) : null,
+      stockQuantity: parseInt(formData.stockQuantity) || 0,
+      lowStockThreshold: parseInt(formData.lowStockThreshold) || 10,
+      reorderPoint: parseInt(formData.reorderPoint) || 20,
+      hasExpiry: formData.hasExpiry,
+      expiryDate: formData.expiryDate || null,
+      brand: liquorFields.brand || undefined,
+      size: liquorFields.size ? parseFloat(liquorFields.size) : undefined,
+      notes: liquorFields.notes || undefined,
+    };
+    delete payload.sku;
+
     const url = '/api/liquor-inventory';
     const method = editingProduct ? 'PUT' : 'POST';
-    const body = editingProduct ? { ...formData, id: editingProduct.id } : formData;
+    if (editingProduct) payload.id = editingProduct.id;
 
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
-      body: JSON.stringify(body),
+      body: JSON.stringify(payload),
     });
 
     if (res.ok) {
       setShowModal(false);
+      resetForm();
       setEditingProduct(null);
       fetchData();
       fetchCategories();
@@ -152,6 +215,40 @@ export default function LiquorInventoryPage() {
       headers: { 'x-shop-id': shop?.id || '' }
     });
     if (res.ok) fetchData();
+  }
+
+  async function handleAddSupplier() {
+    if (!newSupplier.name.trim()) { alert('Supplier name is required'); return; }
+    const res = await fetch('/api/suppliers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
+      body: JSON.stringify(newSupplier),
+    });
+    if (res.ok) {
+      setNewSupplier({ name: '', email: '', phone: '', address: '' });
+      setShowSupplierModal(false);
+      fetchSuppliers();
+    } else {
+      const err = await res.json();
+      alert('Failed to create supplier: ' + (err.details || err.error || 'Unknown error'));
+    }
+  }
+
+  async function handleAddCategory() {
+    if (!newCategoryName.trim()) { alert('Category name is required'); return; }
+    const res = await fetch('/api/categories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
+      body: JSON.stringify({ name: newCategoryName }),
+    });
+    if (res.ok) {
+      setNewCategoryName('');
+      setShowCategoryModal(false);
+      fetchCategories();
+    } else {
+      const err = await res.json();
+      alert('Failed to create category: ' + (err.error || 'Unknown error'));
+    }
   }
 
   async function handleImport() {
@@ -287,16 +384,126 @@ export default function LiquorInventoryPage() {
       {showModal && (
         <div style={styles.overlay}>
           <div style={styles.modal}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>{editingProduct ? 'Edit Product' : 'Add Product'}</h2>
-              <button onClick={() => { setShowModal(false); setEditingProduct(null); }} style={styles.closeBtn}>✕</button>
+              <button onClick={() => { setShowModal(false); resetForm(); setEditingProduct(null); }} style={styles.closeBtn}><X size={20} /></button>
             </div>
-            <LiquorProductForm
-              categories={categories}
-              suppliers={suppliers}
-              onSubmit={handleSubmit}
-              initialData={editingProduct}
-            />
+            <form onSubmit={handleSubmit}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div>
+                  <label className="label">Product Name *</label>
+                  <input type="text" className="input" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
+                </div>
+                <div>
+                  <label className="label">Category</label>
+                  <select className="select" value={formData.categoryId} onChange={e => {
+                    if (e.target.value === '__add_new__') { setShowCategoryModal(true); }
+                    else { setFormData({ ...formData, categoryId: e.target.value }); }
+                  }} required>
+                    <option value="">Select category</option>
+                    {categories.map(cat => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
+                    <option value="__add_new__" style={{ color: 'var(--primary)', fontWeight: '600' }}>+ Add New Category...</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div>
+                  <label className="label">Size (ml)</label>
+                  <input type="number" className="input" value={liquorFields.size} onChange={e => setLiquorFields({ ...liquorFields, size: e.target.value })} placeholder="e.g., 750" />
+                </div>
+                <div>
+                  <label className="label">Supplier</label>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <select className="select" value={formData.supplierId} onChange={e => setFormData({ ...formData, supplierId: e.target.value })} style={{ flex: 1 }}>
+                      <option value="">Select supplier</option>
+                      {Array.from(new Map(suppliers.map(s => [s.id, s])).values()).sort((a, b) => a.name.localeCompare(b.name)).map(sup => (<option key={sup.id} value={sup.id}>{sup.name}</option>))}
+                    </select>
+                    <button type="button" onClick={() => setShowSupplierModal(true)} style={{ padding: '0.4rem 0.6rem', background: 'linear-gradient(135deg, #22c55e, #16a34a)', border: 'none', borderRadius: '0.4rem', color: 'white', cursor: 'pointer', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>+ New</button>
+                  </div>
+                </div>
+                <div>
+                  <label className="label">Barcode</label>
+                  <input type="text" className="input" value={formData.barcode} onChange={e => setFormData({ ...formData, barcode: e.target.value })} placeholder="Scan or enter barcode" />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div>
+                  <label className="label">Cost Price *</label>
+                  <input type="number" step="0.01" min="0" className="input" value={formData.purchaseCost} onChange={e => setFormData({ ...formData, purchaseCost: e.target.value })} required />
+                </div>
+                <div>
+                  <label className="label">Selling Price *</label>
+                  <input type="number" step="0.01" min="0" className="input" value={formData.sellingPrice} onChange={e => setFormData({ ...formData, sellingPrice: e.target.value })} required />
+                </div>
+                <div>
+                  <label className="label">Wholesale Price</label>
+                  <input type="number" step="0.01" min="0" className="input" value={formData.wholesalePrice} onChange={e => setFormData({ ...formData, wholesalePrice: e.target.value })} />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div>
+                  <label className="label">Stock Quantity</label>
+                  <input type="number" className="input" value={formData.stockQuantity} onChange={e => setFormData({ ...formData, stockQuantity: e.target.value })} />
+                </div>
+                <div>
+                  <label className="label">Min Stock Level</label>
+                  <input type="number" className="input" value={formData.lowStockThreshold} onChange={e => setFormData({ ...formData, lowStockThreshold: e.target.value })} />
+                </div>
+                <div>
+                  <label className="label">Reorder Point</label>
+                  <input type="number" className="input" value={formData.reorderPoint} onChange={e => setFormData({ ...formData, reorderPoint: e.target.value })} />
+                </div>
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--foreground)', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={formData.hasExpiry} onChange={e => { setFormData(prev => ({ ...prev, hasExpiry: e.target.checked, expiryDate: e.target.checked ? prev.expiryDate : '' })); }} />
+                  <span>Has expiry date</span>
+                </label>
+              </div>
+              {formData.hasExpiry && (
+                <div style={{ marginBottom: '1rem' }}>
+                  <label className="label">Expiry Date</label>
+                  <input type="date" className="input" value={formData.expiryDate} onChange={e => setFormData({ ...formData, expiryDate: e.target.value })} />
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                <button type="button" onClick={() => { setShowModal(false); resetForm(); setEditingProduct(null); }} className="btn btn-secondary">Cancel</button>
+                <button type="submit" className="btn btn-primary">{editingProduct ? 'Update' : 'Create'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showSupplierModal && (
+        <div style={styles.overlay}>
+          <div style={{ ...styles.modal, maxWidth: '420px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: '600' }}>Add Supplier</h2>
+              <button onClick={() => setShowSupplierModal(false)} style={styles.closeBtn}><X size={18} /></button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div><label className="label">Name *</label><input type="text" className="input" value={newSupplier.name} onChange={e => setNewSupplier({ ...newSupplier, name: e.target.value })} /></div>
+              <div><label className="label">Email</label><input type="email" className="input" value={newSupplier.email} onChange={e => setNewSupplier({ ...newSupplier, email: e.target.value })} /></div>
+              <div><label className="label">Phone</label><input type="text" className="input" value={newSupplier.phone} onChange={e => setNewSupplier({ ...newSupplier, phone: e.target.value })} /></div>
+              <div><label className="label">Address</label><input type="text" className="input" value={newSupplier.address} onChange={e => setNewSupplier({ ...newSupplier, address: e.target.value })} /></div>
+              <button onClick={handleAddSupplier} className="btn btn-primary">Add Supplier</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCategoryModal && (
+        <div style={styles.overlay}>
+          <div style={{ ...styles.modal, maxWidth: '380px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: '600' }}>Add Category</h2>
+              <button onClick={() => setShowCategoryModal(false)} style={styles.closeBtn}><X size={18} /></button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div><label className="label">Category Name *</label><input type="text" className="input" value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} /></div>
+              <button onClick={handleAddCategory} className="btn btn-primary">Add Category</button>
+            </div>
           </div>
         </div>
       )}
@@ -306,22 +513,18 @@ export default function LiquorInventoryPage() {
           <div style={{ ...styles.modal, maxWidth: '500px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>{viewingProduct.name}</h2>
-              <button onClick={() => { setShowViewModal(false); setViewingProduct(null); }} style={styles.closeBtn}>✕</button>
+              <button onClick={() => { setShowViewModal(false); setViewingProduct(null); }} style={styles.closeBtn}><X size={18} /></button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-              </div>
               {viewingProduct.liquorFields && (
-                <>
-                  <div style={{ background: '#0f172a', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #1e293b' }}>
-                    <h3 style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.75rem', textTransform: 'uppercase' }}>Liquor Details</h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                      <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Brand</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.liquorFields.brand || '-'}</div></div>
-                      <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Size</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.liquorFields.size ? `${viewingProduct.liquorFields.size}ml` : '-'}</div></div>
-                      <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Volume</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.liquorFields.volume ? `${viewingProduct.liquorFields.volume}ml` : '-'}</div></div>
-                    </div>
+                <div style={{ background: '#0f172a', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #1e293b' }}>
+                  <h3 style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.75rem', textTransform: 'uppercase' }}>Liquor Details</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Brand</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.liquorFields.brand || '-'}</div></div>
+                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Size</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.liquorFields.size ? `${viewingProduct.liquorFields.size}ml` : '-'}</div></div>
+                    <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Volume</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{viewingProduct.liquorFields.volume ? `${viewingProduct.liquorFields.volume}ml` : '-'}</div></div>
                   </div>
-                </>
+                </div>
               )}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div><div style={{ color: '#64748b', fontSize: '0.75rem' }}>Cost Price</div><div style={{ color: '#f1f5f9', fontSize: '0.85rem' }}>{formatCurrency(viewingProduct.purchaseCost)}</div></div>
@@ -338,7 +541,7 @@ export default function LiquorInventoryPage() {
           <div style={{ ...styles.modal, maxWidth: '700px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>Import Products</h2>
-              <button onClick={() => { setShowImportModal(false); setImportData(''); setImportResult(null); }} style={styles.closeBtn}>✕</button>
+              <button onClick={() => { setShowImportModal(false); setImportData(''); setImportResult(null); }} style={styles.closeBtn}><X size={18} /></button>
             </div>
             <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginBottom: '0.75rem' }}>
               Paste tab-separated data or upload an Excel file (columns: Product Name, Category, Size (ml), Supplier, Barcode, Cost Price, Selling Price, Wholesale Price, Stock Quantity, Min Stock Level, Reorder Point, Expiry Date)
@@ -470,7 +673,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   modal: {
     background: '#1e293b', borderRadius: '0.75rem', padding: '1.5rem',
-    width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto',
+    width: '100%', maxWidth: '760px', maxHeight: '90vh', overflowY: 'auto',
     border: '1px solid #334155',
   },
   closeBtn: {

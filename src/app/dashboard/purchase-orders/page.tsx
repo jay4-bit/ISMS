@@ -74,7 +74,14 @@ export default function PurchaseOrdersPage() {
   const isElectronics = shop?.shopType === 'ELECTRONICS';
   const isPharmacy = shop?.shopType === 'PHARMACY';
   const isClothing = shop?.shopType === 'CLOTHING';
+  const isLiquor = shop?.shopType === 'LIQUOR';
   const [electronicsMode, setElectronicsMode] = useState<string>('');
+  const [showLiquorForm, setShowLiquorForm] = useState(false);
+  const [liquorItem, setLiquorItem] = useState({
+    name: '', categoryId: '', size: '', supplierId: '', barcode: '',
+    purchaseCost: '', sellingPrice: '', wholesalePrice: '', quantity: 1,
+    hasExpiry: false, expiryDate: '',
+  });
   const [showPharmacyForm, setShowPharmacyForm] = useState(false);
   const [pharmacyItem, setPharmacyItem] = useState({
     brandName: '',
@@ -332,11 +339,11 @@ export default function PurchaseOrdersPage() {
       alert('Please select a supplier');
       return;
     }
-        if (!isElectronics && !isPharmacy && !isClothing && formData.items.length === 0) {
+        if (!isElectronics && !isPharmacy && !isClothing && !isLiquor && formData.items.length === 0) {
       alert('Please add at least one item');
       return;
     }
-    if ((isElectronics || isPharmacy || isClothing) && orderItems.length === 0) {
+    if ((isElectronics || isPharmacy || isClothing || isLiquor) && orderItems.length === 0) {
       alert('Please add at least one item to the order');
       return;
     }
@@ -410,6 +417,19 @@ export default function PurchaseOrdersPage() {
           clothingVariants: item.clothingVariants || null,
           clothingCategoryName: item.categoryId ? categories.find(c => c.id === item.categoryId)?.name || '' : '',
         }));
+      } else if (isLiquor) {
+        poItems = orderItems.map((item: any) => ({
+          productId: null,
+          quantity: item.quantity || 1,
+          unitCost: item.purchaseCost,
+          productName: item.name,
+          productBarcode: item.barcode || null,
+          sellingPrice: item.sellingPrice || item.purchaseCost * 1.2,
+          wholesalePrice: item.wholesalePrice || null,
+          liquorSize: item.size ? parseFloat(item.size) : undefined,
+          liquorCategoryName: item.categoryId ? categories.find(c => c.id === item.categoryId)?.name || '' : '',
+          liquorExpiryDate: item.expiryDate || null,
+        }));
       }
 
       const res = await fetch('/api/purchase-orders', {
@@ -428,6 +448,7 @@ export default function PurchaseOrdersPage() {
         setFormData({ supplierId: '', expectedDelivery: '', items: [] });
         setOrderItems([]);
         setShowPharmacyForm(false);
+        setShowLiquorForm(false);
         setShowClothingForm(false);
         resetElectronicsForm();
         fetchData();
@@ -721,7 +742,7 @@ export default function PurchaseOrdersPage() {
                 <div style={{ marginBottom: '1rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                     <label className="label" style={{ margin: 0 }}>Order Items *</label>
-                    {!isElectronics && !isPharmacy && !isClothing && (
+                    {!isElectronics && !isPharmacy && !isClothing && !isLiquor && (
                       <button type="button" onClick={addItem} className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>
                         <Plus size={14} /> Add Item
                       </button>
@@ -963,6 +984,103 @@ export default function PurchaseOrdersPage() {
                             <Package size={40} color="#f59e0b" />
                             <span style={{ color: 'var(--foreground)', fontWeight: '600' }}>Clothing Item</span>
                             <span style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Brand, Variants, Prices</span>
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  ) : isLiquor ? (
+                    showLiquorForm ? (
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.75rem' }}>
+                          <button onClick={() => setShowLiquorForm(false)} className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', marginRight: '0.5rem' }}>← Back</button>
+                          <span style={{ color: '#22c55e', fontWeight: '600', fontSize: '0.9rem' }}>Add Liquor Item</span>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '0.75rem' }}>
+                          <div>
+                            <label className="label">Product Name *</label>
+                            <input type="text" className="input" value={liquorItem.name} onChange={e => setLiquorItem({ ...liquorItem, name: e.target.value })} placeholder="Product name" />
+                          </div>
+                          <div>
+                            <label className="label">Category</label>
+                            <select className="input" value={liquorItem.categoryId} onChange={e => {
+                              if (e.target.value === '__add_new__') { setShowCategoryModal(true); }
+                              else { setLiquorItem({ ...liquorItem, categoryId: e.target.value }); }
+                            }}>
+                              <option value="">Select category</option>
+                              {categories.map(cat => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
+                              <option value="__add_new__" style={{ color: 'var(--primary)', fontWeight: '600' }}>+ Add New Category...</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '0.75rem' }}>
+                          <div>
+                            <label className="label">Size (ml)</label>
+                            <input type="number" className="input" value={liquorItem.size} onChange={e => setLiquorItem({ ...liquorItem, size: e.target.value })} placeholder="e.g., 750" />
+                          </div>
+                          <div>
+                            <label className="label">Barcode</label>
+                            <input type="text" className="input" value={liquorItem.barcode} onChange={e => setLiquorItem({ ...liquorItem, barcode: e.target.value })} placeholder="Scan or enter barcode" />
+                          </div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '1rem', marginBottom: '0.75rem' }}>
+                          <div>
+                            <label className="label">Quantity *</label>
+                            <input type="number" className="input" value={liquorItem.quantity} onChange={e => setLiquorItem({ ...liquorItem, quantity: parseInt(e.target.value) || 1 })} min="1" />
+                          </div>
+                          <div>
+                            <label className="label">Cost Price *</label>
+                            <input type="number" step="0.01" min="0" className="input" value={liquorItem.purchaseCost} onChange={e => setLiquorItem({ ...liquorItem, purchaseCost: e.target.value })} placeholder="0.00" />
+                          </div>
+                          <div>
+                            <label className="label">Selling Price *</label>
+                            <input type="number" step="0.01" min="0" className="input" value={liquorItem.sellingPrice} onChange={e => setLiquorItem({ ...liquorItem, sellingPrice: e.target.value })} placeholder="0.00" />
+                          </div>
+                          <div>
+                            <label className="label">Wholesale Price</label>
+                            <input type="number" step="0.01" min="0" className="input" value={liquorItem.wholesalePrice} onChange={e => setLiquorItem({ ...liquorItem, wholesalePrice: e.target.value })} placeholder="0.00" />
+                          </div>
+                        </div>
+                        <div style={{ marginBottom: '0.75rem' }}>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--foreground)', cursor: 'pointer' }}>
+                            <input type="checkbox" checked={liquorItem.hasExpiry} onChange={e => setLiquorItem({ ...liquorItem, hasExpiry: e.target.checked, expiryDate: e.target.checked ? liquorItem.expiryDate : '' })} />
+                            <span>Has expiry date</span>
+                          </label>
+                        </div>
+                        {liquorItem.hasExpiry && (
+                          <div style={{ marginBottom: '0.75rem' }}>
+                            <label className="label">Expiry Date</label>
+                            <input type="date" className="input" value={liquorItem.expiryDate} onChange={e => setLiquorItem({ ...liquorItem, expiryDate: e.target.value })} />
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginBottom: '0.75rem' }}>
+                          <button type="button" onClick={() => { setShowLiquorForm(false); }} className="btn btn-secondary">Cancel</button>
+                          <button type="button" onClick={() => {
+                            if (!liquorItem.name.trim()) { alert('Please enter product name'); return; }
+                            if (!liquorItem.purchaseCost) { alert('Please enter cost price'); return; }
+                            if (!liquorItem.sellingPrice) { alert('Please enter selling price'); return; }
+                            setOrderItems([...orderItems, {
+                              ...liquorItem,
+                              purchaseCost: parseFloat(liquorItem.purchaseCost) || 0,
+                              sellingPrice: parseFloat(liquorItem.sellingPrice) || 0,
+                              wholesalePrice: liquorItem.wholesalePrice ? parseFloat(liquorItem.wholesalePrice) : null,
+                            }]);
+                            setLiquorItem({ name: '', categoryId: '', size: '', supplierId: '', barcode: '', purchaseCost: '', sellingPrice: '', wholesalePrice: '', quantity: 1, hasExpiry: false, expiryDate: '' });
+                            setShowLiquorForm(false);
+                          }} className="btn btn-primary">
+                            <Plus size={16} /> Add to Order
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ padding: '1rem 0' }}>
+                        <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                          <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>Add liquor items to this order</p>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                          <button onClick={() => setShowLiquorForm(true)} style={{ padding: '1.5rem', background: 'var(--card)', border: '2px solid #22c55e', borderRadius: '0.75rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                            <Package size={40} color="#22c55e" />
+                            <span style={{ color: 'var(--foreground)', fontWeight: '600' }}>Liquor Item</span>
+                            <span style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>Name, Size, Pricing, Expiry</span>
                           </button>
                         </div>
                       </div>
@@ -1263,7 +1381,7 @@ export default function PurchaseOrdersPage() {
                   ) : null}
                 </div>
 
-                  {(isElectronics || isPharmacy || isClothing) && orderItems.length > 0 && (
+                  {(isElectronics || isPharmacy || isClothing || isLiquor) && orderItems.length > 0 && (
                   <div style={{ marginBottom: '1rem' }}>
                     <label className="label" style={{ marginBottom: '0.5rem' }}>Items in this Order</label>
                     <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
@@ -1280,10 +1398,10 @@ export default function PurchaseOrdersPage() {
                           {orderItems.map((item, idx) => (
                             <tr key={idx}>
                               <td style={{ fontWeight: '500', fontSize: '0.8rem' }}>
-                                {item.type === 'PHONE' ? `${item.brand} ${item.model}` : item.type === 'ACCESSORY' ? `${item.group} - ${item.name}` : item.clothingBrand ? `${item.name || item.brand}` : [item.brandName, item.genericName].filter(Boolean).join(' ')}
+                                {item.type === 'PHONE' ? `${item.brand} ${item.model}` : item.type === 'ACCESSORY' ? `${item.group} - ${item.name}` : item.clothingBrand ? `${item.name || item.brand}` : item.brandName ? [item.brandName, item.genericName].filter(Boolean).join(' ') : item.name || 'Liquor Item'}
                               </td>
                               <td style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>
-                                {item.type === 'PHONE' ? `${item.color} / ${item.storage} / IMEI: ${item.imei}` : item.clothingBrand ? (item.quantity > 1 ? `${item.quantity} variants, e.g. ${(() => { try { const arr = JSON.parse(item.clothingVariants); return arr[0]; } catch { return ''; } })()}` : item.clothingVariants ? (() => { try { const arr = JSON.parse(item.clothingVariants); return arr[0] || ''; } catch { return ''; } })() : '') : item.batchNumber ? `Batch: ${item.batchNumber} / Qty: ${item.quantity}` : `Qty: ${item.quantity}`}
+                                {item.type === 'PHONE' ? `${item.color} / ${item.storage} / IMEI: ${item.imei}` : item.clothingBrand ? (item.quantity > 1 ? `${item.quantity} variants, e.g. ${(() => { try { const arr = JSON.parse(item.clothingVariants); return arr[0]; } catch { return ''; } })()}` : item.clothingVariants ? (() => { try { const arr = JSON.parse(item.clothingVariants); return arr[0] || ''; } catch { return ''; } })() : '') : item.batchNumber ? `Batch: ${item.batchNumber} / Qty: ${item.quantity}` : item.size ? `${item.size}ml / Qty: ${item.quantity}` : `Qty: ${item.quantity}`}
                               </td>
                               <td style={{ fontWeight: '600', fontSize: '0.8rem' }}>{formatCurr(item.totalCost || item.purchaseCost)}</td>
                               <td>
@@ -1302,7 +1420,7 @@ export default function PurchaseOrdersPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '0.5rem' }}>
                   <span style={{ fontWeight: '600' }}>Total:</span>
                   <span style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--primary)' }}>
-                    {isElectronics || isPharmacy || isClothing
+                    {isElectronics || isPharmacy || isClothing || isLiquor
                       ? formatCurr(orderItems.reduce((sum, item) => sum + (item.totalCost || item.purchaseCost || 0), 0))
                       : formatCurr(formData.items.reduce((sum, item) => sum + (item.quantity * item.unitCost), 0))
                     }

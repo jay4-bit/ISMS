@@ -37,7 +37,12 @@ export async function GET(request: NextRequest) {
     const shopFilter = shopId ? { shopId } : {};
 
     const sales = await prisma.sale.findMany({
-      where: { ...shopFilter, createdAt: dateFilter },
+      where: {
+        ...shopFilter,
+        createdAt: dateFilter,
+        saleStatus: { not: 'CANCELLED' },
+        NOT: { isInstallment: true, saleStatus: 'INSTALLMENT' },
+      },
       include: {
         items: {
           include: {

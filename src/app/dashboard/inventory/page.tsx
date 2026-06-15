@@ -1444,7 +1444,7 @@ export default function InventoryPage() {
                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                       <select className="select" value={formData.supplierId} onChange={e => setFormData({ ...formData, supplierId: e.target.value })} style={{ flex: 1 }}>
                         <option value="">Select supplier</option>
-                        {[...suppliers].sort((a, b) => a.name.localeCompare(b.name)).map(sup => (<option key={sup.id} value={sup.id}>{sup.name}</option>))}
+                        {Array.from(new Map(suppliers.map(s => [s.id, s])).values()).sort((a, b) => a.name.localeCompare(b.name)).map(sup => (<option key={sup.id} value={sup.id}>{sup.name}</option>))}
                       </select>
                       <button type="button" onClick={() => setShowSupplierModal(true)} style={{ padding: '0.4rem 0.6rem', background: 'linear-gradient(135deg, #22c55e, #16a34a)', border: 'none', borderRadius: '0.4rem', color: 'white', cursor: 'pointer', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>+ New</button>
                     </div>
@@ -1556,7 +1556,7 @@ export default function InventoryPage() {
                       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                         <select className="select" value={formData.supplierId} onChange={e => setFormData({ ...formData, supplierId: e.target.value })} style={{ flex: 1 }}>
                           <option value="">Select supplier</option>
-                          {[...suppliers].sort((a, b) => a.name.localeCompare(b.name)).map(sup => (<option key={sup.id} value={sup.id}>{sup.name}</option>))}
+                          {Array.from(new Map(suppliers.map(s => [s.id, s])).values()).sort((a, b) => a.name.localeCompare(b.name)).map(sup => (<option key={sup.id} value={sup.id}>{sup.name}</option>))}
                         </select>
                         <button type="button" onClick={() => setShowSupplierModal(true)} style={{ padding: '0.4rem 0.6rem', background: 'linear-gradient(135deg, #22c55e, #16a34a)', border: 'none', borderRadius: '0.4rem', color: 'white', cursor: 'pointer', fontWeight: '600', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>+ New</button>
                       </div>
@@ -1783,7 +1783,7 @@ export default function InventoryPage() {
                     <label className="label">Supplier</label>
                     <select className="select" value={formData.supplierId} onChange={e => setFormData({ ...formData, supplierId: e.target.value })}>
                       <option value="">Select supplier</option>
-                      {[...suppliers].sort((a, b) => a.name.localeCompare(b.name)).map(sup => (<option key={sup.id} value={sup.id}>{sup.name}</option>))}
+                      {Array.from(new Map(suppliers.map(s => [s.id, s])).values()).sort((a, b) => a.name.localeCompare(b.name)).map(sup => (<option key={sup.id} value={sup.id}>{sup.name}</option>))}
                     </select>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>

@@ -536,6 +536,9 @@ model PurchaseOrderItem {
   clothingBrand           String?
   clothingVariants        String?
   clothingCategoryName    String?
+  liquorSize              Float?
+  liquorCategoryName      String?
+  liquorExpiryDate        DateTime?
 }
 
 model PriceTag {

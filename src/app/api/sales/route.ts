@@ -4,17 +4,25 @@ import bcrypt from 'bcryptjs';
 import { logActivity } from '@/lib/activity-log';
 
 async function generateReceiptNumber(shopId: string): Promise<string> {
-  const lastSale = await prisma.sale.findFirst({
-    where: { shopId },
-    orderBy: { receiptNumber: 'desc' },
-    select: { receiptNumber: true },
-  });
-  let nextNum = 1;
-  if (lastSale?.receiptNumber) {
-    const match = lastSale.receiptNumber.match(/(\d+)$/);
-    if (match) nextNum = parseInt(match[1], 10) + 1;
+  for (let i = 0; i < 10; i++) {
+    const lastSale = await prisma.sale.findFirst({
+      where: { shopId },
+      orderBy: { receiptNumber: 'desc' },
+      select: { receiptNumber: true },
+    });
+    let nextNum = 1;
+    if (lastSale?.receiptNumber) {
+      const match = lastSale.receiptNumber.match(/(\d+)$/);
+      if (match) nextNum = parseInt(match[1], 10) + 1;
+    }
+    const candidate = 'RCP' + String(nextNum).padStart(5, '0');
+    const existing = await prisma.sale.findUnique({
+      where: { receiptNumber: candidate },
+      select: { id: true },
+    });
+    if (!existing) return candidate;
   }
-  return 'RCP' + String(nextNum).padStart(5, '0');
+  return 'RCP' + Date.now();
 }
 
 async function getCashierId(shopId: string) {
@@ -367,12 +375,18 @@ export async function PUT(request: NextRequest) {
     });
 
     if (newDue <= 0) {
-      for (const item of updatedSale.items) {
-        await prisma.product.update({
-          where: { id: item.productId },
-          data: { stockQuantity: { decrement: item.quantity } },
-        });
-      }
+      const finalSale = await prisma.sale.update({
+        where: { id, shopId },
+        data: {
+          saleStatus: 'COMPLETE',
+          isPaid: true,
+        },
+        include: {
+          items: { include: { product: { include: { electronicsFields: true } } } },
+          cashier: { select: { name: true } },
+        },
+      });
+      return NextResponse.json({ sale: finalSale });
     }
 
     return NextResponse.json({ sale: updatedSale });

@@ -100,7 +100,7 @@ export default function POSPage() {
       ]);
       const productsData = await productsRes.json();
       const clientsData = await clientsRes.json();
-      setProducts(productsData.products?.filter((p: Product) => p.stockQuantity > 0 && !p.isFaulty) || []);
+      setProducts(productsData.products?.filter((p: Product) => p.stockQuantity > 0 && (!p.isFaulty || !p.electronicsFields?.imei)) || []);
       setClients(clientsData.customers?.filter((c: Client) => c.isActive !== false) || []);
     } catch (error) {
       console.error('Failed to fetch data:', error);
@@ -240,6 +240,7 @@ export default function POSPage() {
         customerId: selectedClient?.id || null,
         isInstallment: isCredit,
         amountPaid: cashAmount,
+        saveCustomer: !!(finalCustomerName && !selectedClient),
       };
       
       const res = await fetch('/api/sales', {

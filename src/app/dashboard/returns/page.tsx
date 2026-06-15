@@ -127,7 +127,7 @@ export default function ReturnsPage() {
 
   function addReturnItem(product: Product) {
     if (returnItems.find(item => item.productId === product.id)) return;
-    if (returnedProductIds.has(product.id)) return;
+    if (returnedProductIds.has(product.id) && product.electronicsFields?.imei) return;
     setReturnItems([...returnItems, { 
       productId: product.id, 
       product, 
@@ -263,8 +263,11 @@ export default function ReturnsPage() {
         headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' }, 
         body: JSON.stringify({ items: returnItems, reason, userId: user?.id, userName: user?.name }) 
       });
-      if (res.ok) { setShowModal(false); setReturnItems([]); setReason(''); fetchData(); }
-    } catch (error) { console.error('Return failed:', error); }
+      if (res.ok) { setShowModal(false); setReturnItems([]); setReason(''); fetchData(); } else {
+        const errData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        alert('Failed to save return: ' + (errData.error || res.statusText));
+      }
+    } catch (error) { console.error('Return failed:', error); alert('Return request failed: ' + (error instanceof Error ? error.message : 'Unknown error')); }
   }
 
   function viewReturn(returnRecord: ReturnRecord) {
@@ -640,7 +643,11 @@ export default function ReturnsPage() {
                                 <label style={{ display: 'block', fontSize: '0.6rem', color: 'var(--muted-foreground)', marginBottom: '0.2rem', fontWeight: '500' }}>Select Replacement Product</label>
                                 <select value={item.replacementProductId || ''} onChange={(e) => updateReturnItem(item.productId, 'replacementProductId', e.target.value)} style={{ width: '100%', padding: '0.35rem 0.5rem', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--background)', color: 'var(--foreground)', fontSize: '0.75rem', marginBottom: '0.4rem' }}>
                                   <option value="">Select replacement product</option>
-                                  {products.filter(p => p.id !== item.productId && p.stockQuantity >= 1).map(p => (
+                                  {products.filter(p => {
+                                    if (p.stockQuantity < 1) return false;
+                                    if (p.id === item.productId && p.electronicsFields?.imei) return false;
+                                    return true;
+                                  }).map(p => (
                                     <option key={p.id} value={p.id}>{p.name}{p.electronicsFields?.imei ? ` [IMEI: ${p.electronicsFields.imei}]` : ''} (Stock: {p.stockQuantity})</option>
                                   ))}
                                 </select>
@@ -1007,7 +1014,7 @@ function ReturnProductSelector({ products, returnItems, returnedProductIds, onSe
 
   const filtered = products.filter(p =>
     !returnItems.find(item => item.productId === p.id) &&
-    !returnedProductIds.has(p.id) &&
+    (!returnedProductIds.has(p.id) || !p.electronicsFields?.imei) &&
     (p.name.toLowerCase().includes(search.toLowerCase()) ||
      p.sku?.toLowerCase().includes(search.toLowerCase()) ||
      p.electronicsFields?.imei?.toLowerCase().includes(search.toLowerCase()))

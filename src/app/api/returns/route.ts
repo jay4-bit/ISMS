@@ -3,17 +3,25 @@ import prisma from '@/lib/db';
 import { logActivity } from '@/lib/activity-log';
 
 async function generateReturnNumber(shopId: string): Promise<string> {
-  const lastReturn = await prisma.return.findFirst({
-    where: { shopId },
-    orderBy: { createdAt: 'desc' },
-    select: { returnNumber: true },
-  });
-  let nextNum = 1;
-  if (lastReturn?.returnNumber) {
-    const match = lastReturn.returnNumber.match(/(\d+)$/);
-    if (match) nextNum = parseInt(match[1], 10) + 1;
+  for (let i = 0; i < 10; i++) {
+    const lastReturn = await prisma.return.findFirst({
+      where: { shopId },
+      orderBy: { returnNumber: 'desc' },
+      select: { returnNumber: true },
+    });
+    let nextNum = 1;
+    if (lastReturn?.returnNumber) {
+      const match = lastReturn.returnNumber.match(/(\d+)$/);
+      if (match) nextNum = parseInt(match[1], 10) + 1;
+    }
+    const candidate = 'RET' + String(nextNum).padStart(5, '0');
+    const existing = await prisma.return.findUnique({
+      where: { returnNumber: candidate },
+      select: { id: true },
+    });
+    if (!existing) return candidate;
   }
-  return 'RET' + String(nextNum).padStart(5, '0');
+  return 'RET' + Date.now();
 }
 
 export async function GET(request: NextRequest) {
@@ -200,8 +208,6 @@ export async function POST(request: NextRequest) {
       return sum + (item.priceDifference || 0);
     }, 0);
 
-    const returnNumber = await generateReturnNumber(shopId);
-
     // Validate replacement product stock before processing
     for (const item of items) {
       if (item.awardedType === 'REPLACEMENT' && item.replacementProductId) {
@@ -212,19 +218,35 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const returnRecord = await prisma.return.create({
-      data: {
-        returnNumber,
-        reason,
-        processedBy: 'demo-admin',
-        totalRefund: totalRefund + totalPriceDiff,
-        shopId,
-        items: {
-          create: returnItemsData,
-        },
-      },
-      include: { items: { include: { product: true } } },
-    });
+    let returnRecord;
+    let returnNumber = '';
+    const maxRetries = 5;
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      returnNumber = await generateReturnNumber(shopId);
+      try {
+        returnRecord = await prisma.return.create({
+          data: {
+            returnNumber,
+            reason,
+            processedBy: 'demo-admin',
+            totalRefund: totalRefund + totalPriceDiff,
+            shopId,
+            items: {
+              create: returnItemsData,
+            },
+          },
+          include: { items: { include: { product: true } } },
+        });
+        break;
+      } catch (err: any) {
+        if (err?.code === 'P2002' && attempt < maxRetries - 1) continue;
+        console.error('Create return error:', err);
+        return NextResponse.json({ error: err instanceof Error ? err.message : 'Failed to create return' }, { status: 500 });
+      }
+    }
+    if (!returnRecord) {
+      return NextResponse.json({ error: 'Failed to create return, please try again' }, { status: 500 });
+    }
 
     for (const item of items) {
       if (item.awardedType === 'REPLACEMENT' && item.replacementProductId) {
@@ -264,7 +286,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    logActivity({
+    await logActivity({
       shopId, userId: userId || 'system', userName: userName || 'System',
       action: 'SALE_RETURNED',
       details: `Return ${returnNumber} — ${returnRecord.items.length} items, refund ${returnRecord.totalRefund}`,
@@ -273,7 +295,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ return: returnRecord });
   } catch (error) {
     console.error('Create return error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
 
