@@ -360,18 +360,18 @@ export default function AccountingsPage() {
               <div className="table-responsive">
                 <table style={styles.table}>
                   <thead>
-                    <tr>
-                      <th>Category</th>
-                      <th>Amount</th>
-                      <th>% of Total</th>
+                    <tr style={{ background: 'var(--background)' }}>
+                      <th style={{ textAlign: 'left', padding: '0.5rem' }}>Category</th>
+                      <th style={{ textAlign: 'right', padding: '0.5rem' }}>Amount</th>
+                      <th style={{ textAlign: 'right', padding: '0.5rem' }}>% of Total</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {data.expenseCategories.map(exp => (
-                      <tr key={exp.category}>
-                        <td style={{ fontWeight: '500' }}>{expenseCategoryLabels[exp.category] || exp.category}</td>
-                        <td style={{ color: '#ef4444' }}>{formatCurr(exp.amount)}</td>
-                        <td style={{ color: 'var(--muted-foreground)' }}>
+                    {data.expenseCategories.map((exp, idx) => (
+                      <tr key={exp.category} style={{ borderBottom: '1px solid #334155', background: idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' }}>
+                        <td style={{ padding: '0.5rem', fontWeight: '500' }}>{expenseCategoryLabels[exp.category] || exp.category}</td>
+                        <td style={{ padding: '0.5rem', textAlign: 'right', color: '#ef4444' }}>{formatCurr(exp.amount)}</td>
+                        <td style={{ padding: '0.5rem', textAlign: 'right', color: 'var(--muted-foreground)' }}>
                           {((exp.amount / (data.totalExpenses || 1)) * 100).toFixed(1)}%
                         </td>
                       </tr>
@@ -400,18 +400,18 @@ export default function AccountingsPage() {
               <div className="table-responsive">
                 <table style={styles.table}>
                   <thead>
-                    <tr>
-                      <th>Method</th>
-                      <th>Count</th>
-                      <th>Total Amount</th>
+                    <tr style={{ background: 'var(--background)' }}>
+                      <th style={{ textAlign: 'left', padding: '0.5rem' }}>Method</th>
+                      <th style={{ textAlign: 'center', padding: '0.5rem' }}>Count</th>
+                      <th style={{ textAlign: 'right', padding: '0.5rem' }}>Total Amount</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {data.refundMethods.map(rf => (
-                      <tr key={rf.method}>
-                        <td style={{ fontWeight: '500' }}>{rf.method}</td>
-                        <td>{rf.count}</td>
-                        <td style={{ color: '#ef4444' }}>{formatCurr(rf.totalAmount)}</td>
+                    {data.refundMethods.map((rf, idx) => (
+                      <tr key={rf.method} style={{ borderBottom: '1px solid #334155', background: idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' }}>
+                        <td style={{ padding: '0.5rem', fontWeight: '500' }}>{rf.method}</td>
+                        <td style={{ padding: '0.5rem', textAlign: 'center' }}>{rf.count}</td>
+                        <td style={{ padding: '0.5rem', textAlign: 'right', color: '#ef4444' }}>{formatCurr(rf.totalAmount)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -441,24 +441,24 @@ export default function AccountingsPage() {
                   <div className="table-responsive">
                     <table style={styles.table}>
                       <thead>
-                        <tr>
-                          <th>Receipt</th>
-                          <th>Customer</th>
-                          <th>Total</th>
-                          <th>Paid</th>
-                          <th>Due</th>
-                          <th>Next Payment</th>
+                        <tr style={{ background: 'var(--background)' }}>
+                          <th style={{ textAlign: 'left', padding: '0.5rem' }}>Receipt</th>
+                          <th style={{ textAlign: 'left', padding: '0.5rem' }}>Customer</th>
+                          <th style={{ textAlign: 'right', padding: '0.5rem' }}>Total</th>
+                          <th style={{ textAlign: 'right', padding: '0.5rem' }}>Paid</th>
+                          <th style={{ textAlign: 'right', padding: '0.5rem' }}>Due</th>
+                          <th style={{ textAlign: 'center', padding: '0.5rem' }}>Next Payment</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {data.installmentSales.map(inst => (
-                          <tr key={inst.id}>
-                            <td style={{ fontWeight: '500' }}>{inst.receiptNumber || '—'}</td>
-                            <td>{inst.customerName}</td>
-                            <td>{formatCurr(inst.totalAmount)}</td>
-                            <td style={{ color: '#22c55e' }}>{formatCurr(inst.amountPaid)}</td>
-                            <td style={{ color: '#ef4444', fontWeight: '600' }}>{formatCurr(inst.amountDue)}</td>
-                            <td style={{ fontSize: '0.75rem' }}>
+                        {data.installmentSales.map((inst, idx) => (
+                          <tr key={inst.id} style={{ borderBottom: '1px solid #334155', background: idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' }}>
+                            <td style={{ padding: '0.5rem', fontWeight: '500' }}>{inst.receiptNumber || '—'}</td>
+                            <td style={{ padding: '0.5rem' }}>{inst.customerName}</td>
+                            <td style={{ padding: '0.5rem', textAlign: 'right' }}>{formatCurr(inst.totalAmount)}</td>
+                            <td style={{ padding: '0.5rem', textAlign: 'right', color: '#22c55e' }}>{formatCurr(inst.amountPaid)}</td>
+                            <td style={{ padding: '0.5rem', textAlign: 'right', color: '#ef4444', fontWeight: '600' }}>{formatCurr(inst.amountDue)}</td>
+                            <td style={{ padding: '0.5rem', textAlign: 'center', fontSize: '0.75rem' }}>
                               {inst.nextPaymentDate ? new Date(inst.nextPaymentDate).toLocaleDateString() : '—'}
                             </td>
                           </tr>
@@ -474,20 +474,20 @@ export default function AccountingsPage() {
                   <div className="table-responsive">
                     <table style={styles.table}>
                       <thead>
-                        <tr>
-                          <th>Customer</th>
-                          <th>Total</th>
-                          <th>Paid</th>
-                          <th>Due</th>
+                        <tr style={{ background: 'var(--background)' }}>
+                          <th style={{ textAlign: 'left', padding: '0.5rem' }}>Customer</th>
+                          <th style={{ textAlign: 'right', padding: '0.5rem' }}>Total</th>
+                          <th style={{ textAlign: 'right', padding: '0.5rem' }}>Paid</th>
+                          <th style={{ textAlign: 'right', padding: '0.5rem' }}>Due</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {data.replacementInstallments.map(inst => (
-                          <tr key={inst.id}>
-                            <td style={{ fontWeight: '500' }}>{inst.customerName}</td>
-                            <td>{formatCurr(inst.totalAmount)}</td>
-                            <td style={{ color: '#22c55e' }}>{formatCurr(inst.amountPaid)}</td>
-                            <td style={{ color: '#ef4444', fontWeight: '600' }}>{formatCurr(inst.amountDue)}</td>
+                        {data.replacementInstallments.map((inst, idx) => (
+                          <tr key={inst.id} style={{ borderBottom: '1px solid #334155', background: idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' }}>
+                            <td style={{ padding: '0.5rem', fontWeight: '500' }}>{inst.customerName}</td>
+                            <td style={{ padding: '0.5rem', textAlign: 'right' }}>{formatCurr(inst.totalAmount)}</td>
+                            <td style={{ padding: '0.5rem', textAlign: 'right', color: '#22c55e' }}>{formatCurr(inst.amountPaid)}</td>
+                            <td style={{ padding: '0.5rem', textAlign: 'right', color: '#ef4444', fontWeight: '600' }}>{formatCurr(inst.amountDue)}</td>
                           </tr>
                         ))}
                       </tbody>
