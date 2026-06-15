@@ -63,7 +63,7 @@ export default function DebtsPage() {
         headers: { 'x-shop-id': shop?.id || '' },
       });
       const json = await res.json();
-      setDebts((json as Debt[]).map(d => ({ ...d, balance: d.amount - d.paidAmount })));
+      setDebts(Array.isArray(json) ? json.map((d: Debt) => ({ ...d, balance: d.amount - d.paidAmount })) : []);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   }

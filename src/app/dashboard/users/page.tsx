@@ -363,7 +363,7 @@ export default function UsersPage() {
                 </div>
                 {permSelectedRole === role.value && <Check size={16} color={role.color} />}
                 {!role.builtIn && (
-                  <div onClick={(e) => { e.stopPropagation(); setEditingRole(allRoles.find((r: any) => r.name === role.value)); setRoleForm({ name: role.name, description: role.desc === 'Custom role' ? '' : role.desc, color: role.color }); setShowRoleModal(true); }}
+                  <div onClick={(e) => { e.stopPropagation(); setEditingRole(allRoles.find((r: any) => r.name === role.value)); setRoleForm({ name: role.value, description: role.desc === 'Custom role' ? '' : role.desc, color: role.color }); setShowRoleModal(true); }}
                     style={{ position: 'absolute', top: '2px', right: '2px', cursor: 'pointer', padding: '2px', color: '#94a3b8', lineHeight: 1 }} title="Edit role">
                     <Edit size={12} />
                   </div>
