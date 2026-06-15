@@ -246,8 +246,8 @@ export async function PUT(request: NextRequest) {
               } : (isLiquorItem ? {
                 liquorFields: {
                   create: {
-                    size: item.liquorSize ? parseFloat(item.liquorSize) : null,
-                    volume: item.liquorSize ? parseFloat(item.liquorSize) : null,
+                    size: item.liquorSize ?? null,
+                    volume: item.liquorSize ?? null,
                   }
                 },
                 expiryDate: item.liquorExpiryDate ? new Date(item.liquorExpiryDate) : null,
