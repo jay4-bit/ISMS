@@ -682,6 +682,7 @@ enum DebtStatus {
 model Debt {
   id          String     @id @default(cuid())
   personName  String
+  phone       String?
   personPhone String?
   type        DebtType
   amount      Float

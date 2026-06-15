@@ -400,7 +400,7 @@ export async function POST(request: NextRequest) {
         const created = await tx.debt.create({
           data: {
             personName: d.personName,
-            phone: d.phone || null,
+            personPhone: d.personPhone || null,
             type: d.type || 'DEBTOR',
             amount: d.amount || 0,
             paidAmount: d.paidAmount || 0,

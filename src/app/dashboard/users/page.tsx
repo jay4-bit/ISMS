@@ -348,9 +348,9 @@ export default function UsersPage() {
                 style={{
                   display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1rem',
                   borderRadius: '0.75rem', border: '2px solid', cursor: 'pointer', transition: 'all 0.2s',
-                  textAlign: 'left', flex: '1', minWidth: '180px', background: 'transparent',
-                  borderColor: permSelectedRole === role.value ? role.color : 'var(--border)',
+                  textAlign: 'left', flex: '1', minWidth: '180px',
                   background: permSelectedRole === role.value ? `${role.color}15` : 'transparent',
+                  borderColor: permSelectedRole === role.value ? role.color : 'var(--border)',
                   position: 'relative',
                 }}
               >
