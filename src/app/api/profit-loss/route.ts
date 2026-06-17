@@ -186,18 +186,17 @@ export async function GET(request: NextRequest) {
         totalCost -= productCost;
       }
       
-      // The returnCost (processing/handling/repair fee) is the ONLY cost of the return
-      // The product's purchase cost is NOT a loss — it goes back to inventory for resale
-      if (returnProcCost > 0 && awardedType !== 'REPAIR') {
-        totalReturnLoss += returnProcCost;
-      }
-      
-      // Replacement product given to customer: its purchase cost is a return cost (not COGS)
+      // Replacement product given to customer: its purchase cost is COGS (not a return loss)
       if (awardedType === 'REPLACEMENT' && item.replacementProductId) {
         const repCost = (replacementCostMap.get(item.replacementProductId) || 0) * item.quantity;
         if (repCost > 0) {
-          totalReturnLoss += repCost;
+          totalCost += repCost;
         }
+      }
+      
+      // The returnCost (processing/handling/repair fee) is the cost of processing the return
+      if (returnProcCost > 0 && awardedType !== 'REPAIR') {
+        totalReturnLoss += returnProcCost;
       }
       
       // Business-paid price difference (non-replacement) is a return cost
@@ -240,16 +239,6 @@ export async function GET(request: NextRequest) {
         }
         returnBreakdown['RETURN_COST'].amount += returnProcCost;
         returnBreakdown['RETURN_COST'].count += 1;
-      }
-      if (awardedType === 'REPLACEMENT' && item.replacementProductId) {
-        const repCost = (replacementCostMap.get(item.replacementProductId) || 0) * item.quantity;
-        if (repCost > 0) {
-          if (!returnBreakdown['REPLACEMENT_COST']) {
-            returnBreakdown['REPLACEMENT_COST'] = { type: 'Replacement Product Cost', amount: 0, count: 0, isLoss: true };
-          }
-          returnBreakdown['REPLACEMENT_COST'].amount += repCost;
-          returnBreakdown['REPLACEMENT_COST'].count += 1;
-        }
       }
       if (repairCost > 0) {
         if (!returnBreakdown['REPAIR']) {
