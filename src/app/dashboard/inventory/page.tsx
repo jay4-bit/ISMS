@@ -1430,8 +1430,8 @@ export default function InventoryPage() {
       </div>
         
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '760px', padding: '2rem' }}>
+        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowModal(false); }}>
+          <div className="modal" style={{ maxWidth: '760px', padding: '2rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>{editingProduct ? 'Edit Product' : 'Add Product'}</h2>
               <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
@@ -1786,7 +1786,11 @@ export default function InventoryPage() {
                       {Array.from(new Map(suppliers.map(s => [s.id, s])).values()).sort((a, b) => a.name.localeCompare(b.name)).map(sup => (<option key={sup.id} value={sup.id}>{sup.name}</option>))}
                     </select>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label className="label">Stock Quantity *</label>
+                      <input type="number" min="0" className="input" value={formData.stockQuantity} onChange={e => setFormData({ ...formData, stockQuantity: e.target.value })} />
+                    </div>
                     <div>
                       <label className="label">Purchase Cost</label>
                       <input type="number" step="0.01" min="0" className="input" value={formData.purchaseCost} onChange={e => setFormData({ ...formData, purchaseCost: e.target.value })} required />

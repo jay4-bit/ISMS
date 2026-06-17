@@ -12,7 +12,7 @@ async function generateReceiptNumber(shopId: string): Promise<string> {
     });
     let nextNum = 1;
     if (lastSale?.receiptNumber) {
-      const match = lastSale.receiptNumber.match(/(\d+)$/);
+      const match = lastSale.receiptNumber.match(/RCP(\d{5})$/);
       if (match) nextNum = parseInt(match[1], 10) + 1;
     }
     const candidate = 'RCP' + String(nextNum).padStart(5, '0');

@@ -95,6 +95,18 @@ export default function PurchaseOrdersPage() {
     wholesalePrice: '',
     quantity: 1,
   });
+  const [showGeneralForm, setShowGeneralForm] = useState(false);
+  const [generalItem, setGeneralItem] = useState({
+    name: '',
+    brand: '',
+    barcode: '',
+    categoryId: '',
+    purchaseCost: '',
+    sellingPrice: '',
+    wholesalePrice: '',
+    quantity: 1,
+    variants: [] as { variantType: string; variantValue: string }[],
+  });
   const [showClothingForm, setShowClothingForm] = useState(false);
   const [clothingItem, setClothingItem] = useState({
     name: '',
@@ -339,11 +351,7 @@ export default function PurchaseOrdersPage() {
       alert('Please select a supplier');
       return;
     }
-        if (!isElectronics && !isPharmacy && !isClothing && !isLiquor && formData.items.length === 0) {
-      alert('Please add at least one item');
-      return;
-    }
-    if ((isElectronics || isPharmacy || isClothing || isLiquor) && orderItems.length === 0) {
+        if (orderItems.length === 0) {
       alert('Please add at least one item to the order');
       return;
     }
@@ -430,6 +438,18 @@ export default function PurchaseOrdersPage() {
           liquorCategoryName: item.categoryId ? categories.find(c => c.id === item.categoryId)?.name || '' : '',
           liquorExpiryDate: item.expiryDate || null,
         }));
+      } else {
+        poItems = orderItems.map((item: any) => ({
+          productId: null,
+          quantity: item.quantity || 1,
+          unitCost: item.purchaseCost,
+          productName: item.name,
+          productBarcode: item.barcode || null,
+          sellingPrice: item.sellingPrice || item.purchaseCost * 1.2,
+          wholesalePrice: item.wholesalePrice || null,
+          clothingBrand: item.clothingBrand || null,
+          clothingVariants: item.clothingVariants || null,
+        }));
       }
 
       const res = await fetch('/api/purchase-orders', {
@@ -450,6 +470,8 @@ export default function PurchaseOrdersPage() {
         setShowPharmacyForm(false);
         setShowLiquorForm(false);
         setShowClothingForm(false);
+        setShowGeneralForm(false);
+        setGeneralItem({ name: '', brand: '', barcode: '', categoryId: '', purchaseCost: '', sellingPrice: '', wholesalePrice: '', quantity: 1, variants: [] });
         resetElectronicsForm();
         fetchData();
       } else {
@@ -478,16 +500,22 @@ export default function PurchaseOrdersPage() {
       quantityReceived
     }));
     try {
-      await fetch('/api/purchase-orders', {
+      const res = await fetch('/api/purchase-orders', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
         body: JSON.stringify({ id: receivingOrder.id, status: 'RECEIVED', receivedItems })
       });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        alert(errData.error || 'Failed to receive order, please try again');
+        return;
+      }
       setShowReceiveModal(false);
       setReceivingOrder(null);
       fetchData();
     } catch (error) {
       console.error('Failed to receive order:', error);
+      alert('Network error while receiving order');
     }
   }
 
@@ -549,6 +577,26 @@ export default function PurchaseOrdersPage() {
       case 'CANCELLED': return <span className="badge badge-danger">Cancelled</span>;
       default: return <span>{status}</span>;
     }
+  }
+
+  function renderVariantComboInfo() {
+    if (!clothingItem.variants.some(v => v.type && v.values.trim())) return null;
+    const comboCount = generateVariantCombinations(clothingItem.variants).length;
+    if (comboCount === 0) return null;
+    const qty = clothingItem.quantity || 1;
+    const total = comboCount * qty;
+    return <p style={{ marginTop: '0.5rem', color: 'var(--success)', fontSize: '0.8rem', fontWeight: 500 }}>
+      {comboCount} variant{comboCount > 1 ? 's' : ''} {qty > 1 ? `× ${qty} = ${total} total items` : `= ${total} item${total > 1 ? 's' : ''}`}
+    </p>;
+  }
+
+  function getAddButtonText() {
+    const c = generateVariantCombinations(clothingItem.variants).length * (clothingItem.quantity || 1);
+    return c > 0 ? `${c} Items` : 'to Order';
+  }
+
+  function getFirstVariant(variants: string) {
+    try { const arr = JSON.parse(variants); return arr[0] || ''; } catch { return ''; }
   }
 
   if (loading) return <div>Loading...</div>;
@@ -742,8 +790,8 @@ export default function PurchaseOrdersPage() {
                 <div style={{ marginBottom: '1rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                     <label className="label" style={{ margin: 0 }}>Order Items *</label>
-                    {!isElectronics && !isPharmacy && !isClothing && !isLiquor && (
-                      <button type="button" onClick={addItem} className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>
+                    {!isElectronics && !isPharmacy && !isClothing && !isLiquor && !showGeneralForm && (
+                      <button type="button" onClick={() => setShowGeneralForm(true)} className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>
                         <Plus size={14} /> Add Item
                       </button>
                     )}
@@ -922,16 +970,7 @@ export default function PurchaseOrdersPage() {
                               + Add Variant Type
                             </button>
                           </div>
-                          {clothingItem.variants.some(v => v.type && v.values.trim()) && (() => {
-                            const comboCount = generateVariantCombinations(clothingItem.variants).length;
-                            const qty = clothingItem.quantity || 1;
-                            const total = comboCount * qty;
-                            return comboCount > 0 ? (
-                              <p style={{ marginTop: '0.5rem', color: 'var(--success)', fontSize: '0.8rem', fontWeight: 500 }}>
-                                {comboCount} variant{comboCount > 1 ? 's' : ''} {qty > 1 ? `× ${qty} = ${total} total items` : `= ${total} item${total > 1 ? 's' : ''}`}
-                              </p>
-                            ) : null;
-                          })()}
+                          {renderVariantComboInfo()}
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '0.75rem' }}>
                           <div>
@@ -970,7 +1009,7 @@ export default function PurchaseOrdersPage() {
                             setClothingItem({ name: '', brand: '', barcode: '', categoryId: '', purchaseCost: '', sellingPrice: '', wholesalePrice: '', quantity: 1, variants: [] });
                             setShowClothingForm(false);
                           }} className="btn btn-primary">
-                            <Plus size={16} /> Add {(() => { const c = generateVariantCombinations(clothingItem.variants).length * (clothingItem.quantity || 1); return c > 0 ? `${c} Items` : 'to Order'; })()}
+                            <Plus size={16} /> Add {getAddButtonText()}
                           </button>
                         </div>
                       </div>
@@ -1086,71 +1125,123 @@ export default function PurchaseOrdersPage() {
                       </div>
                     )
                   ) : !isElectronics ? (
-                    formData.items.length === 0 ? (
+                    showGeneralForm ? (
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.75rem' }}>
+                          <button onClick={() => setShowGeneralForm(false)} className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', marginRight: '0.5rem' }}>← Back</button>
+                          <span style={{ color: 'var(--foreground)', fontWeight: '600', fontSize: '0.9rem' }}>Add General Item</span>
+                        </div>
+                        <div style={{ marginBottom: '0.75rem' }}>
+                          <label className="label">Product Name *</label>
+                          <input type="text" className="input" value={generalItem.name} onChange={e => setGeneralItem({ ...generalItem, name: e.target.value })} placeholder="Product name" />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '0.75rem' }}>
+                          <div>
+                            <label className="label">Brand</label>
+                            <select className="input" value={generalItem.brand} onChange={e => {
+                              if (e.target.value === '__add_new__') {
+                                setShowBrandModal(true);
+                              } else {
+                                setGeneralItem({ ...generalItem, brand: e.target.value });
+                              }
+                            }}>
+                              <option value="">Select brand</option>
+                              {brands.map((b: any) => (<option key={b.id} value={b.name}>{b.name}</option>))}
+                              <option value="__add_new__" style={{ color: 'var(--primary)', fontWeight: '600' }}>+ Add New Brand...</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="label">Barcode</label>
+                            <input type="text" className="input" value={generalItem.barcode} onChange={e => setGeneralItem({ ...generalItem, barcode: e.target.value })} placeholder="Scan or enter barcode" />
+                          </div>
+                        </div>
+                        <div style={{ marginBottom: '0.75rem' }}>
+                          <label className="label">Category</label>
+                          <select className="input" value={generalItem.categoryId} onChange={e => {
+                            if (e.target.value === '__add_new__') {
+                              setShowCategoryModal(true);
+                            } else {
+                              setGeneralItem({ ...generalItem, categoryId: e.target.value });
+                            }
+                          }}>
+                            <option value="">Select category</option>
+                            {categories.map(cat => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
+                            <option value="__add_new__" style={{ color: 'var(--primary)', fontWeight: '600' }}>+ Add New Category...</option>
+                          </select>
+                        </div>
+                        <div style={{ marginBottom: '0.75rem', padding: '1rem', background: 'var(--card)', borderRadius: '0.75rem', border: '1px solid var(--border)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                            <h4 style={{ color: 'var(--foreground)', fontSize: '0.9rem', fontWeight: '600' }}>Variants</h4>
+                            <button type="button" onClick={() => setGeneralItem({ ...generalItem, variants: [...generalItem.variants, { variantType: 'OTHER', variantValue: '' }] })} className="btn btn-success" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}>
+                              + Add Variant
+                            </button>
+                          </div>
+                          {generalItem.variants.length === 0 && (
+                            <p style={{ color: 'var(--muted-foreground)', fontSize: '0.8rem' }}>No variants added. Click "Add Variant" to create product variations (e.g., sizes, colors, pack sizes).</p>
+                          )}
+                          {generalItem.variants.map((v, i) => (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', padding: '0.6rem', background: 'var(--background)', borderRadius: '0.5rem' }}>
+                              <div style={{ flex: 1 }}>
+                                <select className="input" style={{ padding: '0.35rem', fontSize: '0.8rem' }} value={v.variantType} onChange={e => {
+                                  const vs = [...generalItem.variants];
+                                  vs[i] = { ...vs[i], variantType: e.target.value };
+                                  setGeneralItem({ ...generalItem, variants: vs });
+                                }}>
+                                  {[{ value: 'COLOR', label: 'Color' }, { value: 'SIZE', label: 'Size' }, { value: 'LENGTH', label: 'Length' }, { value: 'WEIGHT', label: 'Weight' }, { value: 'VOLUME', label: 'Volume' }, { value: 'PACK', label: 'Pack' }, { value: 'FLAVOR', label: 'Flavor' }, { value: 'MATERIAL', label: 'Material' }, { value: 'OTHER', label: 'Other' }].map(vt => (<option key={vt.value} value={vt.value} style={vt.value === '' ? { background: 'var(--background)', color: 'var(--muted-foreground)' } : { background: 'var(--background)', color: 'var(--foreground)' }}>{vt.label}</option>))}
+                                </select>
+                              </div>
+                              <div style={{ flex: 1 }}>
+                                <input type="text" className="input" style={{ padding: '0.35rem', fontSize: '0.8rem' }} value={v.variantValue} onChange={e => {
+                                  const vs = [...generalItem.variants];
+                                  vs[i] = { ...vs[i], variantValue: e.target.value };
+                                  setGeneralItem({ ...generalItem, variants: vs });
+                                }} placeholder={`e.g., ${v.variantType === 'COLOR' ? 'Red' : v.variantType === 'SIZE' ? '42' : 'value'}`} />
+                              </div>
+                              <button type="button" onClick={() => setGeneralItem({ ...generalItem, variants: generalItem.variants.filter((_, idx) => idx !== i) })} style={{ background: 'none', border: 'none', color: 'var(--destructive)', cursor: 'pointer', padding: '0.4rem' }}>
+                                <X size={14} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '1rem', marginBottom: '0.75rem' }}>
+                          <div>
+                            <label className="label">Quantity *</label>
+                            <input type="number" className="input" value={generalItem.quantity} onChange={e => setGeneralItem({ ...generalItem, quantity: parseInt(e.target.value) || 1 })} min="1" />
+                          </div>
+                          <div>
+                            <label className="label">Buying Price *</label>
+                            <input type="number" step="0.01" min="0" className="input" value={generalItem.purchaseCost} onChange={e => setGeneralItem({ ...generalItem, purchaseCost: e.target.value })} placeholder="0.00" />
+                          </div>
+                          <div>
+                            <label className="label">Selling Price *</label>
+                            <input type="number" step="0.01" min="0" className="input" value={generalItem.sellingPrice} onChange={e => setGeneralItem({ ...generalItem, sellingPrice: e.target.value })} placeholder="0.00" />
+                          </div>
+                          <div>
+                            <label className="label">Wholesale Price</label>
+                            <input type="number" step="0.01" min="0" className="input" value={generalItem.wholesalePrice} onChange={e => setGeneralItem({ ...generalItem, wholesalePrice: e.target.value })} placeholder="0.00" />
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginBottom: '0.75rem' }}>
+                          <button type="button" onClick={() => { setShowGeneralForm(false); }} className="btn btn-secondary">Cancel</button>
+                          <button type="button" onClick={() => {
+                            if (!generalItem.name) { alert('Please enter product name'); return; }
+                            if (!generalItem.purchaseCost) { alert('Please enter buying price'); return; }
+                            if (!generalItem.sellingPrice) { alert('Please enter selling price'); return; }
+                            const variantArr = generalItem.variants.map(v => `${v.variantType}: ${v.variantValue}`);
+                            const variantStr = variantArr.length > 0 ? JSON.stringify(variantArr) : null;
+                            setOrderItems([...orderItems, { ...generalItem, purchaseCost: parseFloat(generalItem.purchaseCost) || 0, sellingPrice: parseFloat(generalItem.sellingPrice) || 0, wholesalePrice: generalItem.wholesalePrice ? parseFloat(generalItem.wholesalePrice) : null, clothingVariants: variantStr, clothingBrand: generalItem.brand || null }]);
+                            setGeneralItem({ name: '', brand: '', barcode: '', categoryId: '', purchaseCost: '', sellingPrice: '', wholesalePrice: '', quantity: 1, variants: [] });
+                            setShowGeneralForm(false);
+                          }} className="btn btn-primary">
+                            <Plus size={16} /> Add to Order
+                          </button>
+                        </div>
+                      </div>
+                    ) : orderItems.length === 0 ? (
                       <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted-foreground)', background: '#f8fafc', borderRadius: '0.5rem' }}>
                         Click "Add Item" to add products
                       </div>
-                    ) : (
-                      <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                        <table className="table">
-                          <thead>
-                            <tr>
-                              <th>Product</th>
-                              <th>Qty</th>
-                              <th>Unit Cost</th>
-                              <th>Total</th>
-                              <th></th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {formData.items.map((item, index) => (
-                              <tr key={index}>
-                                <td>
-                                  <select 
-                                    className="select" 
-                                    style={{ width: '100%', background: 'var(--background)', color: 'var(--foreground)' }}
-                                    value={item.productId}
-                                    onChange={(e) => updateItem(index, 'productId', e.target.value)}
-                                  >
-                                    <option value="" style={{ background: 'var(--background)', color: 'var(--muted-foreground)' }}>Select</option>
-                                    {products.map(p => (
-                                      <option key={p.id} value={p.id} style={{ background: 'var(--background)', color: 'var(--foreground)' }}>{p.name}</option>
-                                    ))}
-                                  </select>
-                                </td>
-                                <td>
-                                  <input 
-                                    type="number" 
-                                    className="input" 
-                                    style={{ width: '70px' }}
-                                    min="1"
-                                    value={item.quantity}
-                                    onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 1)}
-                                  />
-                                </td>
-                                <td>
-                                  <input 
-                                    type="number" 
-                                    className="input" 
-                                    style={{ width: '100px' }}
-                                    step="0.01"
-                                    min="0"
-                                    value={item.unitCost}
-                                    onChange={(e) => updateItem(index, 'unitCost', parseFloat(e.target.value) || 0)}
-                                  />
-                                </td>
-                                <td style={{ fontWeight: '600' }}>{formatCurr(item.quantity * item.unitCost)}</td>
-                                <td>
-                                  <button type="button" onClick={() => removeItem(index)} className="btn btn-danger" style={{ padding: '0.25rem' }}>
-                                    <X size={14} />
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )
+                    ) : null
                   ) : electronicsMode === '' ? (
                     <div style={{ padding: '1rem 0' }}>
                       <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
@@ -1381,7 +1472,7 @@ export default function PurchaseOrdersPage() {
                   ) : null}
                 </div>
 
-                  {(isElectronics || isPharmacy || isClothing || isLiquor) && orderItems.length > 0 && (
+                  {(isElectronics || isPharmacy || isClothing || isLiquor || (!isElectronics && !isPharmacy && !isClothing && !isLiquor)) && orderItems.length > 0 && (
                   <div style={{ marginBottom: '1rem' }}>
                     <label className="label" style={{ marginBottom: '0.5rem' }}>Items in this Order</label>
                     <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
@@ -1401,7 +1492,7 @@ export default function PurchaseOrdersPage() {
                                 {item.type === 'PHONE' ? `${item.brand} ${item.model}` : item.type === 'ACCESSORY' ? `${item.group} - ${item.name}` : item.clothingBrand ? `${item.name || item.brand}` : item.brandName ? [item.brandName, item.genericName].filter(Boolean).join(' ') : item.name || 'Liquor Item'}
                               </td>
                               <td style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>
-                                {item.type === 'PHONE' ? `${item.color} / ${item.storage} / IMEI: ${item.imei}` : item.clothingBrand ? (item.quantity > 1 ? `${item.quantity} variants, e.g. ${(() => { try { const arr = JSON.parse(item.clothingVariants); return arr[0]; } catch { return ''; } })()}` : item.clothingVariants ? (() => { try { const arr = JSON.parse(item.clothingVariants); return arr[0] || ''; } catch { return ''; } })() : '') : item.batchNumber ? `Batch: ${item.batchNumber} / Qty: ${item.quantity}` : item.size ? `${item.size}ml / Qty: ${item.quantity}` : `Qty: ${item.quantity}`}
+                                {item.type === 'PHONE' ? `${item.color} / ${item.storage} / IMEI: ${item.imei}` : item.clothingBrand ? (item.quantity > 1 ? `${item.quantity} variants, e.g. ${getFirstVariant(item.clothingVariants)}` : item.clothingVariants ? getFirstVariant(item.clothingVariants) : '') : item.batchNumber ? `Batch: ${item.batchNumber} / Qty: ${item.quantity}` : item.size ? `${item.size}ml / Qty: ${item.quantity}` : `Qty: ${item.quantity}`}
                               </td>
                               <td style={{ fontWeight: '600', fontSize: '0.8rem' }}>{formatCurr(item.totalCost || item.purchaseCost)}</td>
                               <td>
@@ -1420,10 +1511,7 @@ export default function PurchaseOrdersPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '0.5rem' }}>
                   <span style={{ fontWeight: '600' }}>Total:</span>
                   <span style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--primary)' }}>
-                    {isElectronics || isPharmacy || isClothing || isLiquor
-                      ? formatCurr(orderItems.reduce((sum, item) => sum + (item.totalCost || item.purchaseCost || 0), 0))
-                      : formatCurr(formData.items.reduce((sum, item) => sum + (item.quantity * item.unitCost), 0))
-                    }
+                    {formatCurr(orderItems.reduce((sum, item) => sum + ((item.totalCost || item.purchaseCost || 0) * (item.quantity || 1)), 0))}
                   </span>
                 </div>
 

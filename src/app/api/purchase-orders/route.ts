@@ -10,7 +10,7 @@ async function generateOrderNumber(shopId: string): Promise<string> {
     });
     let nextNum = 1;
     if (lastOrder?.orderNumber) {
-      const match = lastOrder.orderNumber.match(/(\d+)$/);
+      const match = lastOrder.orderNumber.match(/PO(\d{5})$/);
       if (match) nextNum = parseInt(match[1], 10) + 1;
     }
     const candidate = 'PO' + String(nextNum).padStart(5, '0');
@@ -217,69 +217,76 @@ export async function PUT(request: NextRequest) {
           if (!cat) cat = await prisma.category.create({ data: { name: targetCategoryName, shopId } });
 
           const sku = item.productSku || (isPhone ? 'ELC-' : isPharmacyItem ? 'PHA-' : isClothingItem ? 'CLO-' : isLiquorItem ? 'LIQ-' : 'ACC-') + Date.now().toString(36).toUpperCase();
-          const name: string = item.productName || (isClothingItem ? (item.clothingBrand || 'Clothing Item') : [item.pharmacyBrandName, item.pharmacyGenericName].filter(Boolean).join(' ') || `${item.electronicsBrand || ''} ${item.electronicsModel || ''}`.trim() || 'New Product');
 
-          const created = await prisma.product.create({
-            data: {
-              name,
-              sku,
-              barcode: item.productBarcode || null,
-              categoryId: cat.id,
-              brand: isClothingItem ? item.clothingBrand : null,
-              supplierId: order.supplierId,
-              purchaseCost: item.unitCost,
-              sellingPrice: item.sellingPrice || item.unitCost * 1.2,
-              wholesalePrice: item.wholesalePrice || null,
-              stockQuantity: 0,
-              expiryDate: item.pharmacyExpiryDate ? new Date(item.pharmacyExpiryDate) : null,
-              shopId,
-              ...(isPharmacyItem ? {
-                pharmacyFields: {
-                  create: {
-                    brandName: item.pharmacyBrandName || null,
-                    genericName: item.pharmacyGenericName || null,
-                    batchNumber: item.pharmacyBatchNumber || null,
-                    manufacturingDate: item.pharmacyManufacturingDate ? new Date(item.pharmacyManufacturingDate) : null,
-                    expiryDate: item.pharmacyExpiryDate ? new Date(item.pharmacyExpiryDate) : null,
-                  }
-                }
-              } : (isLiquorItem ? {
-                liquorFields: {
-                  create: {
-                    size: item.liquorSize ?? null,
-                    volume: item.liquorSize ?? null,
-                  }
-                },
-                expiryDate: item.liquorExpiryDate ? new Date(item.liquorExpiryDate) : null,
-              } : (isClothingItem ? {
-                clothingFields: {
-                  create: {
-                    brand: item.clothingBrand || null,
-                  }
-                },
-                variants: item.clothingVariants ? {
-                  create: JSON.parse(item.clothingVariants).map((variantStr: string, idx: number) => ({
-                    variantValue: variantStr,
-                    sku: `${sku}-${idx}`,
-                    sellingPrice: item.sellingPrice || item.unitCost * 1.2,
-                    purchaseCost: item.unitCost,
-                    stockQuantity: 0,
-                  }))
-                } : undefined
-              } : {
-                electronicsFields: {
-                  create: {
-                    brand: item.electronicsBrand || null,
-                    model: item.electronicsModel || null,
-                    imei: item.electronicsImei || null,
-                    color: item.electronicsColor || null,
-                    storage: item.electronicsStorage || null,
-                    condition: item.electronicsCondition || null,
-                  }
-                }
-              })))
+          const productData: any = {
+            name: item.productName || (isClothingItem ? (item.clothingBrand || 'Clothing Item') : [item.pharmacyBrandName, item.pharmacyGenericName].filter(Boolean).join(' ') || `${item.electronicsBrand || ''} ${item.electronicsModel || ''}`.trim() || 'New Product'),
+            sku,
+            barcode: item.productBarcode || null,
+            categoryId: cat.id,
+            brand: isClothingItem ? item.clothingBrand : null,
+            supplierId: order.supplierId,
+            purchaseCost: item.unitCost,
+            sellingPrice: item.sellingPrice || item.unitCost * 1.2,
+            wholesalePrice: item.wholesalePrice || null,
+            stockQuantity: 0,
+            expiryDate: item.pharmacyExpiryDate ? new Date(item.pharmacyExpiryDate) : null,
+            shopId,
+          };
+
+          if (isPharmacyItem) {
+            productData.pharmacyFields = {
+              create: {
+                brandName: item.pharmacyBrandName || null,
+                genericName: item.pharmacyGenericName || null,
+                batchNumber: item.pharmacyBatchNumber || null,
+                manufacturingDate: item.pharmacyManufacturingDate ? new Date(item.pharmacyManufacturingDate) : null,
+                expiryDate: item.pharmacyExpiryDate ? new Date(item.pharmacyExpiryDate) : null,
+              }
+            };
+          } else if (isLiquorItem) {
+            productData.liquorFields = {
+              create: {
+                size: item.liquorSize ?? null,
+                volume: item.liquorSize ?? null,
+              }
+            };
+            productData.expiryDate = item.liquorExpiryDate ? new Date(item.liquorExpiryDate) : null;
+          } else if (isClothingItem) {
+            productData.clothingFields = {
+              create: {
+                brand: item.clothingBrand || null,
+              }
+            };
+            if (item.clothingVariants) {
+              const parsed = JSON.parse(item.clothingVariants) as string[];
+              const variantMap = new Map<string, number>();
+              for (const v of parsed) {
+                variantMap.set(v, (variantMap.get(v) || 0) + 1);
+              }
+              productData.variants = {
+                create: Array.from(variantMap.entries()).map(([variantValue, qty], idx) => ({
+                  variantValue,
+                  sku: `${sku}-${idx}`,
+                  sellingPrice: item.sellingPrice || item.unitCost * 1.2,
+                  purchaseCost: item.unitCost,
+                  stockQuantity: qty,
+                }))
+              };
             }
-          });
+          } else {
+            productData.electronicsFields = {
+              create: {
+                brand: item.electronicsBrand || null,
+                model: item.electronicsModel || null,
+                imei: item.electronicsImei || null,
+                color: item.electronicsColor || null,
+                storage: item.electronicsStorage || null,
+                condition: item.electronicsCondition || null,
+              }
+            };
+          }
+
+          const created = await prisma.product.create({ data: productData });
 
           await prisma.purchaseOrderItem.update({
             where: { id: item.id },
@@ -323,7 +330,8 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ order: updatedOrder });
   } catch (error) {
     console.error('Update purchase order error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const msg = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
 

@@ -11,7 +11,7 @@ async function generateReturnNumber(shopId: string): Promise<string> {
     });
     let nextNum = 1;
     if (lastReturn?.returnNumber) {
-      const match = lastReturn.returnNumber.match(/(\d+)$/);
+      const match = lastReturn.returnNumber.match(/RET(\d{5})$/);
       if (match) nextNum = parseInt(match[1], 10) + 1;
     }
     const candidate = 'RET' + String(nextNum).padStart(5, '0');
