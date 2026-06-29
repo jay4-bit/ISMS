@@ -22,10 +22,11 @@ interface SettingsContextType {
   logo: string | null;
   loading: boolean;
   refreshSettings: () => Promise<void>;
+  updateSettings: (s: Partial<Settings>, logo?: string | null) => void;
 }
 
 const defaultSettings: Settings = {
-  businessName: 'ISMS Pro Shop',
+  businessName: '',
   businessPhone: '',
   businessEmail: '',
   businessAddress: '',
@@ -43,20 +44,57 @@ const SettingsContext = createContext<SettingsContextType>({
   logo: null,
   loading: true,
   refreshSettings: async () => {},
+  updateSettings: () => {},
 });
 
+const CACHE_KEY = 'inshop_settings';
+const LOGO_CACHE_KEY = 'inshop_logo';
+
+function loadCached(): Settings | null {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function saveCache(s: Settings) {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(s)); } catch {}
+}
+
+function loadCachedLogo(): string | null {
+  try { return localStorage.getItem(LOGO_CACHE_KEY); } catch { return null; }
+}
+
+function saveCacheLogo(logo: string | null) {
+  try { if (logo) localStorage.setItem(LOGO_CACHE_KEY, logo); else localStorage.removeItem(LOGO_CACHE_KEY); } catch {}
+}
+
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<Settings>(defaultSettings);
-  const [logo, setLogo] = useState<string | null>(null);
+  const cached = loadCached();
+  const cachedLogo = loadCachedLogo();
+  const [settings, setSettings] = useState<Settings>(cached || defaultSettings);
+  const [logo, setLogo] = useState<string | null>(cachedLogo);
   const [loading, setLoading] = useState(true);
   const { shop } = useAuth();
+
+  const persistSettings = (s: Settings) => {
+    setSettings(s);
+    saveCache(s);
+  };
+  const persistLogo = (l: string | null) => {
+    setLogo(l);
+    saveCacheLogo(l);
+  };
+
+  const updateSettings = (s: Partial<Settings>, logo?: string | null) => {
+    const next = { ...settings, ...s };
+    persistSettings(next);
+    if (logo !== undefined) persistLogo(logo);
+  };
 
   const fetchSettings = async (shopId?: string) => {
     try {
       if (!shopId) { setLoading(false); return; }
-      // Reset state immediately when shop changes to avoid showing stale data
-      setSettings(defaultSettings);
-      setLogo(null);
       setLoading(true);
       const res = await fetch('/api/settings', { headers: { 'x-shop-id': shopId } });
       if (!res.ok) {
@@ -76,9 +114,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       }
       const data = await res.json();
       if (data.settings) {
-        setSettings({ ...defaultSettings, ...data.settings });
+        const merged = { ...defaultSettings, ...data.settings };
+        persistSettings(merged);
       }
-      if (data.logo) setLogo(data.logo);
+      if (data.logo) persistLogo(data.logo);
     } catch (error) {
       console.error('Failed to fetch settings:', error);
     } finally {
@@ -91,7 +130,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   }, [shop?.id]);
 
   return (
-    <SettingsContext.Provider value={{ settings, logo, loading, refreshSettings: fetchSettings }}>
+      <SettingsContext.Provider value={{ settings, logo, loading, refreshSettings: fetchSettings, updateSettings }}>
       {children}
     </SettingsContext.Provider>
   );

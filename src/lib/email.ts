@@ -19,18 +19,18 @@ function getTransporter() {
   });
 }
 
-const fromName = process.env.SMTP_FROM_NAME || 'ISMS Pro';
-const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@ismspro.co.tz';
+const fromName = process.env.SMTP_FROM_NAME || 'Inshop';
+const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@inshop.co.tz';
 
 export async function sendVerificationCode(email: string, code: string, userName: string): Promise<void> {
   const transporter = getTransporter();
   await transporter.sendMail({
     from: `"${fromName}" <${fromEmail}>`,
     to: email,
-    subject: 'Verify Your Email - ISMS Pro',
+    subject: 'Verify Your Email - Inshop',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #f9fafb; border-radius: 12px;">
-        <h2 style="color: #1e293b; margin: 0 0 8px;">Welcome to ISMS Pro!</h2>
+        <h2 style="color: #1e293b; margin: 0 0 8px;">Welcome to Inshop!</h2>
         <p style="color: #374151; font-size: 14px; margin: 0 0 16px;">
           Hi <strong>${userName}</strong>, please verify your email address to activate your account.
         </p>
@@ -51,7 +51,7 @@ export async function sendPasswordResetCode(email: string, code: string, userNam
   await transporter.sendMail({
     from: `"${fromName}" <${fromEmail}>`,
     to: email,
-    subject: 'Reset Your Password - ISMS Pro',
+    subject: 'Reset Your Password - Inshop',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #f9fafb; border-radius: 12px;">
         <h2 style="color: #1e293b; margin: 0 0 8px;">Password Reset Request</h2>

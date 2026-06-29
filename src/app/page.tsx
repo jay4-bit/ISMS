@@ -196,7 +196,7 @@ export default function HomePage() {
           <div style={styles.logoIcon}>
             <Package size={32} color="white" />
           </div>
-          <h1 style={styles.title}>ISMS Pro</h1>
+          <h1 style={styles.title}>inshop</h1>
           <p style={styles.subtitle}>Inventory & Sales Management System</p>
         </div>
 

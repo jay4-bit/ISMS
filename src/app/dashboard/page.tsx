@@ -55,7 +55,7 @@ export default function DashboardPage() {
   const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { shop } = useAuth();
+  const { shop, user } = useAuth();
   const { settings } = useSettings();
   const showWidget = (id: string) => settings.dashboardConfig?.[id] !== false;
 
@@ -99,7 +99,7 @@ export default function DashboardPage() {
     <div>
       <div style={{ marginBottom: '1.5rem' }}>
         <h1 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Dashboard</h1>
-        <p style={{ color: '#64748b' }}>Welcome back, {shop?.name || 'Admin'}</p>
+        <p style={{ color: '#64748b' }}>Welcome back, {user?.name || 'Admin'}</p>
       </div>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>

@@ -312,7 +312,7 @@ export default function POSPage() {
       </head>
       <body>
         <div class="header">
-          <h1>${settings.businessName || 'ISMS PRO'}</h1>
+          <h1>${settings.businessName || 'INSHOP'}</h1>
           ${settings.businessPhone ? `<p>Tel: ${settings.businessPhone}</p>` : ''}
           ${settings.businessEmail ? `<p>Email: ${settings.businessEmail}</p>` : ''}
           ${settings.businessAddress ? `<p>${settings.businessAddress}</p>` : ''}
@@ -405,7 +405,7 @@ export default function POSPage() {
       </head>
       <body>
         <div class="header">
-          <h1>${settings.businessName || 'ISMS PRO'}</h1>
+          <h1>${settings.businessName || 'INSHOP'}</h1>
           ${settings.businessPhone ? `<div class="business">Tel: ${settings.businessPhone}</div>` : ''}
           ${settings.businessEmail ? `<div class="business">Email: ${settings.businessEmail}</div>` : ''}
           ${settings.businessAddress ? `<div class="business">${settings.businessAddress}</div>` : ''}

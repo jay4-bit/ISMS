@@ -41,7 +41,7 @@ export default function SettingsPage() {
   const [showUserModal, setShowUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-  const { refreshSettings } = useSettings();
+  const { refreshSettings, updateSettings } = useSettings();
   const { logo } = useSettings();
   const { user: authUser, shop } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -51,9 +51,9 @@ export default function SettingsPage() {
   const [profileSaving, setProfileSaving] = useState(false);
   
   const [settings, setSettings] = useState<Settings>({
-    businessName: 'ISMS Pro Shop',
+    businessName: '',
     businessPhone: '+255 700 000 000',
-    businessEmail: 'info@ismspro.co.tz',
+    businessEmail: 'info@inshop.co.tz',
     businessAddress: 'Mwanza, Tanzania',
     currency: 'TZS',
     currencySymbol: 'TSh',
@@ -130,15 +130,15 @@ export default function SettingsPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.settings) {
-          const s = { ...data.settings };
+        const s = data.settings ? { ...data.settings } : null;
+        if (s) {
           if (typeof s.dashboardConfig === 'string') {
             try { s.dashboardConfig = JSON.parse(s.dashboardConfig); } catch { s.dashboardConfig = null; }
           }
           setSettings(prev => ({ ...prev, ...s }));
         }
         showNotification('Settings saved successfully!', 'success');
-        refreshSettings();
+        if (s) updateSettings(s, data.logo);
       } else {
         const text = await res.text();
         try {
