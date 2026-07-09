@@ -71,7 +71,12 @@ export async function GET(request: NextRequest) {
           sku: true, 
           sellingPrice: true, 
           stockQuantity: true,
-          barcode: true
+          barcode: true,
+          brand: true,
+          electronicsFields: { select: { imei: true, brand: true, model: true, color: true, storage: true, condition: true, serialNumber: true } },
+          clothingFields: { select: { size: true, color: true, brand: true, material: true } },
+          liquorFields: { select: { brand: true, liquorType: true, origin: true } },
+          pharmacyFields: { select: { brandName: true, genericName: true, batchNumber: true, manufacturer: true } },
         },
         orderBy: { name: 'asc' }
       });

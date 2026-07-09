@@ -48,7 +48,7 @@ export default function ExpensesPage() {
   const { settings } = useSettings();
   const { shop, user } = useAuth();
 
-  useEffect(() => { fetchExpenses(); }, []);
+  useEffect(() => { fetchExpenses(); const interval = setInterval(fetchExpenses, 30000); return () => clearInterval(interval); }, []);
 
   async function fetchExpenses() {
     try {

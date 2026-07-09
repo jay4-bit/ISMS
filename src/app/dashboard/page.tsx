@@ -61,6 +61,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (shop?.id) fetchDashboardData();
+    const interval = setInterval(fetchDashboardData, 30000);
+    return () => clearInterval(interval);
   }, [shop?.id]);
 
   async function fetchDashboardData() {

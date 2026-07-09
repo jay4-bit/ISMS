@@ -40,6 +40,8 @@ export async function POST(request: NextRequest) {
       const hashedPassword = await hashPassword(ownerPassword);
       const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
+      const TRIAL_DAYS = parseInt(process.env.TRIAL_DAYS || '3');
+
       const shop = await prisma.shop.create({
         data: {
           name,
@@ -47,6 +49,7 @@ export async function POST(request: NextRequest) {
           phone: phone || null,
           email: email || null,
           address: address || null,
+          trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000),
           users: {
             create: {
               email: ownerEmail.toLowerCase(),

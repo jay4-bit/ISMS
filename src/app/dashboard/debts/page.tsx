@@ -54,7 +54,7 @@ export default function DebtsPage() {
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentNotes, setPaymentNotes] = useState('');
 
-  useEffect(() => { fetchDebts(); }, []);
+  useEffect(() => { fetchDebts(); const interval = setInterval(fetchDebts, 30000); return () => clearInterval(interval); }, []);
 
   async function fetchDebts() {
     setLoading(true);

@@ -51,7 +51,7 @@ export default function InstallmentsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  useEffect(() => { fetchInstallments(); }, [shop]);
+  useEffect(() => { fetchInstallments(); const interval = setInterval(fetchInstallments, 30000); return () => clearInterval(interval); }, [shop]);
 
   async function fetchInstallments() {
     try {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
@@ -34,7 +34,9 @@ import {
   Clock,
   Activity,
   BookOpen,
-  HandCoins
+  HandCoins,
+  CreditCard,
+  Lock
 } from 'lucide-react';
 import { SHOP_TYPE_CONFIG } from '@/lib/auth';
 import { useSettings } from '@/context/SettingsContext';
@@ -59,10 +61,11 @@ const DASHBOARD_PATHS = [
   { name: 'Accountings', href: '/dashboard/accountings', icon: BookOpen, permission: 'accountings' },
   { name: 'Debts', href: '/dashboard/debts', icon: HandCoins, permission: 'debts' },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings, permission: 'settings' },
+  { name: 'Subscription', href: '/dashboard/subscription', icon: CreditCard, permission: 'settings' },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, shop, logout, hasPermission, loading: authLoading } = useAuth();
+  const { user, shop, subscription, logout, hasPermission, loading: authLoading } = useAuth();
   const { settings, logo } = useSettings();
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
@@ -71,6 +74,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [mobileOpen, setMobileOpen] = useState(false);
   const redirectAttempted = useRef(false);
   const [uptime, setUptime] = useState('');
+  const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
     if (typeof window !== 'undefined' && !localStorage.getItem('loginTime')) {
@@ -90,12 +94,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, []);
 
   useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
     if (authLoading) return;
     const token = localStorage.getItem('token');
     if (!token) {
       router.replace('/');
+      return;
     }
   }, [router, authLoading]);
+
+  const subscriptionLocked = useMemo(() => {
+    if (!subscription) return false;
+    if (subscription.status === 'EXPIRED' || subscription.status === 'CANCELLED') return true;
+    if (subscription.status === 'TRIAL' && subscription.trialEndsAt && new Date(subscription.trialEndsAt) < new Date()) {
+      if (subscription.subscriptionEndsAt && new Date(subscription.subscriptionEndsAt) > new Date()) return false;
+      return true;
+    }
+    return false;
+  }, [subscription]);
+
+  const isSubscriptionPage = pathname === '/dashboard/subscription';
 
   useEffect(() => {
     if (pathname === '/dashboard' && !hasPermission('dashboard', 'read') && !redirectAttempted.current) {
@@ -214,9 +236,46 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {mobileOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
           <div style={styles.headerTitle}>
-            <h1 style={styles.pageTitle}>
-              {navigation.find(n => pathname === n.href || pathname.startsWith(n.href + '/'))?.name || 'Dashboard'}
-            </h1>
+            {(() => {
+              if (!subscription) return <h1 style={styles.pageTitle}>Dashboard</h1>;
+              const subsEnd = subscription.subscriptionEndsAt ? new Date(subscription.subscriptionEndsAt).getTime() : 0;
+              const trialEnd = subscription.trialEndsAt ? new Date(subscription.trialEndsAt).getTime() : 0;
+              const endTime = subscription.status === 'ACTIVE' ? subsEnd : trialEnd;
+              const diff = endTime ? Math.max(0, endTime - now) : 0;
+              const days = Math.floor(diff / 86400000);
+              const hours = Math.floor((diff % 86400000) / 3600000);
+              const minutes = Math.floor((diff % 3600000) / 60000);
+              const isActive = subscription.status === 'ACTIVE';
+              const isTrial = subscription.status === 'TRIAL';
+              const isExpired = subscription.status === 'EXPIRED' || subscription.status === 'CANCELLED';
+              const color = isActive ? '#22c55e' : isTrial ? '#3b82f6' : '#ef4444';
+              return (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                    padding: '0.2rem 0.6rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600,
+                    background: `${color}15`, color, border: `1px solid ${color}30`,
+                  }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, display: 'inline-block' }} />
+                    {isActive ? 'Active' : isTrial ? 'Trial' : 'Expired'}
+                  </span>
+                  {diff > 0 ? (
+                    <span style={{ color: 'var(--foreground)', fontSize: '0.9rem', fontWeight: 600, fontFamily: 'monospace' }}>
+                      {days}d {String(hours).padStart(2, '0')}h {String(minutes).padStart(2, '0')}m
+                    </span>
+                  ) : (
+                    <span style={{ color: '#ef4444', fontSize: '0.9rem', fontWeight: 600 }}>
+                      {isActive ? 'Expired' : 'Ended'}
+                    </span>
+                  )}
+                  {endTime > 0 && (
+                    <span style={{ color: 'var(--muted-foreground)', fontSize: '0.8rem' }}>
+                      until {new Date(endTime).toLocaleDateString('en-TZ', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
           </div>
           <div style={styles.headerRight}>
             <div style={styles.uptime} title="Session duration">
@@ -228,9 +287,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-          <main style={styles.content}>
+          <main style={{ ...styles.content, position: 'relative' }}>
             <ReminderPopup shopId={shop?.id} />
-            {children}
+            <div style={subscriptionLocked && !isSubscriptionPage ? { filter: 'blur(8px)', pointerEvents: 'none', userSelect: 'none' } : {}}>
+              {children}
+            </div>
+            {subscriptionLocked && !isSubscriptionPage && (
+              <div style={{
+                position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center', zIndex: 50,
+                background: 'rgba(0, 0, 0, 0.6)', borderRadius: '0.75rem',
+              }}>
+                <Lock size={48} color="#ef4444" style={{ marginBottom: '1rem' }} />
+                <h2 style={{ color: '#f1f5f9', fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+                  Subscription Required
+                </h2>
+                <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '1.5rem', textAlign: 'center', maxWidth: 400 }}>
+                  Your subscription has ended. Please renew your plan to continue using the system.
+                </p>
+                <Link
+                  href="/dashboard/subscription"
+                  style={{
+                    padding: '0.75rem 1.5rem', borderRadius: '0.5rem', fontWeight: 600, fontSize: '0.95rem',
+                    background: 'linear-gradient(135deg, #22c55e, #16a34a)', border: 'none', color: 'white',
+                    textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                  }}
+                >
+                  <CreditCard size={18} /> Pay Now
+                </Link>
+              </div>
+            )}
           </main>
       </div>
     </div>

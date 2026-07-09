@@ -56,7 +56,7 @@ export default function OrdersPage() {
   const [showDetails, setShowDetails] = useState<Sale | null>(null);
   const [updating, setUpdating] = useState(false);
 
-  useEffect(() => { fetchSales(); }, []);
+  useEffect(() => { fetchSales(); const interval = setInterval(fetchSales, 30000); return () => clearInterval(interval); }, []);
 
   async function fetchSales() {
     try {

@@ -37,6 +37,8 @@ export default function PermissionsPage() {
 
   useEffect(() => {
     fetchPermissions();
+    const interval = setInterval(fetchPermissions, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   async function fetchPermissions() {

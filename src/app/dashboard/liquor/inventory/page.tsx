@@ -74,6 +74,8 @@ export default function LiquorInventoryPage() {
     fetchData();
     fetchCategories();
     fetchSuppliers();
+    const interval = setInterval(() => { fetchData(); fetchCategories(); fetchSuppliers(); }, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   function resetForm() {
@@ -124,12 +126,23 @@ export default function LiquorInventoryPage() {
   }
 
   const filteredProducts = products.filter(p => {
+    if (!search) return true;
     const q = search.toLowerCase();
-    return !search ||
+    const a: any = p;
+    const lf = a.liquorFields;
+    return (
       p.name.toLowerCase().includes(q) ||
       p.sku.toLowerCase().includes(q) ||
-      (p.barcode && p.barcode.toLowerCase().includes(q)) ||
-      (p.liquorFields?.brand && p.liquorFields.brand.toLowerCase().includes(q));
+      (a.barcode && a.barcode.toLowerCase().includes(q)) ||
+      (a.description && a.description.toLowerCase().includes(q)) ||
+      (a.brand && a.brand.toLowerCase().includes(q)) ||
+      (lf?.brand && lf.brand.toLowerCase().includes(q)) ||
+      (lf?.liquorType && lf.liquorType.toLowerCase().includes(q)) ||
+      (lf?.origin && lf.origin.toLowerCase().includes(q)) ||
+      (lf?.notes && lf.notes.toLowerCase().includes(q)) ||
+      (lf?.vintage && lf.vintage.toLowerCase().includes(q)) ||
+      (lf?.ageStatement && lf.ageStatement.toLowerCase().includes(q))
+    );
   });
 
   function openAddModal() {

@@ -85,7 +85,7 @@ export default function POSPage() {
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const barcodeInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { fetchProducts(); }, []);
+  useEffect(() => { fetchProducts(); const interval = setInterval(fetchProducts, 15000); return () => clearInterval(interval); }, []);
 
   useEffect(() => {
     barcodeInputRef.current?.focus();
@@ -521,7 +521,48 @@ export default function POSPage() {
           </div>
 
           <div style={styles.productsGrid}>
-            {products.filter(p => !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.sku.toLowerCase().includes(search.toLowerCase()) || (p.barcode && p.barcode.includes(search))).map(product => (
+            {products.filter(p => {
+              if (!search) return true;
+              const q = search.toLowerCase();
+              const a: any = p;
+              const ef = a.electronicsFields;
+              const cf = a.clothingFields;
+              const pf = a.pharmacyFields;
+              const lf = a.liquorFields;
+              return (
+                p.name.toLowerCase().includes(q) ||
+                p.sku.toLowerCase().includes(q) ||
+                (p.barcode && p.barcode.toLowerCase().includes(q)) ||
+                (a.description && a.description.toLowerCase().includes(q)) ||
+                (a.brand && a.brand.toLowerCase().includes(q)) ||
+                (a.variant && a.variant.toLowerCase().includes(q)) ||
+                (a.variantType && a.variantType.toLowerCase().includes(q)) ||
+                (a.variants || []).some((v: any) => v.variantValue?.toLowerCase().includes(q)) ||
+                (ef?.imei && ef.imei.toLowerCase().includes(q)) ||
+                (ef?.brand && ef.brand.toLowerCase().includes(q)) ||
+                (ef?.model && ef.model.toLowerCase().includes(q)) ||
+                (ef?.color && ef.color.toLowerCase().includes(q)) ||
+                (ef?.storage && ef.storage.toLowerCase().includes(q)) ||
+                (ef?.condition && ef.condition.toLowerCase().includes(q)) ||
+                (ef?.serialNumber && ef.serialNumber.toLowerCase().includes(q)) ||
+                (ef?.warranty && ef.warranty.toLowerCase().includes(q)) ||
+                (cf?.size && cf.size.toLowerCase().includes(q)) ||
+                (cf?.color && cf.color.toLowerCase().includes(q)) ||
+                (cf?.brand && cf.brand.toLowerCase().includes(q)) ||
+                (cf?.material && cf.material.toLowerCase().includes(q)) ||
+                (cf?.gender && cf.gender.toLowerCase().includes(q)) ||
+                (cf?.pattern && cf.pattern.toLowerCase().includes(q)) ||
+                (pf?.brandName && pf.brandName.toLowerCase().includes(q)) ||
+                (pf?.genericName && pf.genericName.toLowerCase().includes(q)) ||
+                (pf?.batchNumber && pf.batchNumber.toLowerCase().includes(q)) ||
+                (pf?.manufacturer && pf.manufacturer.toLowerCase().includes(q)) ||
+                (pf?.dosage && pf.dosage.toLowerCase().includes(q)) ||
+                (lf?.brand && lf.brand.toLowerCase().includes(q)) ||
+                (lf?.liquorType && lf.liquorType.toLowerCase().includes(q)) ||
+                (lf?.origin && lf.origin.toLowerCase().includes(q)) ||
+                (lf?.notes && lf.notes.toLowerCase().includes(q))
+              );
+            }).map(product => (
               <div 
                 key={product.id} 
                 style={styles.productCard} 

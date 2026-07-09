@@ -56,23 +56,64 @@ export async function GET(request: NextRequest) {
         { name: { contains: q } },
         { sku: { contains: q } },
         { barcode: { contains: q } },
+        { description: { contains: q } },
+        { brand: { contains: q } },
+        { variant: { contains: q } },
+        { variantType: { contains: q } },
+        { variants: { some: { variantValue: { contains: q } } } },
       ];
+      const typeSearch: any = { OR: [] };
       if (shopType === 'ELECTRONICS') {
         where.OR.push({
-          electronicsFields: {
-            is: {
-              OR: [
-                { imei: { contains: q } },
-                { brand: { contains: q } },
-                { model: { contains: q } },
-                { serialNumber: { contains: q } },
-                { color: { contains: q } },
-                { storage: { contains: q } },
-                { condition: { contains: q } },
-              ],
-            },
-          },
+          electronicsFields: { is: { OR: [
+            { imei: { contains: q } }, { brand: { contains: q } }, { model: { contains: q } },
+            { serialNumber: { contains: q } }, { color: { contains: q } }, { storage: { contains: q } },
+            { condition: { contains: q } }, { warranty: { contains: q } }, { specifications: { contains: q } },
+            { accessoryGroup: { contains: q } },
+          ] } },
         });
+      } else if (shopType === 'CLOTHING') {
+        where.OR.push({
+          clothingFields: { is: { OR: [
+            { size: { contains: q } }, { color: { contains: q } }, { brand: { contains: q } },
+            { material: { contains: q } }, { season: { contains: q } }, { gender: { contains: q } },
+            { pattern: { contains: q } },
+          ] } },
+        });
+      } else if (shopType === 'PHARMACY') {
+        where.OR.push({
+          pharmacyFields: { is: { OR: [
+            { brandName: { contains: q } }, { genericName: { contains: q } }, { batchNumber: { contains: q } },
+            { manufacturer: { contains: q } }, { dosage: { contains: q } }, { composition: { contains: q } },
+            { drugSchedule: { contains: q } },
+          ] } },
+        });
+      } else if (shopType === 'LIQUOR') {
+        where.OR.push({
+          liquorFields: { is: { OR: [
+            { brand: { contains: q } }, { liquorType: { contains: q } }, { origin: { contains: q } },
+            { notes: { contains: q } },
+          ] } },
+        });
+      } else {
+        where.OR.push(
+          { electronicsFields: { is: { OR: [
+            { imei: { contains: q } }, { brand: { contains: q } }, { model: { contains: q } },
+            { serialNumber: { contains: q } }, { color: { contains: q } }, { storage: { contains: q } },
+            { condition: { contains: q } },
+          ] } } },
+          { clothingFields: { is: { OR: [
+            { size: { contains: q } }, { color: { contains: q } }, { brand: { contains: q } },
+            { material: { contains: q } },
+          ] } } },
+          { pharmacyFields: { is: { OR: [
+            { brandName: { contains: q } }, { genericName: { contains: q } }, { batchNumber: { contains: q } },
+            { manufacturer: { contains: q } },
+          ] } } },
+          { liquorFields: { is: { OR: [
+            { brand: { contains: q } }, { notes: { contains: q } },
+          ] } } },
+        );
       }
     }
 

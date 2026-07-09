@@ -28,24 +28,34 @@ interface RolePermission {
   canDelete: boolean;
 }
 
+interface Subscription {
+  status: string;
+  trialEndsAt: string | null;
+  subscriptionEndsAt: string | null;
+}
+
 interface AuthContextType {
   user: User | null;
   shop: Shop | null;
+  subscription: Subscription | null;
   loading: boolean;
   login: (email: string, password: string, shopId?: string) => Promise<{ success: boolean; error?: string }>;
   register: (data: any) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   hasPermission: (module: string, action: 'read' | 'write' | 'delete') => boolean;
+  refreshSubscription: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   shop: null,
+  subscription: null,
   loading: true,
   login: async () => ({ success: false }),
   register: async () => ({ success: false }),
   logout: () => {},
-  hasPermission: () => true
+  hasPermission: () => true,
+  refreshSubscription: async () => {},
 });
 
 function getLocalItem(key: string) {
@@ -64,6 +74,7 @@ function getLocalItem(key: string) {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => getLocalItem('user'));
   const [shop, setShop] = useState<Shop | null>(() => getLocalItem('shop'));
+  const [subscription, setSubscription] = useState<Subscription | null>(() => getLocalItem('subscription'));
   const [loading, setLoading] = useState(true);
   const [permissions, setPermissions] = useState<RolePermission[]>(() => getLocalItem('permissions') || []);
   const permissionsLoaded = useRef(false);
@@ -89,6 +100,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       .catch(() => {});
   }, [shop?.id, user?.role]);
+
+  const refreshSubscription = async () => {
+    if (!shop?.id) return;
+    try {
+      const res = await fetch('/api/subscription', {
+        headers: { 'x-shop-id': shop.id },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSubscription(data);
+        localStorage.setItem('subscription', JSON.stringify(data));
+      }
+    } catch {}
+  };
+
+  useEffect(() => {
+    if (shop?.id && !loading) {
+      refreshSubscription();
+      const interval = setInterval(refreshSubscription, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [shop?.id, loading]);
 
   const hasPermission = (module: string, action: 'read' | 'write' | 'delete'): boolean => {
     if (!user) return false;
@@ -133,6 +166,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('loginTime', String(Date.now()));
         localStorage.removeItem('permissions');
+        localStorage.removeItem('inshop_logo');
+        localStorage.removeItem('inshop_settings');
+        if (data.subscription) {
+          localStorage.setItem('subscription', JSON.stringify(data.subscription));
+          setSubscription(data.subscription);
+        }
         setUser(data.user);
         setShop(data.shop);
         setPermissions([]);
@@ -190,16 +229,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('shop');
     localStorage.removeItem('token');
     localStorage.removeItem('permissions');
+    localStorage.removeItem('subscription');
     localStorage.removeItem('loginTime');
+    localStorage.removeItem('inshop_logo');
+    localStorage.removeItem('inshop_settings');
     setUser(null);
     setShop(null);
+    setSubscription(null);
     setPermissions([]);
     permissionsLoaded.current = false;
     router.push('/');
   };
 
   return (
-    <AuthContext.Provider value={{ user, shop, loading, login, register, logout, hasPermission }}>
+    <AuthContext.Provider value={{ user, shop, subscription, loading, login, register, logout, hasPermission, refreshSubscription }}>
       {children}
     </AuthContext.Provider>
   );

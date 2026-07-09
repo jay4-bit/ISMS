@@ -205,7 +205,7 @@ export default function InventoryPage() {
   const [clothingVariants, setClothingVariants] = useState<Array<{variantType: string; variantValue: string}>>([]);
   const [generalVariants, setGeneralVariants] = useState<Array<{variantType: string; variantValue: string}>>([]);
 
-  useEffect(() => { fetchData(); resetElectronicsForm(); }, []);
+  useEffect(() => { fetchData(); resetElectronicsForm(); const interval = setInterval(fetchData, 30000); return () => clearInterval(interval); }, []);
 
   function resetElectronicsForm() {
     setElectronicsMode('');
@@ -474,19 +474,46 @@ export default function InventoryPage() {
 
   const filteredProducts = products.filter(p => {
     const q = search.toLowerCase();
-    const barcodeMatch = (p.barcode ?? '').toLowerCase().includes(q);
-    const ef = p.electronicsFields;
-    const electronicsMatch =
-      isElectronics &&
-      !!ef &&
-      [ef.imei, ef.brand, ef.model, ef.condition, ef.color, ef.storage]
-        .some((v) => v != null && String(v).toLowerCase().includes(q));
+    const a: any = p;
+    const ef = a.electronicsFields;
+    const cf = a.clothingFields;
+    const pf = a.pharmacyFields;
+    const lf = a.liquorFields;
+    const detailMatch =
+      (a.barcode && a.barcode.toLowerCase().includes(q)) ||
+      (a.description && a.description.toLowerCase().includes(q)) ||
+      (a.brand && a.brand.toLowerCase().includes(q)) ||
+      (a.variant && a.variant.toLowerCase().includes(q)) ||
+      (a.variantType && a.variantType.toLowerCase().includes(q)) ||
+      (a.variants || []).some((v: any) => v.variantValue?.toLowerCase().includes(q)) ||
+      (ef?.imei && ef.imei.toLowerCase().includes(q)) ||
+      (ef?.brand && ef.brand.toLowerCase().includes(q)) ||
+      (ef?.model && ef.model.toLowerCase().includes(q)) ||
+      (ef?.condition && ef.condition.toLowerCase().includes(q)) ||
+      (ef?.color && ef.color.toLowerCase().includes(q)) ||
+      (ef?.storage && ef.storage.toLowerCase().includes(q)) ||
+      (ef?.serialNumber && ef.serialNumber.toLowerCase().includes(q)) ||
+      (ef?.warranty && ef.warranty.toLowerCase().includes(q)) ||
+      (cf?.size && cf.size.toLowerCase().includes(q)) ||
+      (cf?.color && cf.color.toLowerCase().includes(q)) ||
+      (cf?.brand && cf.brand.toLowerCase().includes(q)) ||
+      (cf?.material && cf.material.toLowerCase().includes(q)) ||
+      (cf?.gender && cf.gender.toLowerCase().includes(q)) ||
+      (cf?.pattern && cf.pattern.toLowerCase().includes(q)) ||
+      (pf?.brandName && pf.brandName.toLowerCase().includes(q)) ||
+      (pf?.genericName && pf.genericName.toLowerCase().includes(q)) ||
+      (pf?.batchNumber && pf.batchNumber.toLowerCase().includes(q)) ||
+      (pf?.manufacturer && pf.manufacturer.toLowerCase().includes(q)) ||
+      (pf?.dosage && pf.dosage.toLowerCase().includes(q)) ||
+      (lf?.brand && lf.brand.toLowerCase().includes(q)) ||
+      (lf?.liquorType && lf.liquorType.toLowerCase().includes(q)) ||
+      (lf?.origin && lf.origin.toLowerCase().includes(q)) ||
+      (lf?.notes && lf.notes.toLowerCase().includes(q));
     const matchesSearch =
       !search.trim() ||
       p.name.toLowerCase().includes(q) ||
       p.sku.toLowerCase().includes(q) ||
-      barcodeMatch ||
-      electronicsMatch;
+      detailMatch;
     const matchesCategory = selectedCategory === 'all' || p.categoryId === selectedCategory;
     const productBrand = ((p as any).clothingFields?.brand || '').toLowerCase();
     const matchesBrand = selectedBrand === 'all' || productBrand === selectedBrand.toLowerCase();

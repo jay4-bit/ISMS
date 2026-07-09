@@ -29,7 +29,7 @@ export default function ClientsPage() {
     name: '', email: '', phone: '', address: ''
   });
 
-  useEffect(() => { if (shop?.id) fetchClients(); }, [shop?.id]);
+  useEffect(() => { if (shop?.id) fetchClients(); const interval = setInterval(() => { if (shop?.id) fetchClients(); }, 30000); return () => clearInterval(interval); }, [shop?.id]);
 
   async function fetchClients() {
     try {

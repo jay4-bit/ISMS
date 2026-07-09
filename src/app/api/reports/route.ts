@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
           items: {
             include: {
               product: {
-                include: { category: true, electronicsFields: true },
+                include: { category: true, electronicsFields: true, clothingFields: true, pharmacyFields: true, liquorFields: true },
               },
             },
           },
@@ -51,10 +51,25 @@ export async function GET(request: NextRequest) {
       if (search) {
         const q = search.toLowerCase();
         filteredSales = filteredSales.filter(s =>
-          s.items.some(i =>
-            i.product.name.toLowerCase().includes(q) ||
-            i.product.sku.toLowerCase().includes(q)
-          )
+          s.items.some(i => {
+            const p = i.product;
+            const ef = (p as any).electronicsFields;
+            const cf = (p as any).clothingFields;
+            return (
+              p.name.toLowerCase().includes(q) ||
+              p.sku.toLowerCase().includes(q) ||
+              (p.barcode && p.barcode.toLowerCase().includes(q)) ||
+              (p.brand && p.brand.toLowerCase().includes(q)) ||
+              (ef?.imei && ef.imei.toLowerCase().includes(q)) ||
+              (ef?.brand && ef.brand.toLowerCase().includes(q)) ||
+              (ef?.model && ef.model.toLowerCase().includes(q)) ||
+              (ef?.color && ef.color.toLowerCase().includes(q)) ||
+              (ef?.storage && ef.storage.toLowerCase().includes(q)) ||
+              (cf?.size && cf.size.toLowerCase().includes(q)) ||
+              (cf?.color && cf.color.toLowerCase().includes(q)) ||
+              (cf?.brand && cf.brand.toLowerCase().includes(q))
+            );
+          })
         );
       }
 
@@ -104,10 +119,25 @@ export async function GET(request: NextRequest) {
       if (search) {
         const q = search.toLowerCase();
         filteredReturns = returns.filter(r =>
-          r.items.some(i =>
-            i.product.name.toLowerCase().includes(q) ||
-            i.product.sku.toLowerCase().includes(q)
-          )
+          r.items.some(i => {
+            const p = i.product;
+            const ef = (p as any).electronicsFields;
+            const cf = (p as any).clothingFields;
+            return (
+              p.name.toLowerCase().includes(q) ||
+              p.sku.toLowerCase().includes(q) ||
+              (p.barcode && p.barcode.toLowerCase().includes(q)) ||
+              (p.brand && p.brand.toLowerCase().includes(q)) ||
+              (ef?.imei && ef.imei.toLowerCase().includes(q)) ||
+              (ef?.brand && ef.brand.toLowerCase().includes(q)) ||
+              (ef?.model && ef.model.toLowerCase().includes(q)) ||
+              (ef?.color && ef.color.toLowerCase().includes(q)) ||
+              (ef?.storage && ef.storage.toLowerCase().includes(q)) ||
+              (cf?.size && cf.size.toLowerCase().includes(q)) ||
+              (cf?.color && cf.color.toLowerCase().includes(q)) ||
+              (cf?.brand && cf.brand.toLowerCase().includes(q))
+            );
+          })
         );
       }
 
@@ -124,7 +154,7 @@ export async function GET(request: NextRequest) {
     if (type === 'inventory') {
       const products = await prisma.product.findMany({
         where: { shopId },
-        include: { category: true },
+        include: { category: true, electronicsFields: true, clothingFields: true, pharmacyFields: true, liquorFields: true },
       });
 
       let filteredProducts = products;
@@ -136,10 +166,37 @@ export async function GET(request: NextRequest) {
       }
       if (search) {
         const q = search.toLowerCase();
-        filteredProducts = filteredProducts.filter(p =>
-          p.name.toLowerCase().includes(q) ||
-          p.sku.toLowerCase().includes(q)
-        );
+        filteredProducts = filteredProducts.filter(p => {
+          const ef = (p as any).electronicsFields;
+          const cf = (p as any).clothingFields;
+          const pf = (p as any).pharmacyFields;
+          const lf = (p as any).liquorFields;
+          return (
+            p.name.toLowerCase().includes(q) ||
+            p.sku.toLowerCase().includes(q) ||
+            (p.barcode && p.barcode.toLowerCase().includes(q)) ||
+            (p.brand && p.brand.toLowerCase().includes(q)) ||
+            (p.description && p.description.toLowerCase().includes(q)) ||
+            (ef?.imei && ef.imei.toLowerCase().includes(q)) ||
+            (ef?.brand && ef.brand.toLowerCase().includes(q)) ||
+            (ef?.model && ef.model.toLowerCase().includes(q)) ||
+            (ef?.color && ef.color.toLowerCase().includes(q)) ||
+            (ef?.storage && ef.storage.toLowerCase().includes(q)) ||
+            (ef?.condition && ef.condition.toLowerCase().includes(q)) ||
+            (ef?.serialNumber && ef.serialNumber.toLowerCase().includes(q)) ||
+            (cf?.size && cf.size.toLowerCase().includes(q)) ||
+            (cf?.color && cf.color.toLowerCase().includes(q)) ||
+            (cf?.brand && cf.brand.toLowerCase().includes(q)) ||
+            (cf?.material && cf.material.toLowerCase().includes(q)) ||
+            (pf?.brandName && pf.brandName.toLowerCase().includes(q)) ||
+            (pf?.genericName && pf.genericName.toLowerCase().includes(q)) ||
+            (pf?.batchNumber && pf.batchNumber.toLowerCase().includes(q)) ||
+            (pf?.manufacturer && pf.manufacturer.toLowerCase().includes(q)) ||
+            (lf?.brand && lf.brand.toLowerCase().includes(q)) ||
+            (lf?.liquorType && lf.liquorType.toLowerCase().includes(q)) ||
+            (lf?.origin && lf.origin.toLowerCase().includes(q))
+          );
+        });
       }
 
       const totalValue = filteredProducts.reduce((sum, p) => sum + p.sellingPrice * p.stockQuantity, 0);

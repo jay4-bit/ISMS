@@ -1,0 +1,44 @@
+
+> isms@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.8:3000
+- Environments: .env
+✓ Ready in 562ms
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+
+ GET /admin/login 200 in 654ms (next.js: 255ms, proxy.ts: 101ms, application-code: 298ms)
+ GET /api/settings 200 in 14.7s (next.js: 143ms, proxy.ts: 11ms, application-code: 14.5s)
+ GET /api/permissions?role=OWNER 200 in 17.5s (next.js: 213ms, proxy.ts: 10ms, application-code: 17.3s)
+ GET /api/subscription 200 in 17.5s (next.js: 246ms, proxy.ts: 7ms, application-code: 17.2s)
+ GET /api/permissions?role=OWNER 200 in 747ms (next.js: 5ms, proxy.ts: 4ms, application-code: 738ms)
+ GET /api/settings 200 in 3.9s (next.js: 5ms, proxy.ts: 6ms, application-code: 3.9s)
+ GET /api/settings 200 in 3.3s (next.js: 4ms, proxy.ts: 4ms, application-code: 3.3s)
+ GET /admin/login 200 in 84ms (next.js: 5ms, proxy.ts: 5ms, application-code: 74ms)
+ GET /api/permissions?role=OWNER 200 in 464ms (next.js: 17ms, proxy.ts: 7ms, application-code: 440ms)
+ GET /api/subscription 200 in 665ms (next.js: 10ms, proxy.ts: 12ms, application-code: 643ms)
+ GET /api/permissions?role=OWNER 200 in 227ms (next.js: 3ms, proxy.ts: 3ms, application-code: 221ms)
+ GET /api/settings 200 in 1105ms (next.js: 13ms, proxy.ts: 6ms, application-code: 1086ms)
+ GET /api/settings 200 in 474ms (next.js: 3ms, proxy.ts: 3ms, application-code: 467ms)
+ GET /api/settings 200 in 450ms (next.js: 3ms, proxy.ts: 4ms, application-code: 443ms)
+ POST /api/admin/login 401 in 68ms (next.js: 56ms, proxy.ts: 6ms, application-code: 6ms)
+ POST /api/admin/login 401 in 15ms (next.js: 5ms, proxy.ts: 6ms, application-code: 4ms)
+ GET /admin/login 200 in 70ms (next.js: 5ms, proxy.ts: 3ms, application-code: 61ms)
+ GET /api/subscription 200 in 438ms (next.js: 3ms, proxy.ts: 3ms, application-code: 432ms)
+ GET /api/permissions?role=OWNER 200 in 461ms (next.js: 11ms, proxy.ts: 6ms, application-code: 444ms)
+ GET /api/permissions?role=OWNER 200 in 228ms (next.js: 2ms, proxy.ts: 3ms, application-code: 223ms)
+ GET /api/settings 200 in 1127ms (next.js: 8ms, proxy.ts: 6ms, application-code: 1113ms)
+ GET /api/settings 200 in 468ms (next.js: 5ms, proxy.ts: 7ms, application-code: 457ms)
+ GET /api/settings 200 in 457ms (next.js: 2ms, proxy.ts: 3ms, application-code: 452ms)
+ POST /api/admin/login 401 in 23ms (next.js: 5ms, proxy.ts: 11ms, application-code: 8ms)
+ POST /api/admin/login 401 in 15ms (next.js: 4ms, proxy.ts: 6ms, application-code: 5ms)
+ GET /admin/login 200 in 71ms (next.js: 5ms, proxy.ts: 4ms, application-code: 63ms)
+ GET /api/permissions?role=OWNER 200 in 3.0s (next.js: 12ms, proxy.ts: 6ms, application-code: 3.0s)
+ GET /api/subscription 200 in 3.0s (next.js: 2ms, proxy.ts: 3ms, application-code: 2.9s)
+ GET /api/permissions?role=OWNER 200 in 488ms (next.js: 3ms, proxy.ts: 5ms, application-code: 480ms)
+ GET /api/settings 200 in 3.9s (next.js: 7ms, proxy.ts: 6ms, application-code: 3.9s)
+ GET /api/settings 200 in 439ms (next.js: 3ms, proxy.ts: 3ms, application-code: 433ms)
+ GET /api/settings 200 in 439ms (next.js: 5ms, proxy.ts: 3ms, application-code: 430ms)
+ POST /api/admin/login 401 in 16ms (next.js: 4ms, proxy.ts: 5ms, application-code: 7ms)

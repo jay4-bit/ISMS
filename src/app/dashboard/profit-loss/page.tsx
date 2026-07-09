@@ -66,6 +66,8 @@ export default function ProfitLossPage() {
 
   useEffect(() => {
     fetchData();
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
   }, [period]);
 
   async function fetchData() {

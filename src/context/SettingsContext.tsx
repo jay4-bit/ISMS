@@ -15,6 +15,19 @@ interface Settings {
   expiryAlert: boolean;
   expiryAlertDays: number;
   dashboardConfig: Record<string, boolean> | null;
+  paymentConfig: PaymentConfig | null;
+}
+
+interface PaymentMethod {
+  type: string;
+  label: string;
+  number: string;
+  name: string;
+}
+
+interface PaymentConfig {
+  methods: PaymentMethod[];
+  instructions: string;
 }
 
 interface SettingsContextType {
@@ -37,6 +50,7 @@ const defaultSettings: Settings = {
   expiryAlert: true,
   expiryAlertDays: 7,
   dashboardConfig: null,
+  paymentConfig: null,
 };
 
 const SettingsContext = createContext<SettingsContextType>({
@@ -117,7 +131,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         const merged = { ...defaultSettings, ...data.settings };
         persistSettings(merged);
       }
-      if (data.logo) persistLogo(data.logo);
+      persistLogo(data.logo || null);
     } catch (error) {
       console.error('Failed to fetch settings:', error);
     } finally {

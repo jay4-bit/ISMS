@@ -117,6 +117,8 @@ export default function ActivitiesPage() {
 
   useEffect(() => {
     if (shop?.id) fetchActivities();
+    const interval = setInterval(() => { if (shop?.id) fetchActivities(); }, 30000);
+    return () => clearInterval(interval);
   }, [shop?.id, page, userIdFilter, userNameFilter, feedRangePreset, feedStartDate, feedEndDate]);
 
   useEffect(() => {

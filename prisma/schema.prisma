@@ -44,6 +44,10 @@ model Shop {
   deletionCodeExpires DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  subscriptionStatus  SubscriptionStatus @default(TRIAL)
+  trialEndsAt         DateTime?
+  subscriptionEndsAt  DateTime?
   
   users       User[]
   products    Product[]
@@ -62,8 +66,44 @@ model Shop {
   reminders   Reminder[]
   customRoles CustomRole[]
   debts       Debt[]
+  subscriptionPayments SubscriptionPayment[]
 
   @@unique([name, shopType])
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+model SubscriptionPayment {
+  id              String   @id @default(cuid())
+  shopId          String
+  shop            Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  amount          Float
+  paymentMethod   String?
+  reference       String?
+  monthsPaid      Int      @default(1)
+  notes           String?
+  status          String   @default("PENDING")
+  paidAt          DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  @@index([shopId])
+}
+
+model AdminPaymentMethod {
+  id        String   @id @default(cuid())
+  type      String   @default("MOBILE")
+  label     String
+  name      String?
+  number    String?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model User {
@@ -628,6 +668,7 @@ model ShopSettings {
   pharmacistName  String?
   pharmacistLicense String?
   dashboardConfig   String?
+  paymentConfig     String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }

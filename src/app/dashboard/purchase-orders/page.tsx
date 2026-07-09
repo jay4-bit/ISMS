@@ -175,7 +175,7 @@ export default function PurchaseOrdersPage() {
     }, [] as string[]);
   }
 
-  useEffect(() => { fetchData(); }, [shop]);
+  useEffect(() => { fetchData(); const interval = setInterval(fetchData, 30000); return () => clearInterval(interval); }, [shop]);
 
   async function fetchData() {
     try {

@@ -33,7 +33,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Parse dashboardConfig JSON string
-    const parsed = { ...settings, dashboardConfig: settings.dashboardConfig ? JSON.parse(settings.dashboardConfig) : null };
+    const parsed = {
+      ...settings,
+      dashboardConfig: settings.dashboardConfig ? JSON.parse(settings.dashboardConfig) : null,
+      paymentConfig: settings.paymentConfig ? JSON.parse(settings.paymentConfig) : null,
+    };
 
     return NextResponse.json({ settings: parsed, logo: shop.logo || null });
   } catch (error) {
@@ -63,6 +67,7 @@ export async function PUT(request: NextRequest) {
         expiryAlert: body.expiryAlert,
         expiryAlertDays: body.expiryAlertDays,
         dashboardConfig: body.dashboardConfig !== undefined ? JSON.stringify(body.dashboardConfig) : undefined,
+        paymentConfig: body.paymentConfig !== undefined ? JSON.stringify(body.paymentConfig) : undefined,
       },
       create: {
         shopId,
@@ -77,10 +82,15 @@ export async function PUT(request: NextRequest) {
         expiryAlert: body.expiryAlert ?? true,
         expiryAlertDays: body.expiryAlertDays || 7,
         dashboardConfig: body.dashboardConfig !== undefined ? JSON.stringify(body.dashboardConfig) : undefined,
+        paymentConfig: body.paymentConfig !== undefined ? JSON.stringify(body.paymentConfig) : undefined,
       },
     });
 
-    const parsed = { ...settings, dashboardConfig: settings.dashboardConfig ? JSON.parse(settings.dashboardConfig) : null };
+    const parsed = {
+      ...settings,
+      dashboardConfig: settings.dashboardConfig ? JSON.parse(settings.dashboardConfig) : null,
+      paymentConfig: settings.paymentConfig ? JSON.parse(settings.paymentConfig) : null,
+    };
     return NextResponse.json({ settings: parsed });
   } catch (error) {
     console.error('Update settings error:', error);

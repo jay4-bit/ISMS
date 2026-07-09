@@ -58,7 +58,7 @@ export default function UsersPage() {
     return [...builtIn, ...custom];
   })();
 
-  useEffect(() => { fetchUsers(); if (shop?.id) fetchRoles(); }, [shop]);
+  useEffect(() => { fetchUsers(); if (shop?.id) fetchRoles(); const interval = setInterval(() => { fetchUsers(); if (shop?.id) fetchRoles(); }, 30000); return () => clearInterval(interval); }, [shop]);
 
   useEffect(() => {
     if (shop?.id && permSelectedRole) fetchPermissions();

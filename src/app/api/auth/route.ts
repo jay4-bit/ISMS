@@ -34,6 +34,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Please verify your email first. Check your inbox for the verification code.' }, { status: 401 });
     }
 
+    if (!user.shop.trialEndsAt) {
+      const TRIAL_DAYS = parseInt(process.env.TRIAL_DAYS || '3');
+      await prisma.shop.update({
+        where: { id: user.shop.id },
+        data: {
+          trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000),
+          subscriptionStatus: 'TRIAL',
+        },
+      });
+      user.shop.trialEndsAt = new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+    }
+
     const isValid = await verifyPassword(password, user.password);
     if (!isValid) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
@@ -49,6 +61,25 @@ export async function POST(request: NextRequest) {
       details: `${user.name} logged in`,
     });
 
+    const now = new Date();
+    const shopData: any = {
+      id: user.shop.id,
+      name: user.shop.name,
+      shopType: user.shop.shopType,
+      currency: user.shop.currency,
+      currencySymbol: user.shop.currencySymbol,
+    };
+
+    if (user.shop.subscriptionStatus === 'TRIAL' && user.shop.trialEndsAt && user.shop.trialEndsAt < now) {
+      await prisma.shop.update({
+        where: { id: user.shop.id },
+        data: { subscriptionStatus: 'EXPIRED' },
+      });
+    }
+
+    const effectiveStatus = user.shop.subscriptionStatus === 'TRIAL' && user.shop.trialEndsAt && user.shop.trialEndsAt < now
+      ? 'EXPIRED' : user.shop.subscriptionStatus;
+
     return NextResponse.json({
       success: true,
       user: {
@@ -57,12 +88,11 @@ export async function POST(request: NextRequest) {
         name: user.name,
         role: user.role
       },
-      shop: {
-        id: user.shop.id,
-        name: user.shop.name,
-        shopType: user.shop.shopType,
-        currency: user.shop.currency,
-        currencySymbol: user.shop.currencySymbol
+      shop: shopData,
+      subscription: {
+        status: effectiveStatus,
+        trialEndsAt: user.shop.trialEndsAt,
+        subscriptionEndsAt: user.shop.subscriptionEndsAt,
       },
       token
     });

@@ -26,7 +26,7 @@ export default function SuppliersPage() {
     name: '', email: '', phone: '', address: '', contactPerson: '', notes: ''
   });
 
-  useEffect(() => { fetchSuppliers(); }, []);
+  useEffect(() => { fetchSuppliers(); const interval = setInterval(fetchSuppliers, 30000); return () => clearInterval(interval); }, []);
 
   async function fetchSuppliers() {
     if (!shop) return;

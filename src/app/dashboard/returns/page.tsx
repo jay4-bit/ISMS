@@ -96,7 +96,8 @@ export default function ReturnsPage() {
   useEffect(() => {
     const abortController = new AbortController();
     fetchData(abortController.signal);
-    return () => abortController.abort();
+    const interval = setInterval(() => fetchData(), 30000);
+    return () => { abortController.abort(); clearInterval(interval); };
   }, [shop]);
 
   async function fetchData(signal?: AbortSignal) {
@@ -1012,13 +1013,33 @@ function ReturnProductSelector({ products, returnItems, returnedProductIds, onSe
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  const filtered = products.filter(p =>
-    !returnItems.find(item => item.productId === p.id) &&
-    (!returnedProductIds.has(p.id) || !p.electronicsFields?.imei) &&
-    (p.name.toLowerCase().includes(search.toLowerCase()) ||
-     p.sku?.toLowerCase().includes(search.toLowerCase()) ||
-     p.electronicsFields?.imei?.toLowerCase().includes(search.toLowerCase()))
-  );
+  const filtered = products.filter(p => {
+    if (returnItems.find(item => item.productId === p.id)) return false;
+    if (returnedProductIds.has(p.id) && !p.electronicsFields?.imei) return false;
+    if (!search) return true;
+    const q = search.toLowerCase();
+    const a: any = p;
+    const ef = a.electronicsFields;
+    const cf = a.clothingFields;
+    const lf = a.liquorFields;
+    return (
+      p.name.toLowerCase().includes(q) ||
+      p.sku?.toLowerCase().includes(q) ||
+      (a.barcode && a.barcode.toLowerCase().includes(q)) ||
+      (a.brand && a.brand.toLowerCase().includes(q)) ||
+      (ef?.imei && ef.imei.toLowerCase().includes(q)) ||
+      (ef?.brand && ef.brand.toLowerCase().includes(q)) ||
+      (ef?.model && ef.model.toLowerCase().includes(q)) ||
+      (ef?.color && ef.color.toLowerCase().includes(q)) ||
+      (ef?.storage && ef.storage.toLowerCase().includes(q)) ||
+      (ef?.serialNumber && ef.serialNumber.toLowerCase().includes(q)) ||
+      (ef?.condition && ef.condition.toLowerCase().includes(q)) ||
+      (cf?.size && cf.size.toLowerCase().includes(q)) ||
+      (cf?.color && cf.color.toLowerCase().includes(q)) ||
+      (cf?.brand && cf.brand.toLowerCase().includes(q)) ||
+      (lf?.brand && lf.brand.toLowerCase().includes(q))
+    );
+  });
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>

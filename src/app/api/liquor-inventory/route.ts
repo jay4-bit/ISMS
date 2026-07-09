@@ -23,7 +23,16 @@ export async function GET(request: NextRequest) {
         { name: { contains: q } },
         { sku: { contains: q } },
         { barcode: { contains: q } },
-        { liquorFields: { is: { brand: { contains: q } } } },
+        { description: { contains: q } },
+        { brand: { contains: q } },
+        { liquorFields: { is: { OR: [
+          { brand: { contains: q } },
+          { liquorType: { contains: q } },
+          { origin: { contains: q } },
+          { notes: { contains: q } },
+          { vintage: { contains: q } },
+          { ageStatement: { contains: q } },
+        ] } } },
       ];
     }
 
