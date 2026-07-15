@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Store, Users, CreditCard, DollarSign, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Store, Users, DollarSign, Clock, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminDashboard() {
@@ -10,12 +10,6 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const router = useRouter();
-
-  useEffect(() => {
-    fetchStats();
-    const interval = setInterval(fetchStats, 30000);
-    return () => clearInterval(interval);
-  }, []);
 
   async function fetchStats() {
     const token = localStorage.getItem('admin_token');
@@ -32,6 +26,12 @@ export default function AdminDashboard() {
     } catch { setError('Failed to load stats'); }
     setLoading(false);
   }
+
+  useEffect(() => {
+    fetchStats();
+    const interval = setInterval(fetchStats, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   if (loading) return <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Loading...</div>;
 

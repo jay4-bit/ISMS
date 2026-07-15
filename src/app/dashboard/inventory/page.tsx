@@ -4,9 +4,9 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Package, Plus, Search, Edit, Trash2, X, Camera, 
-  Barcode, Printer, Tag, AlertTriangle, TrendingUp, 
-  TrendingDown, DollarSign, ShoppingCart, Settings,
-  CameraOff, Zap, Hash, ScanLine, FolderPlus, Lock, Eye, Upload, Download,
+  Barcode, Printer, Tag, AlertTriangle,
+  TrendingDown, DollarSign, 
+  ScanLine, FolderPlus, Eye, Upload, Download,
   Smartphone, Headphones, Wrench
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
@@ -193,7 +193,7 @@ export default function InventoryPage() {
     showSku: true,
     copies: 1
   });
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const _videoRef = useRef<HTMLVideoElement>(null);
   const scannerRef = useRef<any>(null);
   const [scannerActive, setScannerActive] = useState(false);
   const [formData, setFormData] = useState({
@@ -338,7 +338,7 @@ export default function InventoryPage() {
       try {
         await scannerRef.current.stop();
         scannerRef.current = null;
-      } catch (e) {}
+      } catch {}
     }
     setScannerActive(false);
   }
@@ -642,12 +642,12 @@ export default function InventoryPage() {
     }
   }
 
-  function generateBarcode() {
+  function _generateBarcode() {
     const code = 'SKU' + Date.now().toString(36).toUpperCase();
     setFormData(prev => ({ ...prev, barcode: code }));
   }
 
-  function toggleProductSelection(productId: string) {
+  function _toggleProductSelection(productId: string) {
     setSelectedProducts(prev => 
       prev.includes(productId) 
         ? prev.filter(id => id !== productId)
@@ -693,7 +693,7 @@ export default function InventoryPage() {
               lineColor: '#000000'
             });
             barcodeImg = canvas.toDataURL('image/png');
-          } catch (e) {
+          } catch {
             barcodeImg = '';
           }
           
@@ -711,7 +711,7 @@ export default function InventoryPage() {
     };
 
     generateAllBarcodes().then(tagsHtml => {
-      let html = `
+      const html = `
         <html>
         <head>
           <title>Price Tags - Barcode Labels</title>
@@ -877,7 +877,7 @@ export default function InventoryPage() {
               <button 
                 onClick={async () => {
                   try {
-                    const XLSX = await import('xlsx');
+                    const ExcelJS = await import('exceljs');
                     const exportData = products.map(p => ({
                       name: p.name,
                       sku: p.sku,
@@ -907,12 +907,13 @@ export default function InventoryPage() {
                       })
                     }));
                     
-                    const worksheet = XLSX.utils.json_to_sheet(exportData);
-                    const workbook = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(workbook, worksheet, 'Products');
+                    const workbook = new ExcelJS.Workbook();
+                    const worksheet = workbook.addWorksheet('Products');
+                    worksheet.columns = Object.keys(exportData[0]).map(key => ({ header: key, key }));
+                    worksheet.addRows(exportData);
                     
                     const date = new Date().toISOString().split('T')[0];
-                    XLSX.writeFile(workbook, `inventory-export-${date}.xlsx`);
+                    await workbook.xlsx.writeFile(`inventory-export-${date}.xlsx`);
                   } catch (err) {
                     console.error('Export error:', err);
                     alert('Failed to export. Please try again.');
@@ -1760,7 +1761,7 @@ export default function InventoryPage() {
                         </button>
                       </div>
                       {clothingVariants.length === 0 && (
-                        <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>No variants added. Click "Add Variant" to create product variations (e.g., sizes, colors).</p>
+                        <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>No variants added. Click &quot;Add Variant&quot; to create product variations (e.g., sizes, colors).</p>
                       )}
                       {clothingVariants.map((v, i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', padding: '0.75rem', background: 'var(--background)', borderRadius: '0.5rem' }}>
@@ -1787,7 +1788,7 @@ export default function InventoryPage() {
                         </button>
                       </div>
                       {generalVariants.length === 0 && (
-                        <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>No variants added. Click "Add Variant" to create product variations (e.g., sizes, colors, pack sizes).</p>
+                        <p style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>No variants added. Click &quot;Add Variant&quot; to create product variations (e.g., sizes, colors, pack sizes).</p>
                       )}
                       {generalVariants.map((v, i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', padding: '0.75rem', background: 'var(--background)', borderRadius: '0.5rem' }}>
@@ -2350,12 +2351,20 @@ export default function InventoryPage() {
                     
                     setImporting(true);
                     try {
-                      const XLSX = await import('xlsx');
+                      const ExcelJS = await import('exceljs');
                       const data = await file.arrayBuffer();
-                      const workbook = XLSX.read(data);
-                      const sheetName = workbook.SheetNames[0];
-                      const sheet = workbook.Sheets[sheetName];
-                      const json = XLSX.utils.sheet_to_json(sheet);
+                      const workbook = new ExcelJS.Workbook();
+                      await workbook.xlsx.load(data);
+                      const sheet = workbook.worksheets[0];
+                      const json: Record<string, unknown>[] = [];
+                      sheet.eachRow((row, rowNumber) => {
+                        if (rowNumber === 1) return;
+                        const rowData: Record<string, unknown> = {};
+                        row.eachCell((cell, colNumber) => {
+                          rowData[sheet.getRow(1).getCell(colNumber).value as string] = cell.value;
+                        });
+                        json.push(rowData);
+                      });
                       
                       if (!json || json.length === 0) {
                         alert('No data found in the Excel file');
@@ -2408,7 +2417,7 @@ export default function InventoryPage() {
                   <button 
                     onClick={async () => {
                       try {
-                        const XLSX = await import('xlsx');
+                        const ExcelJS = await import('exceljs');
                         const sampleData = isPharmacy ? [
                           {
                             name: 'Panadol Extra',
@@ -2556,11 +2565,12 @@ export default function InventoryPage() {
                           }
                         ];
                         
-                        const worksheet = XLSX.utils.json_to_sheet(sampleData);
-                        const workbook = XLSX.utils.book_new();
-                        XLSX.utils.book_append_sheet(workbook, worksheet, 'Products');
+                        const workbook = new ExcelJS.Workbook();
+                        const worksheet = workbook.addWorksheet('Products');
+                        worksheet.columns = Object.keys(sampleData[0]).map(key => ({ header: key, key }));
+                        worksheet.addRows(sampleData);
                         
-                        XLSX.writeFile(workbook, 'sample-import.xlsx');
+                        await workbook.xlsx.writeFile('sample-import.xlsx');
                       } catch (err) {
                         console.error('Download error:', err);
                       }

@@ -3,13 +3,15 @@
 import { useEffect, useState, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { LayoutDashboard, Store, CreditCard, LogOut, ChevronLeft, ChevronRight, Settings, BarChart3, Smartphone, DollarSign } from 'lucide-react';
+import { LayoutDashboard, Store, CreditCard, LogOut, ChevronLeft, ChevronRight, BarChart3, Smartphone, DollarSign, Receipt, TrendingUp } from 'lucide-react';
 
 const ADMIN_PATHS = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { name: 'Shops', href: '/admin/shops', icon: Store },
   { name: 'Payments', href: '/admin/payments', icon: CreditCard },
   { name: 'Incomes', href: '/admin/incomes', icon: DollarSign },
+  { name: 'Expenses', href: '/admin/expenses', icon: Receipt },
+  { name: 'Profit', href: '/admin/profit', icon: TrendingUp },
   { name: 'Payment Methods', href: '/admin/payment-methods', icon: Smartphone },
 ];
 
@@ -18,15 +20,18 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [token, setToken] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const t = localStorage.getItem('admin_token');
-    if (!t) {
-      if (pathname !== '/admin/login') router.replace('/admin/login');
-    } else {
-      setToken(t);
+    setMounted(true);
+    setToken(localStorage.getItem('admin_token'));
+  }, []);
+
+  useEffect(() => {
+    if (mounted && !token && pathname !== '/admin/login') {
+      router.replace('/admin/login');
     }
-  }, [pathname, router]);
+  }, [mounted, token, pathname, router]);
 
   if (pathname === '/admin/login') return <>{children}</>;
 

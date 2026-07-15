@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        const created = await prisma.stockCount.create({
+        await prisma.stockCount.create({
           data: {
             countNumber,
             status: status || 'COMPLETED',

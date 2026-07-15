@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { ShoppingCart, Search, Eye, Printer, X, Package, Calendar, Clock, CalendarDays, CalendarCheck, List, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ShoppingCart, Search, Eye, X, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useAuth } from '@/components/AuthProvider';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
@@ -39,7 +39,7 @@ export default function SalesPage() {
   const [total, setTotal] = useState(0);
   const limit = 10;
 
-  const fetchSales = useCallback(async () => {
+  async function fetchSales() {
     if (!shop?.id) return;
     try {
       const params = new URLSearchParams({ page: String(page), limit: String(limit), search, timeFilter });
@@ -55,7 +55,7 @@ export default function SalesPage() {
     } finally {
       setLoading(false);
     }
-  }, [shop?.id, page, search, timeFilter]);
+  }
 
   useEffect(() => { fetchSales(); }, [fetchSales]);
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ClipboardCheck, Plus, Play, Pause, CheckCircle, XCircle, Search, Package, AlertTriangle, RotateCcw } from 'lucide-react';
+import { ClipboardCheck, Plus, Play, CheckCircle, XCircle, AlertTriangle, RotateCcw } from 'lucide-react';
 
 interface StockCount {
   id: string;
@@ -32,8 +32,6 @@ export default function StockCountPage() {
   const [search, setSearch] = useState('');
   const [formData, setFormData] = useState({ notes: '' });
 
-  useEffect(() => { fetchData(); const interval = setInterval(fetchData, 30000); return () => clearInterval(interval); }, []);
-
   async function fetchData() {
     try {
       const [countsRes, productsRes] = await Promise.all([
@@ -50,6 +48,8 @@ export default function StockCountPage() {
       setLoading(false);
     }
   }
+
+  useEffect(() => { fetchData(); const interval = setInterval(fetchData, 30000); return () => clearInterval(interval); }, []);
 
   async function startCount() {
     const countNumber = 'SC' + Date.now().toString(36).toUpperCase();
@@ -226,7 +226,7 @@ export default function StockCountPage() {
           <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1rem' }}>Start Stock Count</h2>
             <p style={{ marginBottom: '1rem', color: 'var(--muted-foreground)' }}>
-              This will count all {products.length} products in inventory. You'll be able to enter counted quantities and identify variances.
+              This will count all {products.length} products in inventory. You&apos;ll be able to enter counted quantities and identify variances.
             </p>
             <div style={{ marginBottom: '1.5rem' }}>
               <label className="label">Notes (optional)</label>

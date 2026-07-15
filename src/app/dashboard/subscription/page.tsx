@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { AlertTriangle, CheckCircle, Clock, CreditCard, Calendar, Smartphone, Landmark, Wallet } from 'lucide-react';
 
@@ -13,8 +12,7 @@ const PLANS = [
 ];
 
 export default function SubscriptionPage() {
-  const { shop, subscription, user, refreshSubscription } = useAuth();
-  const router = useRouter();
+  const { shop, subscription, refreshSubscription } = useAuth();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [selectedPlan, setSelectedPlan] = useState(PLANS[0]);

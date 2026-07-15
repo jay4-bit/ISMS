@@ -12,8 +12,6 @@ export default function AdminPaymentsPage() {
   const [error, setError] = useState('');
   const router = useRouter();
 
-  useEffect(() => { fetchPayments(); const interval = setInterval(fetchPayments, 15000); return () => clearInterval(interval); }, []);
-
   async function fetchPayments() {
     const token = localStorage.getItem('admin_token');
     if (!token) { router.replace('/admin/login'); return; }
@@ -29,6 +27,8 @@ export default function AdminPaymentsPage() {
     } catch { setError('Failed to load payments'); }
     setLoading(false);
   }
+
+  useEffect(() => { fetchPayments(); const interval = setInterval(fetchPayments, 15000); return () => clearInterval(interval); }, []);
 
   async function handleAction(paymentId: string, action: 'CONFIRMED' | 'REJECTED') {
     const token = localStorage.getItem('admin_token');

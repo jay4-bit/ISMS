@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { ShoppingCart, Search, Trash2, CreditCard, DollarSign, Smartphone, Printer, Camera, FileText, X, Check, ScanLine, Keyboard, Building2, User } from 'lucide-react';
+import { ShoppingCart, CreditCard, DollarSign, Smartphone, Printer, Camera, FileText, X, Check, ScanLine, Keyboard, Building2, User } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import BarcodeScanner from '@/components/BarcodeScanner';
 import { useAuth } from '@/components/AuthProvider';
@@ -144,7 +144,7 @@ export default function POSPage() {
       setShowNewClientModal(false);
       setNewClientData({ name: '', phone: '', email: '', address: '' });
       showNotification('Client created successfully', 'success');
-    } catch (error) {
+    } catch {
       showNotification('Failed to create client', 'error');
     }
   }
@@ -197,7 +197,7 @@ export default function POSPage() {
 
   const subtotal = cart.reduce((sum, item) => sum + getPrice(item.product) * item.quantity, 0);
   const total = subtotal - discount;
-  const change = paymentMethod === 'CASH' ? 0 : Math.max(0, parseFloat(cashReceived) || 0 - total);
+  const _change = paymentMethod === 'CASH' ? 0 : Math.max(0, parseFloat(cashReceived) || 0 - total);
 
   const isCredit = paymentMethod === 'CREDIT';
 
@@ -360,7 +360,7 @@ export default function POSPage() {
     if (cart.length === 0) return;
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
-    const qty = subtotal - total; // discount amount
+    const _qty = subtotal - total; // discount amount
     const now = new Date().toLocaleDateString();
     const itemsHtml = cart.map((item, i) => {
       const price = getPrice(item.product);

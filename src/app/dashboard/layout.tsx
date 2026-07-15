@@ -10,19 +10,14 @@ import {
   ShoppingCart,
   Users,
   DollarSign,
-  ArrowLeftRight,
-  FileText,
   Settings,
   ChevronLeft,
   ChevronRight,
   LogOut,
   Menu,
   X,
-  TrendingUp,
-  AlertTriangle,
   BarChart3,
   UserPlus,
-  ShoppingBag,
   Truck,
   Receipt,
   PieChart,
@@ -31,7 +26,6 @@ import {
   PackagePlus,
   Sun,
   Moon,
-  Clock,
   Activity,
   BookOpen,
   HandCoins,
@@ -74,7 +68,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [mobileOpen, setMobileOpen] = useState(false);
   const redirectAttempted = useRef(false);
   const [uptime, setUptime] = useState('');
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     if (typeof window !== 'undefined' && !localStorage.getItem('loginTime')) {
@@ -247,7 +241,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               const minutes = Math.floor((diff % 3600000) / 60000);
               const isActive = subscription.status === 'ACTIVE';
               const isTrial = subscription.status === 'TRIAL';
-              const isExpired = subscription.status === 'EXPIRED' || subscription.status === 'CANCELLED';
+              const _isExpired = subscription.status === 'EXPIRED' || subscription.status === 'CANCELLED';
               const color = isActive ? '#22c55e' : isTrial ? '#3b82f6' : '#ef4444';
               return (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>

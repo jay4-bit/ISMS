@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, CreditCard, Calendar, ArrowUpRight, ArrowDownRight, PieChart, ChevronDown, ChevronUp, Undo2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, ArrowUpRight, ArrowDownRight, PieChart, ChevronDown, ChevronUp, Undo2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/components/AuthProvider';
@@ -64,12 +64,6 @@ export default function ProfitLossPage() {
   const { settings } = useSettings();
   const { shop } = useAuth();
 
-  useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
-  }, [period]);
-
   async function fetchData() {
     setLoading(true);
     try {
@@ -84,6 +78,12 @@ export default function ProfitLossPage() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, [period]);
 
   const periodOptions = [
     { value: 'today', label: 'Today' },

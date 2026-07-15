@@ -13,22 +13,6 @@ export default function ReportsPage() {
   const [reportData, setReportData] = useState<any>(null);
   const { shop } = useAuth();
 
-  useEffect(() => { fetchReport(); }, [reportType, dateRange.startDate, dateRange.endDate, search]);
-
-  async function fetchReport() {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({ type: reportType });
-      if (dateRange.startDate) params.append('startDate', dateRange.startDate);
-      if (dateRange.endDate) params.append('endDate', dateRange.endDate);
-      if (search.trim()) params.append('search', search.trim());
-      const res = await fetch(`/api/reports?${params}`, { headers: { 'x-shop-id': shop?.id || '' } });
-      const data = await res.json();
-      setReportData(data.report);
-    } catch (error) { console.error('Failed to fetch report:', error); }
-    finally { setLoading(false); }
-  }
-
   function exportToExcel() {
     if (!reportData) return;
     let csv = '';
@@ -58,6 +42,22 @@ export default function ReportsPage() {
     const a = document.createElement('a');
     a.href = url; a.download = `${reportType}-report-${new Date().toISOString().split('T')[0]}.csv`; a.click();
   }
+
+  async function fetchReport() {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ type: reportType });
+      if (dateRange.startDate) params.append('startDate', dateRange.startDate);
+      if (dateRange.endDate) params.append('endDate', dateRange.endDate);
+      if (search.trim()) params.append('search', search.trim());
+      const res = await fetch(`/api/reports?${params}`, { headers: { 'x-shop-id': shop?.id || '' } });
+      const data = await res.json();
+      setReportData(data.report);
+    } catch (error) { console.error('Failed to fetch report:', error); }
+    finally { setLoading(false); }
+  }
+
+  useEffect(() => { fetchReport(); }, [reportType, dateRange.startDate, dateRange.endDate, search]);
 
   return (
     <div className="reports-page">

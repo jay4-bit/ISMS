@@ -2,7 +2,6 @@
 
 import { useEffect, useState, createContext, useContext, ReactNode, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { SHOP_TYPE_CONFIG } from '@/lib/auth';
 import { getDefaultPermissions } from '@/lib/permissions';
 
 interface Shop {

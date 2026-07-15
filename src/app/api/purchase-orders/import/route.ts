@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
           supplier = await prisma.supplier.create({ data: { name: supplierName, shopId } });
         }
 
-        const created = await prisma.purchaseOrder.create({
+        await prisma.purchaseOrder.create({
           data: {
             orderNumber,
             supplierId: supplier.id,

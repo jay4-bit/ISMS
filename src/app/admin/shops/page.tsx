@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Store, Users, Clock, CheckCircle, AlertTriangle, Ban, Play, XCircle, Plus, UserPlus, UserMinus, Settings, Edit3, Eye, EyeOff, Mail, Shield, Trash2 } from 'lucide-react';
+import { Search, Store, Users, Clock, CheckCircle, AlertTriangle, Ban, Play, XCircle, Plus, UserPlus, UserMinus, Settings, Edit3, Eye, EyeOff, Mail, Shield } from 'lucide-react';
 
 const SHOP_TYPES = ['PHARMACY', 'GENERAL', 'LIQUOR', 'ELECTRONICS', 'CLOTHING'];
 
@@ -83,8 +83,6 @@ export default function AdminShopsPage() {
 
   const router = useRouter();
 
-  useEffect(() => { fetchShops(); const interval = setInterval(fetchShops, 30000); return () => clearInterval(interval); }, []);
-
   async function fetchShops(query?: string) {
     const token = localStorage.getItem('admin_token');
     if (!token) { router.replace('/admin/login'); return; }
@@ -98,6 +96,8 @@ export default function AdminShopsPage() {
     } catch { setError('Failed to load shops'); }
     setLoading(false);
   }
+
+  useEffect(() => { fetchShops(); const interval = setInterval(fetchShops, 30000); return () => clearInterval(interval); }, []);
 
   async function handleUpdateSubscription(shopId: string, subscriptionStatus: string) {
     const token = localStorage.getItem('admin_token');

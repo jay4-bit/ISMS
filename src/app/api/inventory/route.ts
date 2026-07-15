@@ -62,7 +62,6 @@ export async function GET(request: NextRequest) {
         { variantType: { contains: q } },
         { variants: { some: { variantValue: { contains: q } } } },
       ];
-      const typeSearch: any = { OR: [] };
       if (shopType === 'ELECTRONICS') {
         where.OR.push({
           electronicsFields: { is: { OR: [
@@ -149,7 +148,7 @@ export async function POST(request: NextRequest) {
     let body;
     try {
       body = await request.json();
-    } catch (e) {
+    } catch {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
 
@@ -161,7 +160,7 @@ export async function POST(request: NextRequest) {
     if (!productName && body.model) productName = body.model;
     if (!productName) productName = `Product-${Date.now()}`;
 
-    let productSku = body.sku || `SKU-${Date.now()}`;
+    const productSku = body.sku || `SKU-${Date.now()}`;
 
     // Get or create category for ELECTRONICS shops
     let productCategoryId = body.categoryId || '';

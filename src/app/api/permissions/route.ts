@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { MODULES, getDefaultPermissions } from '@/lib/permissions';
+import { MODULES } from '@/lib/permissions';
 
 export async function GET(request: NextRequest) {
   try {

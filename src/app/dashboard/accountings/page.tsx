@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { DollarSign, TrendingUp, TrendingDown, CreditCard, Smartphone, Banknote, Building2, Users, Receipt, Undo2, Wrench, Truck, ChevronDown, ChevronUp, Calendar, ArrowUpRight, ArrowDownRight, HandCoins, Landmark, BookOpen, RefreshCw } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, CreditCard, Smartphone, Banknote, Building2, Users, Receipt, Undo2, Wrench, Truck, ChevronDown, ChevronUp, ArrowUpRight, ArrowDownRight, HandCoins, Landmark, BookOpen, RefreshCw } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/components/AuthProvider';
@@ -118,12 +118,6 @@ export default function AccountingsPage() {
   const { settings } = useSettings();
   const { shop } = useAuth();
 
-  useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
-  }, [period]);
-
   async function fetchData() {
     setLoading(true);
     try {
@@ -138,6 +132,12 @@ export default function AccountingsPage() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, [period]);
 
   const periodOptions = [
     { value: 'today', label: 'Today' },

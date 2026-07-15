@@ -2,12 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { 
-  Settings as SettingsIcon, Building2, Phone, Mail, MapPin, DollarSign, 
+  Settings as SettingsIcon, Building2, DollarSign, 
   Users, Trash2, X, Save, Bell, Palette,
   AlertTriangle, Key, User, Sun, Moon, Clock, CalendarDays, Upload, Image as ImageIcon, Database, Download,
   LayoutDashboard, UserPlus, Plus, Check, Edit
 } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
 import { CURRENCIES, useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/components/AuthProvider';
 import { useTheme } from '@/context/ThemeContext';
@@ -39,7 +38,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'business' | 'users' | 'alerts' | 'types' | 'profile' | 'theme' | 'reminders' | 'data' | 'dashboard'>('business');
   const [showUserModal, setShowUserModal] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [_editingUser, _setEditingUser] = useState<User | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const { refreshSettings, updateSettings } = useSettings();
   const { logo } = useSettings();
@@ -87,7 +86,7 @@ export default function SettingsPage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [importError, setImportError] = useState('');
-  const [importLoading, setImportLoading] = useState(false);
+  const [_importLoading, setImportLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
   useEffect(() => { if (shop?.id) { fetchData(); fetchReminders(); } }, [shop?.id]);
@@ -148,7 +147,7 @@ export default function SettingsPage() {
           showNotification('Failed to save settings', 'error');
         }
       }
-    } catch (error) {
+    } catch {
       showNotification('Failed to save settings', 'error');
     }
   }
@@ -169,7 +168,7 @@ export default function SettingsPage() {
         const data = await res.json();
         showNotification(data.error || 'Failed to create user', 'error');
       }
-    } catch (error) {
+    } catch {
       showNotification('Failed to create user', 'error');
     }
   }
@@ -213,7 +212,7 @@ export default function SettingsPage() {
         const data = await res.json();
         showNotification(data.error || 'Failed to reset password', 'error');
       }
-    } catch (error) {
+    } catch {
       showNotification('Failed to reset password', 'error');
     }
   }
@@ -242,7 +241,7 @@ export default function SettingsPage() {
       } else {
         showNotification('Failed to update profile', 'error');
       }
-    } catch (error) {
+    } catch {
       showNotification('Failed to update profile', 'error');
     } finally {
       setProfileSaving(false);
@@ -279,7 +278,7 @@ export default function SettingsPage() {
         const data = await res.json();
         showNotification(data.error || 'Failed to change password', 'error');
       }
-    } catch (error) {
+    } catch {
       showNotification('Failed to change password', 'error');
     }
   }
@@ -292,7 +291,7 @@ export default function SettingsPage() {
         showNotification('User deleted successfully!', 'success');
         fetchData();
       }
-    } catch (error) {
+    } catch {
       showNotification('Failed to delete user', 'error');
     }
   }
@@ -311,7 +310,7 @@ export default function SettingsPage() {
         const data = await res.json();
         showNotification(data.error || 'Failed to update role', 'error');
       }
-    } catch (error) {
+    } catch {
       showNotification('Failed to update role', 'error');
     }
   }
@@ -362,7 +361,7 @@ export default function SettingsPage() {
         const data = await res.json();
         showNotification(data.error || 'Failed to save reminder', 'error');
       }
-    } catch (error) {
+    } catch {
       showNotification('Failed to save reminder', 'error');
     }
   }
@@ -375,7 +374,7 @@ export default function SettingsPage() {
         showNotification('Reminder deleted', 'success');
         fetchReminders();
       }
-    } catch (error) {
+    } catch {
       showNotification('Failed to delete reminder', 'error');
     }
   }
@@ -976,7 +975,7 @@ export default function SettingsPage() {
                     a.click();
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
-                  } catch (e) {
+                  } catch {
                     showNotification('Failed to export data', 'error');
                   } finally {
                     setDownloading(false);
@@ -1170,7 +1169,7 @@ export default function SettingsPage() {
               background: 'var(--background)', borderRadius: '0.75rem', border: '1px dashed var(--border)',
             }}>
               <Clock size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
-              <p>No reminders yet. Click "Add Reminder" to create one.</p>
+              <p>No reminders yet. Click &quot;Add Reminder&quot; to create one.</p>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -1453,7 +1452,7 @@ const styles: Record<string, React.CSSProperties> = {
   logoRemoveBtn: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: 'transparent', border: '1px solid var(--destructive)', borderRadius: '0.5rem', color: 'var(--destructive)', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem' },
 };
 
-const permStyles: Record<string, React.CSSProperties> = {
+const _permStyles: Record<string, React.CSSProperties> = {
   roleBtn: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1rem', borderRadius: '0.75rem', border: '2px solid', cursor: 'pointer', transition: 'all 0.2s', textAlign: 'left', flex: '1', minWidth: '180px', background: 'transparent' },
   roleBadge: { width: '32px', height: '32px', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '700', fontSize: '1rem', flexShrink: 0 },
   roleInfo: { flex: 1 },

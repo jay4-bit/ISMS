@@ -19,7 +19,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'users' | 'permissions'>('users');
   const [showModal, setShowModal] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [_editingUser, _setEditingUser] = useState<User | null>(null);
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetUser, setResetUser] = useState<User | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -110,7 +110,7 @@ export default function UsersPage() {
       } else {
         showNotification(data.error || 'Failed to create user', 'error');
       }
-    } catch (error) { showNotification('Failed to create user', 'error'); }
+    } catch { showNotification('Failed to create user', 'error'); }
   }
 
   function openResetModal(user: User) {
@@ -131,7 +131,7 @@ export default function UsersPage() {
         showNotification('Password reset successfully!', 'success');
         setShowResetModal(false); setResetUser(null);
       } else { const data = await res.json(); showNotification(data.error || 'Failed to reset password', 'error'); }
-    } catch (error) { showNotification('Failed to reset password', 'error'); }
+    } catch { showNotification('Failed to reset password', 'error'); }
   }
 
   async function handleDeleteUser(id: string) {
@@ -139,7 +139,7 @@ export default function UsersPage() {
     try {
       const res = await fetch(`/api/users?id=${id}`, { method: 'DELETE', headers: { 'x-shop-id': shop?.id || '' } });
       if (res.ok) { showNotification('User deleted successfully!', 'success'); fetchUsers(); }
-    } catch (error) { showNotification('Failed to delete user', 'error'); }
+    } catch { showNotification('Failed to delete user', 'error'); }
   }
 
   async function handleSaveRole() {
@@ -156,7 +156,7 @@ export default function UsersPage() {
         showNotification(editingRole ? 'Role updated!' : 'Role created!', 'success');
         setShowRoleModal(false); fetchRoles();
       } else { const data = await res.json(); showNotification(data.error || 'Failed to save role', 'error'); }
-    } catch (error) { showNotification('Failed to save role', 'error'); }
+    } catch { showNotification('Failed to save role', 'error'); }
   }
 
   async function handleDeleteRole(role: any) {
@@ -167,7 +167,7 @@ export default function UsersPage() {
         showNotification('Role deleted', 'success');
         fetchRoles(); fetchUsers();
       }
-    } catch (error) { showNotification('Failed to delete role', 'error'); }
+    } catch { showNotification('Failed to delete role', 'error'); }
   }
 
   function getPermission(moduleId: string): any {
@@ -203,7 +203,7 @@ export default function UsersPage() {
         const data = await res.json();
         showNotification(data.error || 'Failed to save permissions', 'error');
       }
-    } catch (error) { showNotification('Failed to save permissions', 'error'); }
+    } catch { showNotification('Failed to save permissions', 'error'); }
     finally { setPermSaving(false); }
   }
 
@@ -212,7 +212,7 @@ export default function UsersPage() {
     try {
       const res = await fetch(`/api/permissions?role=${permSelectedRole}`, { method: 'PUT', headers: { 'x-shop-id': shop?.id || '' } });
       if (res.ok) { showNotification('Permissions reset to defaults', 'success'); setPermissions([]); }
-    } catch (error) { showNotification('Failed to reset permissions', 'error'); }
+    } catch { showNotification('Failed to reset permissions', 'error'); }
   }
 
   const getRoleColor = (role: string) => {

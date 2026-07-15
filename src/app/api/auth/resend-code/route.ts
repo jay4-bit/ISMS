@@ -18,7 +18,6 @@ export async function POST(request: NextRequest) {
     }
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const tenMinLater = new Date(Date.now() + 10 * 60 * 1000);
 
     await prisma.user.update({
       where: { id: user.id },

@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       try {
         const { name, sku, barcode, description, category, supplier,
           purchaseCost, sellingPrice, wholesalePrice, stockQuantity,
-          lowStockThreshold, reorderPoint, taxRate, location, expiryDate,
+          lowStockThreshold, reorderPoint, expiryDate,
           brand, size, notes } = item;
 
         const productName = name;

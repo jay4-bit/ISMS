@@ -11,8 +11,6 @@ export default function AdminPaymentMethodsPage() {
   const [error, setError] = useState('');
   const router = useRouter();
 
-  useEffect(() => { fetchMethods(); const interval = setInterval(fetchMethods, 30000); return () => clearInterval(interval); }, []);
-
   async function fetchMethods() {
     const token = localStorage.getItem('admin_token');
     if (!token) { router.replace('/admin/login'); return; }
@@ -25,6 +23,8 @@ export default function AdminPaymentMethodsPage() {
     } catch { setError('Failed to load payment methods'); }
     setLoading(false);
   }
+
+  useEffect(() => { fetchMethods(); const interval = setInterval(fetchMethods, 30000); return () => clearInterval(interval); }, []);
 
   function addMethod() {
     setMethods([...methods, { id: null, type: 'MOBILE', label: '', name: '', number: '', isActive: true, sortOrder: methods.length }]);
@@ -103,7 +103,7 @@ export default function AdminPaymentMethodsPage() {
 
       {methods.length === 0 ? (
         <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b', background: '#1e293b', borderRadius: '0.75rem', border: '1px solid #334155' }}>
-          No payment methods configured. Click "Add Method" to add one.
+          No payment methods configured. Click &quot;Add Method&quot; to add one.
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, X, Check, Smartphone, Package, Trash2, UserPlus, Camera } from 'lucide-react';
+import { Plus, Check, Trash2, UserPlus, Camera } from 'lucide-react';
 import BarcodeScanner from './BarcodeScanner';
 
 const scanBtnStyle: React.CSSProperties = {
@@ -59,8 +59,8 @@ export function ElectronicsPhoneForm({
   phoneBrand, setPhoneBrand, phoneBrandInput, setPhoneBrandInput,
   phoneModel, setPhoneModel, phoneQuantity, setPhoneQuantity,
   phoneColor, setPhoneColor, phoneStorage, setPhoneStorage, phoneImei, setPhoneImei,
-  registeredPhones, setRegisteredPhones, currentPhoneIndex, setCurrentPhoneIndex,
-  formData, setFormData, onCancel, onSuccess, editingProduct
+  currentPhoneIndex, setCurrentPhoneIndex,
+  onCancel, onSuccess, editingProduct
 }: ElectronicsPhoneFormProps) {
   
   const [selectedSupplier, setSelectedSupplier] = useState('');
@@ -237,7 +237,7 @@ export function ElectronicsPhoneForm({
         setShowAddSupplier(false);
         setNewSupplier({ name: '', email: '', phone: '' });
       }
-    } catch (error) {
+    } catch {
       alert('Failed to add supplier');
     }
   };
@@ -593,7 +593,7 @@ export function ElectronicsAccessoryForm({
         setShowAddSupplier(false);
         setNewSupplier({ name: '', email: '', phone: '' });
       }
-    } catch (error) {
+      } catch {
       alert('Failed to add supplier');
     }
   };

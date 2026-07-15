@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { hashPassword, verifyPassword } from '@/lib/auth';
+import { hashPassword } from '@/lib/auth';
 import { ShopType } from '@prisma/client';
 import { sendVerificationCode } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action, shopId, shopData, ownerData } = body;
+    const { action } = body;
 
     if (action === 'create') {
       const { name, shopType, phone, email, address, ownerName, ownerEmail, ownerPassword } = body;
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 
       const TRIAL_DAYS = parseInt(process.env.TRIAL_DAYS || '3');
 
-      const shop = await prisma.shop.create({
+      await prisma.shop.create({
         data: {
           name,
           shopType: shopType as ShopType,
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
       const hashedPassword = await hashPassword(ownerPassword);
       const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-      const user = await prisma.user.create({
+      await prisma.user.create({
         data: {
           email: ownerEmail.toLowerCase(),
           password: hashedPassword,

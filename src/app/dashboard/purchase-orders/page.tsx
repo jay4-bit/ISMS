@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { FileText, Plus, Eye, X, Truck, CheckCircle, Clock, Package, DollarSign, Calendar, Search, UserPlus, Trash2, AlertTriangle, Smartphone, Headphones, Check, Hash } from 'lucide-react';
+import { FileText, Plus, Eye, X, Truck, CheckCircle, Clock, Package, DollarSign, Search, UserPlus, Trash2, AlertTriangle, Smartphone, Headphones } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/components/AuthProvider';
@@ -127,12 +127,12 @@ export default function PurchaseOrdersPage() {
   const [phoneStorage, setPhoneStorage] = useState('');
   const [phoneImei, setPhoneImei] = useState('');
   const [phoneQuantity, setPhoneQuantity] = useState(1);
-  const [registeredPhones, setRegisteredPhones] = useState<any[]>([]);
-  const [currentPhoneIndex, setCurrentPhoneIndex] = useState(0);
+  const [_registeredPhones, setRegisteredPhones] = useState<any[]>([]);
+  const [_currentPhoneIndex, setCurrentPhoneIndex] = useState(0);
   const [accessoryGroup, setAccessoryGroup] = useState('');
   const [accessoryGroupInput, setAccessoryGroupInput] = useState('');
   const [accessoryName, setAccessoryName] = useState('');
-  const [accessoryItems, setAccessoryItems] = useState<any[]>([]);
+  const [_accessoryItems, setAccessoryItems] = useState<any[]>([]);
   const [accessoryGroups, setAccessoryGroups] = useState(['Charging', 'Music', 'Car', 'Camera LCD', 'Protection', 'Storage', 'Other']);
   const [phoneBrands, setPhoneBrands] = useState(['iPhone', 'Samsung', 'Google Pixel', 'Huawei', 'Xiaomi', 'Oppo', 'Vivo', 'OnePlus', 'Nokia', 'Tecno', 'Infinix', 'Itel']);
   const [orderItems, setOrderItems] = useState<any[]>([]);
@@ -204,14 +204,14 @@ export default function PurchaseOrdersPage() {
     }
   }
 
-  function addItem() {
+  function _addItem() {
     setFormData({
       ...formData,
       items: [...formData.items, { productId: '', quantity: 1, unitCost: 0 }]
     });
   }
 
-  function updateItem(index: number, field: string, value: any) {
+  function _updateItem(index: number, field: string, value: any) {
     const items = [...formData.items];
     items[index] = { ...items[index], [field]: value };
     
@@ -226,7 +226,7 @@ export default function PurchaseOrdersPage() {
     setFormData({ ...formData, items });
   }
 
-  function removeItem(index: number) {
+  function _removeItem(index: number) {
     const items = formData.items.filter((_, i) => i !== index);
     setFormData({ ...formData, items });
   }
@@ -554,7 +554,7 @@ export default function PurchaseOrdersPage() {
   const pendingOrders = filteredOrders.filter(o => o.status === 'PENDING');
   const orderedOrders = filteredOrders.filter(o => o.status === 'ORDERED');
   const receivedOrders = filteredOrders.filter(o => o.status === 'RECEIVED');
-  const overdueOrders = filteredOrders.filter(o => 
+  const _overdueOrders = filteredOrders.filter(o => 
     o.expectedDelivery && new Date(o.expectedDelivery) < new Date() && 
     o.status !== 'RECEIVED' && o.status !== 'CANCELLED'
   );
@@ -1177,7 +1177,7 @@ export default function PurchaseOrdersPage() {
                             </button>
                           </div>
                           {generalItem.variants.length === 0 && (
-                            <p style={{ color: 'var(--muted-foreground)', fontSize: '0.8rem' }}>No variants added. Click "Add Variant" to create product variations (e.g., sizes, colors, pack sizes).</p>
+                            <p style={{ color: 'var(--muted-foreground)', fontSize: '0.8rem' }}>No variants added. Click &quot;Add Variant&quot; to create product variations (e.g., sizes, colors, pack sizes).</p>
                           )}
                           {generalItem.variants.map((v, i) => (
                             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', padding: '0.6rem', background: 'var(--background)', borderRadius: '0.5rem' }}>
@@ -1239,7 +1239,7 @@ export default function PurchaseOrdersPage() {
                       </div>
                     ) : orderItems.length === 0 ? (
                       <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted-foreground)', background: '#f8fafc', borderRadius: '0.5rem' }}>
-                        Click "Add Item" to add products
+                        Click &quot;Add Item&quot; to add products
                       </div>
                     ) : null
                   ) : electronicsMode === '' ? (

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, Mail, Lock, Save, Eye, EyeOff, Shield, Check } from 'lucide-react';
+import { User, Lock, Save, Eye, EyeOff, Shield } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 
 export default function ProfilePage() {

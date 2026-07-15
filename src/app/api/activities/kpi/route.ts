@@ -110,9 +110,9 @@ export async function GET(request: NextRequest) {
       saleItemsByUser.get(uid)!.push(si);
     }
 
-    const returnItemsByUser = new Map<string, typeof returnItems>();
+    const _returnItemsByUser = new Map<string, typeof returnItems>();
     for (const ri of returnItems) {
-      const uid = ri.return.createdAt.toISOString(); // no userId on return
+      const _uid = ri.return.createdAt.toISOString(); // no userId on return
       // We'll assign returns to all users for now, or skip user-specific assignment
     }
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { FileText, DollarSign, Phone, User, Calendar, CheckCircle, Clock, AlertTriangle, X, Plus, CreditCard, Eye, Trash2, Search, Filter, Check, Printer } from 'lucide-react';
+import { FileText, DollarSign, Phone, User, Calendar, CheckCircle, Clock, AlertTriangle, X, CreditCard, Eye, Search, Printer } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useAuth } from '@/components/AuthProvider';
 
@@ -105,7 +105,7 @@ export default function InstallmentsPage() {
         setPaymentNotes('');
         fetchInstallments();
       }
-    } catch (error) {
+    } catch {
       showNotification('Failed to record payment', 'error');
     }
   }
@@ -127,7 +127,7 @@ export default function InstallmentsPage() {
       payments.slice(0, 5).map(p => '<div class="history-item"><span>' + (p.paidAt ? formatDate(p.paidAt) : '-') + '</span><span>' + formatCurrency(p.amount) + '</span></div>').join('') + 
       '</div>' : '';
 
-    let html = '<!DOCTYPE html><html><head><title>Payment Receipt - ' + selectedSale.receiptNumber + '</title><style>' +
+    const html = '<!DOCTYPE html><html><head><title>Payment Receipt - ' + selectedSale.receiptNumber + '</title><style>' +
       '* { margin: 0; padding: 0; box-sizing: border-box; } body { font-family: "Segoe UI", Tahoma, sans-serif; padding: 20px; color: #333; } ' +
       '.receipt { max-width: 300px; margin: 0 auto; border: 1px solid #ddd; padding: 15px; } ' +
       '.header { text-align: center; margin-bottom: 15px; border-bottom: 1px dashed #333; padding-bottom: 10px; } ' +
@@ -479,7 +479,7 @@ export default function InstallmentsPage() {
                 <div style={{ marginTop: '1rem' }}>
                   <div style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem', color: 'var(--muted-foreground)' }}>Payment History</div>
                   <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
-                    {(selectedSale.payments || []).slice(0, 5).map((payment, idx) => (
+                    {(selectedSale.payments || []).slice(0, 5).map((payment) => (
                       <div key={payment.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.375rem 0', borderBottom: '1px solid var(--border)', fontSize: '0.8rem' }}>
                         <span style={{ color: 'var(--muted-foreground)' }}>{payment.paidAt ? formatDate(payment.paidAt) : '-'}</span>
                         <span style={{ color: 'var(--success)' }}>{formatCurrency(payment.amount)}</span>

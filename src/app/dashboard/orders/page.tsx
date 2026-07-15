@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Package, Search, Truck, CheckCircle, Clock, XCircle, MapPin, Phone, FileText, Edit, RefreshCw, X } from 'lucide-react';
+import { Package, Search, Truck, CheckCircle, Clock, XCircle, MapPin, Phone, Edit, RefreshCw, X } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useAuth } from '@/components/AuthProvider';
 
@@ -48,7 +48,7 @@ const SHIPPING_STATUSES = [
 ];
 
 export default function OrdersPage() {
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

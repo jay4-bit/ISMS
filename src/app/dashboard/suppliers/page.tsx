@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Users, Plus, Edit, Trash2, X, Phone, Mail, MapPin, Package, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Plus, Edit, Trash2, X, Phone, Mail, MapPin, Package, ToggleLeft, ToggleRight } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 
 interface SupplierData {
@@ -16,7 +16,7 @@ interface SupplierData {
 }
 
 export default function SuppliersPage() {
-  const { user, shop } = useAuth();
+  const { user: _user, shop } = useAuth();
   const [suppliers, setSuppliers] = useState<SupplierData[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);

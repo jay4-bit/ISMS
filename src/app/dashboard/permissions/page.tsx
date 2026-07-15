@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Shield, Save, RotateCcw, Check, X, Eye, Edit, Trash2, Lock } from 'lucide-react';
+import { Shield, Save, RotateCcw, Check, X, Eye, Edit, Trash2 } from 'lucide-react';
 
 interface Module {
   id: string;
@@ -107,7 +107,7 @@ export default function PermissionsPage() {
       if (res.ok) {
         showNotification('Permissions saved successfully!', 'success');
       }
-    } catch (error) {
+    } catch {
       showNotification('Failed to save permissions', 'error');
     } finally {
       setSaving(false);

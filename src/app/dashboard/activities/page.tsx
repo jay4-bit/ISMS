@@ -115,20 +115,6 @@ export default function ActivitiesPage() {
     ? { start: '', end: '' }
     : { start: exportStartDate || getRangeDates(rangePreset).start, end: exportEndDate || getRangeDates(rangePreset).end };
 
-  useEffect(() => {
-    if (shop?.id) fetchActivities();
-    const interval = setInterval(() => { if (shop?.id) fetchActivities(); }, 30000);
-    return () => clearInterval(interval);
-  }, [shop?.id, page, userIdFilter, userNameFilter, feedRangePreset, feedStartDate, feedEndDate]);
-
-  useEffect(() => {
-    if (shop?.id) fetchUsers();
-  }, [shop?.id]);
-
-  useEffect(() => {
-    if (shop?.id && tab === 'kpi') fetchKpi();
-  }, [shop?.id, tab, rangePreset]);
-
   async function fetchActivities() {
     setLoading(true);
     try {
@@ -170,6 +156,20 @@ export default function ActivitiesPage() {
       setUsers(data.users || []);
     } catch {}
   }
+
+  useEffect(() => {
+    if (shop?.id) fetchActivities();
+    const interval = setInterval(() => { if (shop?.id) fetchActivities(); }, 30000);
+    return () => clearInterval(interval);
+  }, [shop?.id, page, userIdFilter, userNameFilter, feedRangePreset, feedStartDate, feedEndDate]);
+
+  useEffect(() => {
+    if (shop?.id) fetchUsers();
+  }, [shop?.id]);
+
+  useEffect(() => {
+    if (shop?.id && tab === 'kpi') fetchKpi();
+  }, [shop?.id, tab, rangePreset]);
 
   async function handleExportFeed() {
     try {

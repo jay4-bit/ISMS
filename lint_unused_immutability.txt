@@ -1,0 +1,647 @@
+﻿
+  150:17  warning  'newProduct' is assigned a value but never used. Allowed unused vars must match /^_/u  
+@typescript-eslint/no-unused-vars
+  19:17  warning  'setToken' is assigned a value but never used. Allowed unused vars must match /^_/u  
+@typescript-eslint/no-unused-vars
+  84:11  warning  'installmentPayments' is assigned a value but never used. Allowed unused vars must match /^_/u  
+@typescript-eslint/no-unused-vars
+  113:11  warning  'returnItemsByUser' is assigned a value but never used. Allowed unused vars must match /^_/u  
+@typescript-eslint/no-unused-vars
+  115:13  warning  'uid' is assigned a value but never used. Allowed unused vars must match /^_/u                
+@typescript-eslint/no-unused-vars
+  104:11  warning  'shop' is assigned a value but never used. Allowed unused vars must match /^_/u  
+@typescript-eslint/no-unused-vars
+  21:11  warning  'tenMinLater' is assigned a value but never used. Allowed unused vars must match /^_/u  
+@typescript-eslint/no-unused-vars
+   3:10  warning  'hashPassword' is defined but never used. Allowed unused vars must match /^_/u  
+@typescript-eslint/no-unused-vars
+  22:12  warning  'payment' is assigned a value but never used. Allowed unused vars must match /^_/u  
+@typescript-eslint/no-unused-vars
+  1:10  warning  'NextRequest' is defined but never used. Allowed unused vars must match /^_/u  
+@typescript-eslint/no-unused-vars
+   65:13  warning  'typeSearch' is assigned a value but never used. Allowed unused vars must match /^_/u  
+@typescript-eslint/no-unused-vars
+  152:14  warning  'e' is defined but never used                                                          
+@typescript-eslint/no-unused-vars
+  24:44  warning  'taxRate' is assigned a value but never used. Allowed unused vars must match /^_/u   
+@typescript-eslint/no-unused-vars
+  24:53  warning  'location' is assigned a value but never used. Allowed unused vars must match /^_/u  
+@typescript-eslint/no-unused-vars
+  120:23  warning  'sku' is assigned a value but never used. Allowed unused vars must match /^_/u  
+@typescript-eslint/no-unused-vars
+   3:19  warning  'getDefaultPermissions' is defined but never used. Allowed unused vars must match /^_/u  
+@typescript-eslint/no-unused-vars
+  40:15  warning  'created' is assigned a value but never used. Allowed unused vars must match /^_/u  
+@typescript-eslint/no-unused-vars
+  375:15  warning  'created' is assigned a value but never used. Allowed unused vars must match /^_/u  
+@typescript-eslint/no-unused-vars
+    3:24  warning  'verifyPassword' is defined but never used. Allowed unused vars must match /^_/u      
+@typescript-eslint/no-unused-vars
+   10:21  warning  'shopId' is assigned a value but never used. Allowed unused vars must match /^_/u     
+@typescript-eslint/no-unused-vars
+   10:29  warning  'shopData' is assigned a value but never used. Allowed unused vars must match /^_/u   
+@typescript-eslint/no-unused-vars
+   10:39  warning  'ownerData' is assigned a value but never used. Allowed unused vars must match /^_/u  
+@typescript-eslint/no-unused-vars
+   45:13  warning  'shop' is assigned a value but never used. Allowed unused vars must match /^_/u       
+@typescript-eslint/no-unused-vars
+  112:13  warning  'user' is assigned a value but never used. Allowed unused vars must match /^_/u       
+@typescript-eslint/no-unused-vars
+  52:15  warning  'created' is assigned a value but never used. Allowed unused vars must match /^_/u  
+@typescript-eslint/no-unused-vars
+  1:10  warning  'NextRequest' is defined but never used. Allowed unused vars must match /^_/u  
+@typescript-eslint/no-unused-vars
+    4:155  warning  'Calendar' is defined but never used. Allowed unused vars must match /^_/u                         
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                    @typescript-eslint/no-unused-vars
+  143 |     { value: 'today', label: 'Today' },  react-hooks/immutability
+  154 |     setKpiLoading(true);  react-hooks/immutability
+  175 |     try {                                                                                                      
+                                             react-hooks/immutability
+  167 |     try {                                                                                                      
+                                                                                                  
+react-hooks/immutability
+   4:61   warning  'MapPin' is defined but never used. Allowed unused vars must match /^_/u                            
+             @typescript-eslint/no-unused-vars
+   4:69   warning  'ShoppingCart' is defined but never used. Allowed unused vars must match /^_/u                      
+             @typescript-eslint/no-unused-vars
+   4:83   warning  'CreditCard' is defined but never used. Allowed unused vars must match /^_/u                        
+             @typescript-eslint/no-unused-vars
+    4:60   warning  'Calendar' is defined but never used. Allowed unused vars must match /^_/u                         
+            @typescript-eslint/no-unused-vars
+  121:18   warning  'handleSettle' is defined but never used. Allowed unused vars must match /^_/u                     
+            @typescript-eslint/no-unused-vars
+    4:93   warning  'Plus' is defined but never used. Allowed unused vars must match /^_/u                             
+                   @typescript-eslint/no-unused-vars
+    4:116  warning  'Trash2' is defined but never used. Allowed unused vars must match /^_/u                           
+                   @typescript-eslint/no-unused-vars
+    4:132  warning  'Filter' is defined but never used. Allowed unused vars must match /^_/u                           
+                   @typescript-eslint/no-unused-vars
+    4:140  warning  'Check' is defined but never used. Allowed unused vars must match /^_/u                            
+                   @typescript-eslint/no-unused-vars
+  108:14   warning  'error' is defined but never used                                                                  
+                   @typescript-eslint/no-unused-vars
+  482:78   warning  'idx' is defined but never used. Allowed unused args must match /^_/u                              
+                   @typescript-eslint/no-unused-vars
+     7:41   warning  'TrendingUp' is defined but never used. Allowed unused vars must match /^_/u                      
+            @typescript-eslint/no-unused-vars
+     8:29   warning  'ShoppingCart' is defined but never used. Allowed unused vars must match /^_/u                    
+            @typescript-eslint/no-unused-vars
+     8:43   warning  'Settings' is defined but never used. Allowed unused vars must match /^_/u                        
+            @typescript-eslint/no-unused-vars
+     9:3    warning  'CameraOff' is defined but never used. Allowed unused vars must match /^_/u                       
+            @typescript-eslint/no-unused-vars
+     9:14   warning  'Zap' is defined but never used. Allowed unused vars must match /^_/u                             
+            @typescript-eslint/no-unused-vars
+     9:19   warning  'Hash' is defined but never used. Allowed unused vars must match /^_/u                            
+            @typescript-eslint/no-unused-vars
+     9:47   warning  'Lock' is defined but never used. Allowed unused vars must match /^_/u                            
+            @typescript-eslint/no-unused-vars
+   196:9    warning  'videoRef' is assigned a value but never used. Allowed unused vars must match /^_/u               
+            @typescript-eslint/no-unused-vars
+   341:16   warning  'e' is defined but never used                                                                     
+            @typescript-eslint/no-unused-vars
+   645:12   warning  'generateBarcode' is defined but never used. Allowed unused vars must match /^_/u                 
+            @typescript-eslint/no-unused-vars
+   650:12   warning  'toggleProductSelection' is defined but never used. Allowed unused vars must match /^_/u          
+            @typescript-eslint/no-unused-vars
+   696:20   warning  'e' is defined but never used                                                                     
+            @typescript-eslint/no-unused-vars
+   13:3   warning  'ArrowLeftRight' is defined but never used. Allowed unused vars must match /^_/u                    
+                                                                                                                       
+                                                              @typescript-eslint/no-unused-vars
+   14:3   warning  'FileText' is defined but never used. Allowed unused vars must match /^_/u                          
+                                                                                                                       
+                                                              @typescript-eslint/no-unused-vars
+   21:3   warning  'TrendingUp' is defined but never used. Allowed unused vars must match /^_/u                        
+                                                                                                                       
+                                                              @typescript-eslint/no-unused-vars
+   22:3   warning  'AlertTriangle' is defined but never used. Allowed unused vars must match /^_/u                     
+                                                                                                                       
+                                                              @typescript-eslint/no-unused-vars
+   25:3   warning  'ShoppingBag' is defined but never used. Allowed unused vars must match /^_/u                       
+                                                                                                                       
+                                                              @typescript-eslint/no-unused-vars
+   34:3   warning  'Clock' is defined but never used. Allowed unused vars must match /^_/u                             
+                                                                                                                       
+                                                              @typescript-eslint/no-unused-vars
+  250:21  warning  'isExpired' is assigned a value but never used. Allowed unused vars must match /^_/u                
+                                                                                                                       
+                                                              @typescript-eslint/no-unused-vars
+  296:14  warning  'err' is defined but never used                                                                     
+                                                     @typescript-eslint/no-unused-vars
+    4:78  warning  'FileText' is defined but never used. Allowed unused vars must match /^_/u       
+@typescript-eslint/no-unused-vars
+   51:11  warning  'user' is assigned a value but never used. Allowed unused vars must match /^_/u  
+@typescript-eslint/no-unused-vars
+    5:158  warning  'ShoppingBag' is defined but never used. Allowed unused vars must match /^_/u                      
+                    @typescript-eslint/no-unused-vars
+   56:10   warning  'loading' is assigned a value but never used. Allowed unused vars must match /^_/u                 
+                    @typescript-eslint/no-unused-vars
+    4:64  warning  'Lock' is defined but never used. Allowed unused vars must match /^_/u                              
+                 @typescript-eslint/no-unused-vars
+  110:14  warning  'error' is defined but never used                                                                   
+                 @typescript-eslint/no-unused-vars
+    4:24   warning  'Search' is defined but never used. Allowed unused vars must match /^_/u                           
+               @typescript-eslint/no-unused-vars
+    4:32   warning  'Trash2' is defined but never used. Allowed unused vars must match /^_/u                           
+               @typescript-eslint/no-unused-vars
+  147:14   warning  'error' is defined but never used                                                                  
+               @typescript-eslint/no-unused-vars
+  200:9    warning  'change' is assigned a value but never used. Allowed unused vars must match /^_/u                  
+               @typescript-eslint/no-unused-vars
+  363:11   warning  'qty' is assigned a value but never used. Allowed unused vars must match /^_/u                     
+               @typescript-eslint/no-unused-vars
+   4:16  warning  'Mail' is defined but never used. Allowed unused vars must match /^_/u                               
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                     @typescript-eslint/no-unused-vars
+   4:55  warning  'Check' is defined but never used. Allowed unused vars must match /^_/u                              
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                     @typescript-eslint/no-unused-vars
+   4:62  warning  'CreditCard' is defined but never used. Allowed unused vars must match /^_/u                         
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                         @typescript-eslint/no-unused-vars
+   4:74  warning  'Calendar' is defined but never used. Allowed unused vars must match /^_/u                           
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                         @typescript-eslint/no-unused-vars
+  89 |     { value: 'today', label: 'Today' },  react-hooks/immutability
+     4:82   warning  'Calendar' is defined but never used. Allowed unused vars must match /^_/u                        
+            @typescript-eslint/no-unused-vars
+     4:157  warning  'Check' is defined but never used. Allowed unused vars must match /^_/u                           
+            @typescript-eslint/no-unused-vars
+     4:164  warning  'Hash' is defined but never used. Allowed unused vars must match /^_/u                            
+            @typescript-eslint/no-unused-vars
+   130:10   warning  'registeredPhones' is assigned a value but never used. Allowed unused vars must match /^_/u       
+            @typescript-eslint/no-unused-vars
+   131:10   warning  'currentPhoneIndex' is assigned a value but never used. Allowed unused vars must match /^_/u      
+            @typescript-eslint/no-unused-vars
+   135:10   warning  'accessoryItems' is assigned a value but never used. Allowed unused vars must match /^_/u         
+            @typescript-eslint/no-unused-vars
+   207:12   warning  'addItem' is defined but never used. Allowed unused vars must match /^_/u                         
+            @typescript-eslint/no-unused-vars
+   214:12   warning  'updateItem' is defined but never used. Allowed unused vars must match /^_/u                      
+            @typescript-eslint/no-unused-vars
+   229:12   warning  'removeItem' is defined but never used. Allowed unused vars must match /^_/u                      
+            @typescript-eslint/no-unused-vars
+   557:9    warning  'overdueOrders' is assigned a value but never used. Allowed unused vars must match /^_/u          
+            @typescript-eslint/no-unused-vars
+  33 |     if (!reportData) return;  react-hooks/immutability
+     4:26   warning  'AlertTriangle' is defined but never used. Allowed unused vars must match /^_/u                   
+            @typescript-eslint/no-unused-vars
+     4:41   warning  'RefreshCw' is defined but never used. Allowed unused vars must match /^_/u                       
+            @typescript-eslint/no-unused-vars
+     4:72   warning  'FileText' is defined but never used. Allowed unused vars must match /^_/u                        
+            @typescript-eslint/no-unused-vars
+     4:109  warning  'Pencil' is defined but never used. Allowed unused vars must match /^_/u                          
+            @typescript-eslint/no-unused-vars
+     5:55   warning  'getCurrencySymbol' is defined but never used. Allowed unused vars must match /^_/u               
+            @typescript-eslint/no-unused-vars
+   308:9    warning  'totalAwarded' is assigned a value but never used. Allowed unused vars must match /^_/u           
+            @typescript-eslint/no-unused-vars
+   309:9    warning  'replacements' is assigned a value but never used. Allowed unused vars must match /^_/u           
+            @typescript-eslint/no-unused-vars
+   310:9    warning  'totalPriceDiff' is assigned a value but never used. Allowed unused vars must match /^_/u         
+            @typescript-eslint/no-unused-vars
+   312:9    warning  'businessPaidDiff' is assigned a value but never used. Allowed unused vars must match /^_/u       
+            @typescript-eslint/no-unused-vars
+   539:29   warning  'awardedTypeIcon' is assigned a value but never used. Allowed unused vars must match /^_/u        
+            @typescript-eslint/no-unused-vars
+    4:37   warning  'Printer' is defined but never used. Allowed unused vars must match /^_/u                          
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                            @typescript-eslint/no-unused-vars
+    4:49   warning  'Package' is defined but never used. Allowed unused vars must match /^_/u                          
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                            @typescript-eslint/no-unused-vars
+    4:58   warning  'Calendar' is defined but never used. Allowed unused vars must match /^_/u                         
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                            @typescript-eslint/no-unused-vars
+    4:68   warning  'Clock' is defined but never used. Allowed unused vars must match /^_/u                            
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                            @typescript-eslint/no-unused-vars
+    4:75   warning  'CalendarDays' is defined but never used. Allowed unused vars must match /^_/u                     
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                            @typescript-eslint/no-unused-vars
+    4:89   warning  'CalendarCheck' is defined but never used. Allowed unused vars must match /^_/u                    
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                            @typescript-eslint/no-unused-vars
+    4:104  warning  'List' is defined but never used. Allowed unused vars must match /^_/u                             
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                            @typescript-eslint/no-unused-vars
+     5:40  warning  'Phone' is defined but never used. Allowed unused vars must match /^_/u                            
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                           @typescript-eslint/no-unused-vars
+     5:47  warning  'Mail' is defined but never used. Allowed unused vars must match /^_/u                             
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                           @typescript-eslint/no-unused-vars
+     5:53  warning  'MapPin' is defined but never used. Allowed unused vars must match /^_/u                           
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                           @typescript-eslint/no-unused-vars
+    10:10  warning  'formatCurrency' is defined but never used. Allowed unused vars must match /^_/u                   
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                           @typescript-eslint/no-unused-vars
+    42:10  warning  'editingUser' is assigned a value but never used. Allowed unused vars must match /^_/u             
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                           @typescript-eslint/no-unused-vars
+    42:23  warning  'setEditingUser' is assigned a value but never used. Allowed unused vars must match /^_/u          
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                           @typescript-eslint/no-unused-vars
+    90:10  warning  'importLoading' is assigned a value but never used. Allowed unused vars must match /^_/u           
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                           @typescript-eslint/no-unused-vars
+   151:14  warning  'error' is defined but never used                                                                  
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                           @typescript-eslint/no-unused-vars
+   172:14  warning  'error' is defined but never used                                                                  
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                           @typescript-eslint/no-unused-vars
+   216:14  warning  'error' is defined but never used                                                                  
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                           @typescript-eslint/no-unused-vars
+   245:14  warning  'error' is defined but never used                                                                  
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                           @typescript-eslint/no-unused-vars
+   282:14  warning  'error' is defined but never used                                                                  
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                           @typescript-eslint/no-unused-vars
+   295:14  warning  'error' is defined but never used                                                                  
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                           @typescript-eslint/no-unused-vars
+   314:14  warning  'error' is defined but never used                                                                  
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                           @typescript-eslint/no-unused-vars
+   365:14  warning  'error' is defined but never used                                                                  
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                           @typescript-eslint/no-unused-vars
+   378:14  warning  'error' is defined but never used                                                                  
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                           @typescript-eslint/no-unused-vars
+   979:28  warning  'e' is defined but never used                                                                      
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                           @typescript-eslint/no-unused-vars
+  1456:7   warning  'permStyles' is assigned a value but never used. Allowed unused vars must match /^_/u              
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                           @typescript-eslint/no-unused-vars
+    4:38  warning  'Pause' is defined but never used. Allowed unused vars must match /^_/u                             
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                 @typescript-eslint/no-unused-vars
+    4:67  warning  'Search' is defined but never used. Allowed unused vars must match /^_/u                            
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                 @typescript-eslint/no-unused-vars
+    4:75  warning  'Package' is defined but never used. Allowed unused vars must match /^_/u                           
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                 @typescript-eslint/no-unused-vars
+  55 |     const countNumber = 'SC' + Date.now().toString(36).toUpperCase();  react-hooks/immutability
+   16:31  warning  'user' is assigned a value but never used. Allowed unused vars must match /^_/u                     
+              @typescript-eslint/no-unused-vars
+   17:9   warning  'router' is assigned a value but never used. Allowed unused vars must match /^_/u                   
+              @typescript-eslint/no-unused-vars
+   4:10   warning  'Users' is defined but never used. Allowed unused vars must match /^_/u                             
+               @typescript-eslint/no-unused-vars
+  19:11   warning  'user' is assigned a value but never used. Allowed unused vars must match /^_/u                     
+               @typescript-eslint/no-unused-vars
+   22:10   warning  'editingUser' is assigned a value but never used. Allowed unused vars must match /^_/u             
+                               @typescript-eslint/no-unused-vars
+   22:23   warning  'setEditingUser' is assigned a value but never used. Allowed unused vars must match /^_/u          
+                               @typescript-eslint/no-unused-vars
+  113:14   warning  'error' is defined but never used                                                                  
+                               @typescript-eslint/no-unused-vars
+  134:14   warning  'error' is defined but never used                                                                  
+                               @typescript-eslint/no-unused-vars
+  142:14   warning  'error' is defined but never used                                                                  
+                               @typescript-eslint/no-unused-vars
+  159:14   warning  'error' is defined but never used                                                                  
+                               @typescript-eslint/no-unused-vars
+  170:14   warning  'error' is defined but never used                                                                  
+                               @typescript-eslint/no-unused-vars
+  206:14   warning  'error' is defined but never used                                                                  
+                               @typescript-eslint/no-unused-vars
+  215:14   warning  'error' is defined but never used                                                                  
+                               @typescript-eslint/no-unused-vars
+    5:10  warning  'SHOP_TYPE_CONFIG' is defined but never used. Allowed unused vars must match /^_/u                  
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                       @typescript-eslint/no-unused-vars
+    4:16  warning  'X' is defined but never used. Allowed unused vars must match /^_/u                                 
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                             @typescript-eslint/no-unused-vars
+    4:26  warning  'Smartphone' is defined but never used. Allowed unused vars must match /^_/u                        
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                             @typescript-eslint/no-unused-vars
+    4:38  warning  'Package' is defined but never used. Allowed unused vars must match /^_/u                           
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                             @typescript-eslint/no-unused-vars
+   62:3   warning  'registeredPhones' is defined but never used. Allowed unused args must match /^_/u                  
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                             @typescript-eslint/no-unused-vars
+   62:21  warning  'setRegisteredPhones' is defined but never used. Allowed unused args must match /^_/u               
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                             @typescript-eslint/no-unused-vars
+   63:3   warning  'formData' is defined but never used. Allowed unused args must match /^_/u                          
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                             @typescript-eslint/no-unused-vars
+   63:13  warning  'setFormData' is defined but never used. Allowed unused args must match /^_/u                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                             @typescript-eslint/no-unused-vars
+  240:14  warning  'error' is defined but never used                                                                   
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                             @typescript-eslint/no-unused-vars
+  596:14  warning  'error' is defined but never used                                                                   
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                             @typescript-eslint/no-unused-vars
+  118 |     const { name, value, type } = e.target;  react-hooks/immutability
+  176:14  warning  'err' is defined but never used                                                                     
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                                                                                       
+                                                  @typescript-eslint/no-unused-vars
+  4:28  warning  'request' is defined but never used. Allowed unused args must match /^_/u  
+@typescript-eslint/no-unused-vars
+
+

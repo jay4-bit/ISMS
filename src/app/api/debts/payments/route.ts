@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     const paid = parseFloat(amount);
     if (paid <= 0) return NextResponse.json({ error: 'Amount must be positive' }, { status: 400 });
 
-    const [payment] = await prisma.$transaction([
+    const [_payment] = await prisma.$transaction([
       prisma.debtPayment.create({
         data: { debtId, amount: paid, notes },
       }),

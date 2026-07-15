@@ -72,16 +72,16 @@ export default function ReminderPopup({ shopId: propShopId }: ReminderPopupProps
     return () => clearInterval(interval);
   }, [fetchReminders]);
 
-  const accept = (id: string) => {
+  const accept = (id: string, now: number) => {
     const accepts = getStored(ACCEPT_KEY);
-    accepts[id] = Date.now();
+    accepts[id] = now;
     setStored(ACCEPT_KEY, accepts);
     dismiss();
   };
 
-  const skip = (id: string) => {
+  const skip = (id: string, now: number) => {
     const skips = getStored(SKIP_KEY);
-    skips[id] = Date.now();
+    skips[id] = now;
     setStored(SKIP_KEY, skips);
     dismiss();
   };
@@ -125,10 +125,10 @@ export default function ReminderPopup({ shopId: propShopId }: ReminderPopupProps
           )}
         </div>
         <div className="reminder-popup-actions">
-          <button className="reminder-popup-btn accept" onClick={() => accept(reminder.id)} title="Accept">
+          <button className="reminder-popup-btn accept" onClick={() => accept(reminder.id, Date.now())} title="Accept">
             <Check size={18} /> Accept
           </button>
-          <button className="reminder-popup-btn skip" onClick={() => skip(reminder.id)} title="Skip (remind in 10 min)">
+          <button className="reminder-popup-btn skip" onClick={() => skip(reminder.id, Date.now())} title="Skip (remind in 10 min)">
             <X size={18} /> Skip
           </button>
         </div>

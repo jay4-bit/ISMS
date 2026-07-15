@@ -372,7 +372,7 @@ export async function POST(request: NextRequest) {
       for (const sc of (body.stockCounts || [])) {
         const exists = await tx.stockCount.findUnique({ where: { countNumber: sc.countNumber } }).catch(() => null);
         if (exists) { result.skipped++; continue; }
-        const created = await tx.stockCount.create({
+        await tx.stockCount.create({
           data: {
             countNumber: sc.countNumber,
             status: sc.status || 'COMPLETED',

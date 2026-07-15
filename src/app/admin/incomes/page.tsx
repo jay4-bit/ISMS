@@ -15,12 +15,6 @@ export default function AdminIncomesPage() {
   const [customEnd, setCustomEnd] = useState('');
   const router = useRouter();
 
-  useEffect(() => {
-    fetchPayments();
-    const interval = setInterval(fetchPayments, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
   async function fetchPayments() {
     const token = localStorage.getItem('admin_token');
     if (!token) { router.replace('/admin/login'); return; }
@@ -35,6 +29,12 @@ export default function AdminIncomesPage() {
     } catch { setError('Failed to load incomes'); }
     setLoading(false);
   }
+
+  useEffect(() => {
+    fetchPayments();
+    const interval = setInterval(fetchPayments, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const confirmed = payments.filter(p => p.status === 'CONFIRMED');
 

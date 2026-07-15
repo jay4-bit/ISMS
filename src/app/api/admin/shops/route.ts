@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedPassword = skipOwner ? null : await hashPassword(ownerPassword);
 
-    const shop = await prisma.shop.create({
+    await prisma.shop.create({
       data: {
         name,
         shopType: shopType as any,

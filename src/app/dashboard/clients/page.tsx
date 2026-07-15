@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Users, Plus, Search, Edit, Trash2, X, Phone, Mail, MapPin, ShoppingCart, CreditCard } from 'lucide-react';
+import { Users, Plus, Search, Edit, Trash2, X, Phone, Mail } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useAuth } from '@/components/AuthProvider';
 

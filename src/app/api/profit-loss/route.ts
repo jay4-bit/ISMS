@@ -134,7 +134,7 @@ export async function GET(request: NextRequest) {
     }
 
     let totalReturnLoss = 0;
-    let totalReturnProfit = 0;
+    const totalReturnProfit = 0;
     let totalRefundsGiven = 0;
     let totalStoreCredits = 0;
     let totalRepairCosts = 0;

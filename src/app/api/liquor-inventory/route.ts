@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, name, sku, barcode, description, categoryId, supplierId,
+    const { id, name, barcode, description, categoryId, supplierId,
       purchaseCost, sellingPrice, wholesalePrice, stockQuantity,
       lowStockThreshold, reorderPoint, hasExpiry, expiryDate,
       isFaulty, brand, size, requiresLiquorLicense, notes, categoryName } = body;

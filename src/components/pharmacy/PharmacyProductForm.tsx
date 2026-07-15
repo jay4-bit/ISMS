@@ -70,6 +70,20 @@ export default function PharmacyProductForm({ shopId, onSuccess, onCancel, editP
     sideEffects: '',
   });
 
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch('/api/categories', {
+        headers: { 'x-shop-id': shopId }
+      });
+      const data = await res.json();
+      if (data.categories) {
+        setCategories(data.categories);
+      }
+    } catch (err) {
+      console.error('Failed to fetch categories:', err);
+    }
+  };
+
   useEffect(() => {
     fetchCategories();
     if (editProduct) {
@@ -99,20 +113,6 @@ export default function PharmacyProductForm({ shopId, onSuccess, onCancel, editP
       });
     }
   }, [editProduct]);
-
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch('/api/categories', {
-        headers: { 'x-shop-id': shopId }
-      });
-      const data = await res.json();
-      if (data.categories) {
-        setCategories(data.categories);
-      }
-    } catch (err) {
-      console.error('Failed to fetch categories:', err);
-    }
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -173,7 +173,7 @@ export default function PharmacyProductForm({ shopId, onSuccess, onCancel, editP
       setTimeout(() => {
         onSuccess();
       }, 1500);
-    } catch (err) {
+    } catch {
       setError('Connection error');
     } finally {
       setLoading(false);

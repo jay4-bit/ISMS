@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
     });
 
     const totalInstallmentSales = sales.filter(s => s.isInstallment);
-    const installmentPayments = await prisma.installmentPayment.findMany({
+    await prisma.installmentPayment.findMany({
       where: {
         sale: { ...shopFilter },
         createdAt: dateFilter,

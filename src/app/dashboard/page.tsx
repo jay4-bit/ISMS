@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Package, AlertTriangle, TrendingUp, TrendingDown, DollarSign, ShoppingCart, ArrowRight, Receipt, RotateCcw, BadgeDollarSign, Activity, User, LogIn, ShoppingBag, Users } from 'lucide-react';
+import { Package, AlertTriangle, TrendingUp, TrendingDown, DollarSign, ShoppingCart, ArrowRight, Receipt, RotateCcw, BadgeDollarSign, Activity, User, LogIn, Users } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useAuth } from '@/components/AuthProvider';
 import { useSettings } from '@/context/SettingsContext';
@@ -53,7 +53,7 @@ const actionIcons: Record<string, any> = {
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { shop, user } = useAuth();
   const { settings } = useSettings();
@@ -153,7 +153,7 @@ export default function DashboardPage() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <div className="stat-value">{formatCurrency(stats?.todaySales || 0)}</div>
-              <div className="stat-label">Today's Sales</div>
+              <div className="stat-label">Today&apos;s Sales</div>
             </div>
             <DollarSign size={24} color="#22c55e" />
           </div>
@@ -195,7 +195,7 @@ export default function DashboardPage() {
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
             <Receipt size={20} color="#3b82f6" />
-            <h3 style={{ fontSize: '0.95rem', fontWeight: '600' }}>Today's Transactions</h3>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: '600' }}>Today&apos;s Transactions</h3>
           </div>
           <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#3b82f6' }}>
             {stats?.salesCount || 0}

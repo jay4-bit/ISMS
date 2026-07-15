@@ -147,7 +147,7 @@ async function main() {
         if (!product.categoryId) continue;
         const existing = await prisma.product.findFirst({ where: { sku: product.sku, shopId: shop.id } });
         if (!existing) {
-          const newProduct = await prisma.product.create({
+          await prisma.product.create({
             data: {
               name: product.name,
               sku: product.sku,

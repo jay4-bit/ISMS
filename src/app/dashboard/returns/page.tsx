@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { Undo2, Plus, X, AlertTriangle, RefreshCw, DollarSign, Wrench, FileText, Package, ArrowUpDown, Eye, Pencil, Trash2, CheckCircle, Search, ChevronDown, ShoppingBag, RotateCcw, BadgeCheck } from 'lucide-react';
-import { formatCurrency, formatDate, formatShortDate, getCurrencySymbol } from '@/lib/utils';
+import { Undo2, Plus, X, DollarSign, Wrench, Package, ArrowUpDown, Eye, Trash2, CheckCircle, Search, ChevronDown, ShoppingBag, RotateCcw, BadgeCheck } from 'lucide-react';
+import { formatCurrency, formatDate, formatShortDate } from '@/lib/utils';
 import { useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/components/AuthProvider';
 
@@ -305,11 +305,11 @@ export default function ReturnsPage() {
 
   const totalRefundedToClient = returns.reduce((sum, r) => sum + r.items.reduce((s, i) => s + i.refundAmount + (i.replacementRefundGiven || 0), 0), 0);
   const totalRepairCosts = returns.reduce((sum, r) => sum + r.items.reduce((s, i) => s + (i.repairCost || 0), 0), 0);
-  const totalAwarded = returns.reduce((sum, r) => sum + r.items.reduce((s, i) => s + (i.awardedAmount || 0), 0), 0);
-  const replacements = returns.reduce((sum, r) => sum + r.items.filter((i: ReturnItem) => i.awardedType === 'REPLACEMENT').length, 0);
-  const totalPriceDiff = returns.reduce((sum, r) => sum + r.items.reduce((s, i) => s + (i.priceDifference || 0), 0), 0);
+  const _totalAwarded = returns.reduce((sum, r) => sum + r.items.reduce((s, i) => s + (i.awardedAmount || 0), 0), 0);
+  const _replacements = returns.reduce((sum, r) => sum + r.items.filter((i: ReturnItem) => i.awardedType === 'REPLACEMENT').length, 0);
+  const _totalPriceDiff = returns.reduce((sum, r) => sum + r.items.reduce((s, i) => s + (i.priceDifference || 0), 0), 0);
   const clientPaidDiff = returns.reduce((sum, r) => sum + r.items.filter((i: ReturnItem) => i.differencePaidBy === 'CLIENT').reduce((s, i) => s + (i.priceDifference || 0), 0), 0);
-  const businessPaidDiff = returns.reduce((sum, r) => sum + r.items.filter((i: ReturnItem) => i.differencePaidBy === 'BUSINESS').reduce((s, i) => s + Math.abs(i.priceDifference || 0), 0), 0);
+  const _businessPaidDiff = returns.reduce((sum, r) => sum + r.items.filter((i: ReturnItem) => i.differencePaidBy === 'BUSINESS').reduce((s, i) => s + Math.abs(i.priceDifference || 0), 0), 0);
 
   const formatCurr = (amount: number) => formatCurrency(amount, settings.currency);
 
@@ -536,7 +536,7 @@ export default function ReturnsPage() {
                     {returnItems.map((item, idx) => {
                       const isReplacement = item.awardedType === 'REPLACEMENT';
                       const isRepair = item.awardedType === 'REPAIR';
-                      const awardedTypeIcon = (type: string) => {
+                      const _awardedTypeIcon = (type: string) => {
                         switch(type) {
                           case 'REFUND': return <DollarSign size={14} />;
                           case 'REPLACEMENT': return <ShoppingBag size={14} />;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { HandCoins, Plus, UserPlus, UserMinus, DollarSign, Calendar, Phone, Trash2, Edit3, X, ChevronDown, ChevronUp, ArrowUpRight, ArrowDownRight, Filter, Search } from 'lucide-react';
+import { HandCoins, Plus, UserPlus, UserMinus, DollarSign, Phone, Trash2, Edit3, X, ChevronDown, ChevronUp, ArrowUpRight, ArrowDownRight, Filter, Search } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/components/AuthProvider';
@@ -114,15 +114,6 @@ export default function DebtsPage() {
     const res = await fetch(`/api/debts?id=${id}`, {
       method: 'DELETE',
       headers: { 'x-shop-id': shop?.id || '' },
-    });
-    if (res.ok) fetchDebts();
-  }
-
-  async function handleSettle(id: string) {
-    const res = await fetch('/api/debts', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
-      body: JSON.stringify({ id, status: 'SETTLED' }),
     });
     if (res.ok) fetchDebts();
   }

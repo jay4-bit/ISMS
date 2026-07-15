@@ -106,6 +106,28 @@ model AdminPaymentMethod {
   updatedAt DateTime @updatedAt
 }
 
+enum AdminExpenseCategory {
+  HOSTING
+  DOMAIN
+  SMS
+  MARKETING
+  SOFTWARE
+  COMMISSION
+  SALARY
+  MAINTENANCE
+  OTHER
+}
+
+model AdminExpense {
+  id          String               @id @default(cuid())
+  category    AdminExpenseCategory
+  amount      Float
+  description String
+  reference   String?
+  date        DateTime             @default(now())
+  createdAt   DateTime             @default(now())
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String
