@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
-import { Package, Eye, EyeOff, AlertCircle, LogIn, UserPlus, Mail, CheckCircle, RefreshCw, KeyRound, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, LogIn, UserPlus, Mail, CheckCircle, RefreshCw, KeyRound, ArrowLeft } from 'lucide-react';
 
 const SHOP_TYPES = [
   { type: 'PHARMACY', icon: '💊', name: 'Pharmacy', color: '#22c55e' },
@@ -194,9 +194,8 @@ export default function HomePage() {
       <div className="responsive-container" style={styles.content}>
         <div style={styles.header}>
           <div style={styles.logoIcon}>
-            <Package size={32} color="white" />
+            <img src="/logo.png" alt="Inshop" style={{ width: 140, height: 40 }} />
           </div>
-          <h1 style={styles.title}>inshop</h1>
           <p style={styles.subtitle}>Inventory & Sales Management System</p>
         </div>
 
@@ -506,15 +505,14 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: '2rem',
   },
   logoIcon: {
-    width: '64px',
-    height: '64px',
+    width: '160px',
+    height: '50px',
     borderRadius: '1rem',
-    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     margin: '0 auto 1rem',
-    boxShadow: '0 10px 25px -5px rgba(59, 130, 246, 0.4)',
+    boxShadow: '0 10px 25px -10px rgba(147, 159, 178, 0.4)',
   },
   title: {
     fontSize: '1.75rem',
