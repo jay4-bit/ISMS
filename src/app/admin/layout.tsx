@@ -45,9 +45,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         display: 'flex', flexDirection: 'column', flexShrink: 0,
       }}>
         <div style={{ padding: collapsed ? '1rem 0' : '1rem 1.25rem', borderBottom: '1px solid #334155', display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: collapsed ? 'center' : 'flex-start' }}>
-          {!collapsed && <><div style={{ width: 32, height: 32, borderRadius: '0.5rem', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <BarChart3 size={18} color="white" />
-          </div>
+          {!collapsed && <><img src="/logo.png?v=2" alt="Inshop" style={{ width: 100, height: 32, flexShrink: 0 }} />
           <span style={{ fontWeight: 700, fontSize: '1rem', color: '#f1f5f9' }}>Admin</span></>}
         </div>
 

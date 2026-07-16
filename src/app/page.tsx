@@ -194,7 +194,7 @@ export default function HomePage() {
       <div className="responsive-container" style={styles.content}>
         <div style={styles.header}>
           <div style={styles.logoIcon}>
-            <img src="/logo.png" alt="Inshop" style={{ width: 140, height: 40 }} />
+            <img src="/logo.png?v=2" alt="Inshop" style={{ width: 140, height: 40 }} />
           </div>
           <p style={styles.subtitle}>Inventory & Sales Management System</p>
         </div>
