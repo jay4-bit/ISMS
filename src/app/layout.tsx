@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 export const metadata: Metadata = {
   title: "Inshop - Inventory & Sales Management System",
   description: "Track inventory, manage sales, analyze profits",
+  icons: [{ rel: "icon", url: "/in.png" }],
 };
 
 export default function RootLayout({

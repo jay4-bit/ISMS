@@ -506,7 +506,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   logoIcon: {
     width: '160px',
-    height: '50px',
+    height: '70px',
     borderRadius: '1rem',
     display: 'flex',
     alignItems: 'center',
