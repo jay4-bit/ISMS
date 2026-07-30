@@ -1,6 +1,24 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+## Run with Docker Compose
+
+1. Create your local environment file and replace the two required placeholder secrets:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Build and start the app:
+
+   ```bash
+   docker compose up --build -d
+   ```
+
+The app is available at `http://localhost:3000` (or the `APP_PORT` in `.env`). Compose starts PostgreSQL, applies the Prisma schema, then starts the app. Database data is retained in the `postgres_data` Docker volume.
+
+Stop the stack with `docker compose down`. To also remove all database data, use `docker compose down -v`.
+
+## Local development
 
 First, run the development server:
 
