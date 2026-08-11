@@ -15,6 +15,8 @@ vi.mock('@/components/AuthProvider', () => ({
 describe('Home page', () => {
   it('renders the login form', () => {
     render(<Page />)
-    expect(screen.getByText('inshop')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Inshop' })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Sign In' })).toHaveLength(2)
+    expect(screen.getByRole('button', { name: 'Register' })).toBeInTheDocument()
   })
 })

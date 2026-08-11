@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { hashPassword } from '@/lib/auth';
+import { hashPassword } from '@/lib/auth-server';
 import { ShopType } from '@prisma/client';
 import { sendVerificationCode } from '@/lib/email';
 

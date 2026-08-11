@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'isms-pro-admin-secret-key-2026';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     const adminEmail = process.env.ADMIN_EMAIL;
     const adminPasswordHashB64 = process.env.ADMIN_PASSWORD_HASH_B64;
 
-    if (!adminEmail || !adminPasswordHashB64) {
+    if (!JWT_SECRET || !adminEmail || !adminPasswordHashB64) {
       return NextResponse.json({ error: 'Admin not configured' }, { status: 500 });
     }
 

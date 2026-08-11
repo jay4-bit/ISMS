@@ -80,7 +80,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    setLoading(false);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    fetch('/api/auth/session', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
@@ -224,6 +235,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
+    void fetch('/api/auth/session', { method: 'DELETE' });
     localStorage.removeItem('user');
     localStorage.removeItem('shop');
     localStorage.removeItem('token');

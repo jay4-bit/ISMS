@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { verifyPassword, generateToken } from '@/lib/auth';
+import { AUTH_COOKIE_MAX_AGE, AUTH_COOKIE_NAME, verifyPassword, generateToken } from '@/lib/auth-server';
 import { logActivity } from '@/lib/activity-log';
 
 export async function POST(request: NextRequest) {
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     const effectiveStatus = user.shop.subscriptionStatus === 'TRIAL' && user.shop.trialEndsAt && user.shop.trialEndsAt < now
       ? 'EXPIRED' : user.shop.subscriptionStatus;
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       user: {
         id: user.id,
@@ -96,6 +96,14 @@ export async function POST(request: NextRequest) {
       },
       token
     });
+    response.cookies.set(AUTH_COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: AUTH_COOKIE_MAX_AGE,
+    });
+    return response;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

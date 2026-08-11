@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import prisma from '@/lib/db';
-import { hashPassword } from '@/lib/auth';
+import { hashPassword } from '@/lib/auth-server';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'isms-pro-admin-secret-key-2026';
+const JWT_SECRET = process.env.JWT_SECRET ?? '';
 
 function verifyAdmin(request: NextRequest) {
   const auth = request.headers.get('authorization');
