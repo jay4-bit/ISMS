@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import prisma from '@/lib/db';
-import { hashPassword } from '@/lib/auth-server';
+import { createOneTimeCode, hashPassword, validateNewPassword } from '@/lib/auth-server';
 import { sendVerificationCode } from '@/lib/email';
 
 const JWT_SECRET = process.env.JWT_SECRET ?? '';
@@ -89,6 +89,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (!skipOwner) {
+      const passwordError = validateNewPassword(ownerPassword);
+      if (passwordError) return NextResponse.json({ error: passwordError }, { status: 400 });
+    }
+
+    if (!skipOwner) {
       const existingOwner = await prisma.user.findFirst({
         where: { email: ownerEmail.toLowerCase() }
       });
@@ -98,7 +103,7 @@ export async function POST(request: NextRequest) {
     }
 
     const TRIAL_DAYS = parseInt(process.env.TRIAL_DAYS || '3');
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const verification = createOneTimeCode();
     const hashedPassword = skipOwner ? null : await hashPassword(ownerPassword);
 
     await prisma.shop.create({
@@ -116,7 +121,8 @@ export async function POST(request: NextRequest) {
             name: ownerName,
             role: 'OWNER',
             emailVerified: false,
-            emailVerificationCode: verificationCode,
+            emailVerificationCode: verification.digest,
+            emailVerificationCodeExpires: verification.expiresAt,
           }
         },
         settings: {
@@ -137,7 +143,7 @@ export async function POST(request: NextRequest) {
 
     if (!skipOwner) {
       try {
-        await sendVerificationCode(ownerEmail, verificationCode, ownerName);
+        await sendVerificationCode(ownerEmail, verification.code, ownerName);
       } catch {
         // Email sending failed, but account was created
       }

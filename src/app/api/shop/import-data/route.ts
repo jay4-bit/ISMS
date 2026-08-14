@@ -21,6 +21,10 @@ export async function POST(request: NextRequest) {
 
     const result = { imported: 0, skipped: 0, errors: [] as string[] };
     const idMap: Record<string, string> = {};
+    const mappedId = (sourceId: unknown, label: string): string => {
+      if (typeof sourceId !== 'string' || !idMap[sourceId]) throw new Error(`Missing imported ${label} reference`);
+      return idMap[sourceId];
+    };
 
     await prisma.$transaction(async (tx) => {
       // 1. Categories
@@ -80,8 +84,8 @@ export async function POST(request: NextRequest) {
       for (const prod of (body.products || [])) {
         const exists = await tx.product.findUnique({ where: { sku_shopId: { sku: prod.sku, shopId } } }).catch(() => null);
         if (exists) { idMap[prod.id] = exists.id; result.skipped++; continue; }
-        const categoryId = idMap[prod.categoryId] || prod.categoryId;
-        const supplierId = prod.supplierId ? (idMap[prod.supplierId] || prod.supplierId) : null;
+        const categoryId = mappedId(prod.categoryId, 'category');
+        const supplierId = prod.supplierId ? mappedId(prod.supplierId, 'supplier') : null;
         const created = await tx.product.create({
           data: {
             name: prod.name, sku: prod.sku, barcode: prod.barcode, description: prod.description,
@@ -172,25 +176,20 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // 6. Users (skip if email+shopId exists; skip owner records since owner already exists)
+      // 6. User credentials are intentionally not imported. Export files never
+      // contain password hashes, and creating placeholder passwords is unsafe.
       for (const u of (body.users || [])) {
-        if (u.role === 'OWNER') { result.skipped++; continue; }
-        const exists = await tx.user.findUnique({ where: { email_shopId: { email: u.email, shopId } } }).catch(() => null);
-        if (exists) { idMap[u.id] = exists.id; result.skipped++; continue; }
-        const created = await tx.user.create({
-          data: { email: u.email, password: u.password || 'placeholder', name: u.name, role: u.role || 'CASHIER', shopId },
-        });
-        idMap[u.id] = created.id;
-        result.imported++;
+        if (u.role === 'OWNER') idMap[u.id] = userId;
+        result.skipped++;
       }
 
       // 7. Sales
       for (const sale of (body.sales || [])) {
         const exists = await tx.sale.findUnique({ where: { receiptNumber: sale.receiptNumber } }).catch(() => null);
         if (exists) { idMap[sale.id] = exists.id; result.skipped++; continue; }
-        const cashierId = idMap[sale.cashierId] || sale.cashierId;
-        const customerId = sale.customerId ? (idMap[sale.customerId] || sale.customerId) : null;
-        const instCustId = sale.installmentCustomerId ? (idMap[sale.installmentCustomerId] || sale.installmentCustomerId) : null;
+        const cashierId = idMap[sale.cashierId] || userId;
+        const customerId = sale.customerId ? mappedId(sale.customerId, 'customer') : null;
+        const instCustId = sale.installmentCustomerId ? mappedId(sale.installmentCustomerId, 'installment customer') : null;
         const created = await tx.sale.create({
           data: {
             receiptNumber: sale.receiptNumber, subtotal: sale.subtotal || 0,
@@ -213,7 +212,7 @@ export async function POST(request: NextRequest) {
 
         // Sale items
         for (const item of (sale.items || [])) {
-          const productId = idMap[item.productId] || item.productId;
+          const productId = mappedId(item.productId, 'product');
           await tx.saleItem.create({
             data: {
               saleId: created.id, productId,
@@ -247,7 +246,7 @@ export async function POST(request: NextRequest) {
           data: {
             returnNumber: ret.returnNumber, reason: ret.reason || '',
             refundMethod: ret.refundMethod, totalRefund: ret.totalRefund || 0,
-            processedBy: idMap[ret.processedBy] || ret.processedBy || userId,
+            processedBy: idMap[ret.processedBy] || userId,
             shopId, createdAt: ret.createdAt ? new Date(ret.createdAt) : undefined,
           },
         });
@@ -255,8 +254,8 @@ export async function POST(request: NextRequest) {
         result.imported++;
 
         for (const ri of (ret.items || [])) {
-          const productId = idMap[ri.productId] || ri.productId;
-          await tx.returnItem.create({
+          const productId = mappedId(ri.productId, 'product');
+          const createdItem = await tx.returnItem.create({
             data: {
               returnId: created.id, productId, quantity: ri.quantity || 1,
               reason: ri.reason || '', status: ri.status || 'PENDING',
@@ -264,7 +263,7 @@ export async function POST(request: NextRequest) {
               supplierName: ri.supplierName, awardedType: ri.awardedType || 'REFUND',
               awardedAmount: ri.awardedAmount || 0, repairCost: ri.repairCost || 0,
               returnCost: ri.returnCost || 0,
-              replacementProductId: ri.replacementProductId,
+              replacementProductId: ri.replacementProductId ? mappedId(ri.replacementProductId, 'replacement product') : null,
               replacementProductName: ri.replacementProductName,
               replacementProductPrice: ri.replacementProductPrice,
               originalProductValue: ri.originalProductValue,
@@ -282,12 +281,13 @@ export async function POST(request: NextRequest) {
               notes: ri.notes,
             },
           });
+          if (ri.id) idMap[ri.id] = createdItem.id;
         }
       }
 
       // Import ReturnInstallmentPayments
       for (const rip of (body.returnInstallmentPayments || [])) {
-        const returnItemId = idMap[rip.returnItemId] || rip.returnItemId;
+        const returnItemId = mappedId(rip.returnItemId, 'return item');
         await tx.returnInstallmentPayment.create({
           data: {
             returnItemId,
@@ -308,7 +308,7 @@ export async function POST(request: NextRequest) {
           data: {
             description: exp.description || '', amount: exp.amount || 0,
             category: exp.category || 'OTHER', date: exp.date ? new Date(exp.date) : new Date(),
-            reference: exp.reference, createdBy: idMap[exp.createdBy] || exp.createdBy || userId,
+            reference: exp.reference, createdBy: idMap[exp.createdBy] || userId,
             shopId,
           },
         });
@@ -319,7 +319,7 @@ export async function POST(request: NextRequest) {
       for (const po of (body.purchaseOrders || [])) {
         const exists = await tx.purchaseOrder.findUnique({ where: { orderNumber: po.orderNumber } }).catch(() => null);
         if (exists) { idMap[po.id] = exists.id; result.skipped++; continue; }
-        const supplierId = idMap[po.supplierId] || po.supplierId;
+        const supplierId = mappedId(po.supplierId, 'supplier');
         const created = await tx.purchaseOrder.create({
           data: {
             orderNumber: po.orderNumber,
@@ -330,12 +330,12 @@ export async function POST(request: NextRequest) {
             notes: po.notes,
             expectedDelivery: po.expectedDelivery ? new Date(po.expectedDelivery) : null,
             receivedAt: po.receivedAt ? new Date(po.receivedAt) : null,
-            createdBy: idMap[po.createdBy] || po.createdBy || userId,
+            createdBy: idMap[po.createdBy] || userId,
             shopId,
             createdAt: po.createdAt ? new Date(po.createdAt) : undefined,
             items: po.items && Array.isArray(po.items) ? {
               create: po.items.map((item: any) => ({
-                productId: idMap[item.productId] || item.productId || null,
+                productId: item.productId ? mappedId(item.productId, 'product') : null,
                 quantityOrdered: item.quantityOrdered || 1,
                 quantityReceived: item.quantityReceived || 0,
                 unitCost: item.unitCost || 0,
@@ -379,11 +379,11 @@ export async function POST(request: NextRequest) {
             notes: sc.notes,
             startedAt: sc.startedAt ? new Date(sc.startedAt) : undefined,
             completedAt: sc.completedAt ? new Date(sc.completedAt) : (sc.status === 'COMPLETED' ? new Date() : null),
-            createdBy: idMap[sc.createdBy] || sc.createdBy || userId,
+            createdBy: idMap[sc.createdBy] || userId,
             shopId,
             items: sc.items && Array.isArray(sc.items) ? {
               create: sc.items.map((item: any) => ({
-                productId: idMap[item.productId] || item.productId,
+                productId: mappedId(item.productId, 'product'),
                 systemQty: item.systemQty || 0,
                 countedQty: item.countedQty ?? null,
                 variance: item.variance ?? null,
@@ -424,7 +424,7 @@ export async function POST(request: NextRequest) {
 
       // 13. Stock Movements
       for (const sm of (body.stockMovements || [])) {
-        const productId = idMap[sm.productId] || sm.productId;
+        const productId = mappedId(sm.productId, 'product');
         await tx.stockMovement.create({
           data: {
             productId,
@@ -432,7 +432,7 @@ export async function POST(request: NextRequest) {
             quantity: sm.quantity || 0,
             reference: sm.reference || null,
             reason: sm.reason || null,
-            createdBy: idMap[sm.createdBy] || sm.createdBy || userId,
+            createdBy: idMap[sm.createdBy] || userId,
             createdAt: sm.createdAt ? new Date(sm.createdAt) : undefined,
           },
         });
@@ -443,7 +443,7 @@ export async function POST(request: NextRequest) {
       for (const act of (body.recentActivities || [])) {
         await tx.activity.create({
           data: {
-            shopId, userId: idMap[act.userId] || act.userId || userId,
+            shopId, userId: idMap[act.userId] || userId,
             userName: act.userName || 'Imported', action: act.action || 'DATA_IMPORT',
             details: act.details || '', createdAt: act.createdAt ? new Date(act.createdAt) : undefined,
           },

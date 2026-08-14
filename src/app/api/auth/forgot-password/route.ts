@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { sendPasswordResetCode } from '@/lib/email';
+import { createOneTimeCode } from '@/lib/auth-server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,16 +18,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'If an account with this email exists, a reset code has been sent.' }, { status: 200 });
     }
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    const reset = createOneTimeCode();
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { resetPasswordCode: code, resetPasswordCodeExpires: expiresAt },
+      data: { resetPasswordCode: reset.digest, resetPasswordCodeExpires: reset.expiresAt },
     });
 
     try {
-      await sendPasswordResetCode(user.email, code, user.name);
+      await sendPasswordResetCode(user.email, reset.code, user.name);
     } catch {
       return NextResponse.json({ error: 'Failed to send reset email. Please contact support.' }, { status: 500 });
     }

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LogIn } from 'lucide-react';
+import Image from 'next/image';
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
@@ -23,7 +24,8 @@ export default function AdminLoginPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        localStorage.setItem('admin_token', data.token);
+        // This is only a UI hint. The credential is held in an HttpOnly cookie.
+        localStorage.setItem('admin_token', 'authenticated');
         router.push('/admin');
       } else {
         setError(data.error || 'Login failed');
@@ -38,7 +40,7 @@ export default function AdminLoginPage() {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f172a', padding: '1rem' }}>
       <div style={{ width: '100%', maxWidth: 400 }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <img src="/logo.png?v=2" alt="Inshop" style={{ width: 140, height: 40, margin: '0 auto 1rem', display: 'block' }} />
+          <Image src="/logo.png" alt="Inshop" width={140} height={34} priority style={{ margin: '0 auto 1rem', display: 'block' }} />
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f1f5f9', marginBottom: '0.25rem' }}>Admin Panel</h1>
           <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Sign in to manage your shops</p>
         </div>

@@ -22,8 +22,15 @@ function getTransporter() {
 const fromName = process.env.SMTP_FROM_NAME || 'Inshop';
 const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || 'noreply@inshop.co.tz';
 
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>'"]/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
+  })[character] || character);
+}
+
 export async function sendVerificationCode(email: string, code: string, userName: string): Promise<void> {
   const transporter = getTransporter();
+  const safeName = escapeHtml(userName);
   await transporter.sendMail({
     from: `"${fromName}" <${fromEmail}>`,
     to: email,
@@ -32,7 +39,7 @@ export async function sendVerificationCode(email: string, code: string, userName
       <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #f9fafb; border-radius: 12px;">
         <h2 style="color: #1e293b; margin: 0 0 8px;">Welcome to Inshop!</h2>
         <p style="color: #374151; font-size: 14px; margin: 0 0 16px;">
-          Hi <strong>${userName}</strong>, please verify your email address to activate your account.
+          Hi <strong>${safeName}</strong>, please verify your email address to activate your account.
         </p>
         <div style="text-align: center; background: #fff; padding: 24px; border-radius: 8px; border: 1px solid #e5e7eb;">
           <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">Your verification code</div>
@@ -48,6 +55,7 @@ export async function sendVerificationCode(email: string, code: string, userName
 
 export async function sendPasswordResetCode(email: string, code: string, userName: string): Promise<void> {
   const transporter = getTransporter();
+  const safeName = escapeHtml(userName);
   await transporter.sendMail({
     from: `"${fromName}" <${fromEmail}>`,
     to: email,
@@ -56,7 +64,7 @@ export async function sendPasswordResetCode(email: string, code: string, userNam
       <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #f9fafb; border-radius: 12px;">
         <h2 style="color: #1e293b; margin: 0 0 8px;">Password Reset Request</h2>
         <p style="color: #374151; font-size: 14px; margin: 0 0 16px;">
-          Hi <strong>${userName}</strong>, use the code below to reset your password. It expires in 10 minutes.
+          Hi <strong>${safeName}</strong>, use the code below to reset your password. It expires in 10 minutes.
         </p>
         <div style="text-align: center; background: #fff; padding: 24px; border-radius: 8px; border: 1px solid #e5e7eb;">
           <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">Your reset code</div>
@@ -72,15 +80,16 @@ export async function sendPasswordResetCode(email: string, code: string, userNam
 
 export async function sendDeletionCode(email: string, code: string, shopName: string): Promise<void> {
   const transporter = getTransporter();
+  const safeShopName = escapeHtml(shopName);
   await transporter.sendMail({
     from: `"${fromName}" <${fromEmail}>`,
     to: email,
-    subject: `Shop Data Deletion Code - ${shopName}`,
+    subject: `Shop Data Deletion Code - ${shopName.replace(/[\r\n]/g, '')}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #f9fafb; border-radius: 12px;">
         <h2 style="color: #dc2626; margin: 0 0 8px;">⚠ Data Deletion Request</h2>
         <p style="color: #374151; font-size: 14px; margin: 0 0 16px;">
-          A request was made to delete all data for <strong>${shopName}</strong>. 
+          A request was made to delete all data for <strong>${safeShopName}</strong>.
           Use the code below to confirm. This code expires in 10 minutes.
         </p>
         <div style="text-align: center; background: #fff; padding: 24px; border-radius: 8px; border: 1px solid #e5e7eb;">

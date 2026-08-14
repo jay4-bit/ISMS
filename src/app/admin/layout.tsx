@@ -4,6 +4,7 @@ import { useEffect, useState, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { LayoutDashboard, Store, CreditCard, LogOut, ChevronLeft, ChevronRight, BarChart3, Smartphone, DollarSign, Receipt, TrendingUp } from 'lucide-react';
+import Image from 'next/image';
 
 const ADMIN_PATHS = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
@@ -45,7 +46,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         display: 'flex', flexDirection: 'column', flexShrink: 0,
       }}>
         <div style={{ padding: collapsed ? '1rem 0' : '1rem 1.25rem', borderBottom: '1px solid #334155', display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: collapsed ? 'center' : 'flex-start' }}>
-          {!collapsed && <><img src="/logo.png?v=2" alt="Inshop" style={{ width: 100, height: 32, flexShrink: 0 }} />
+          {!collapsed && <><Image src="/logo.png" alt="Inshop" width={100} height={24} style={{ flexShrink: 0 }} />
           <span style={{ fontWeight: 700, fontSize: '1rem', color: '#f1f5f9' }}>Admin</span></>}
         </div>
 
@@ -80,7 +81,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
           </button>
           <button
-            onClick={() => { localStorage.removeItem('admin_token'); router.push('/admin/login'); }}
+            onClick={() => {
+              void fetch('/api/admin/session', { method: 'DELETE' });
+              localStorage.removeItem('admin_token');
+              router.push('/admin/login');
+            }}
             style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '0.25rem' }}
           >
             <LogOut size={18} />

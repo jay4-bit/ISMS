@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { AUTH_COOKIE_MAX_AGE, AUTH_COOKIE_NAME, verifyPassword, generateToken } from '@/lib/auth-server';
 import { logActivity } from '@/lib/activity-log';
+import { getDefaultPermissions } from '@/lib/permissions';
 
 export async function POST(request: NextRequest) {
   try {
@@ -51,7 +52,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const token = generateToken(user.id, user.shopId, user.role);
+    const configuredPermissions = await prisma.permission.findMany({
+      where: { shopId: user.shopId, role: user.role },
+      select: { module: true, canRead: true, canWrite: true, canDelete: true },
+    });
+    const tokenPermissions = configuredPermissions.length > 0 ? configuredPermissions : getDefaultPermissions(user.role);
+    const token = generateToken(user.id, user.shopId, user.role, tokenPermissions);
 
     logActivity({
       shopId: user.shopId,
@@ -94,7 +100,6 @@ export async function POST(request: NextRequest) {
         trialEndsAt: user.shop.trialEndsAt,
         subscriptionEndsAt: user.shop.subscriptionEndsAt,
       },
-      token
     });
     response.cookies.set(AUTH_COOKIE_NAME, token, {
       httpOnly: true,
@@ -112,8 +117,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const shopId = searchParams.get('shopId');
+    const shopId = request.headers.get('x-shop-id');
 
     if (shopId) {
       const users = await prisma.user.findMany({

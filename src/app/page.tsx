@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { Eye, EyeOff, AlertCircle, LogIn, UserPlus, Mail, CheckCircle, RefreshCw, KeyRound, ArrowLeft } from 'lucide-react';
+import Image from 'next/image';
 
 const SHOP_TYPES = [
   { type: 'PHARMACY', icon: '💊', name: 'Pharmacy', color: '#22c55e' },
@@ -165,8 +166,8 @@ export default function HomePage() {
       setError('Passwords do not match');
       return;
     }
-    if (resetNewPassword.length < 6) {
-      setError('Password must be at least 6 characters');
+    if (resetNewPassword.length < 12) {
+      setError('Password must be at least 12 characters');
       return;
     }
     setResetLoading(true);
@@ -189,12 +190,12 @@ export default function HomePage() {
 
   return (
     <div style={styles.container}>
-      <div style={styles.backgroundPattern}></div>
+      <div style={styles.backgroundPattern} aria-hidden="true"></div>
 
       <div className="responsive-container" style={styles.content}>
         <div style={styles.header}>
           <div style={styles.logoIcon}>
-            <img src="/logo.png?v=2" alt="Inshop" style={{ width: 140, height: 40 }} />
+            <Image src="/logo.png" alt="Inshop" width={140} height={34} unoptimized loading="eager" fetchPriority="high" />
           </div>
           <p style={styles.subtitle}>Inventory & Sales Management System</p>
         </div>
@@ -295,7 +296,7 @@ export default function HomePage() {
                   placeholder="Enter your password"
                   required
                 />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} style={styles.eyeButton}>
+                <button type="button" onClick={() => setShowPassword(!showPassword)} style={styles.eyeButton} aria-label={showPassword ? 'Hide password' : 'Show password'}>
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
@@ -352,7 +353,7 @@ export default function HomePage() {
                 </div>
                 <div style={styles.inputGroup}>
                   <label style={styles.label}>New Password</label>
-                  <input type="password" value={resetNewPassword} onChange={(e) => setResetNewPassword(e.target.value)} style={styles.input} placeholder="Min 6 characters" required minLength={6} />
+                  <input type="password" value={resetNewPassword} onChange={(e) => setResetNewPassword(e.target.value)} style={styles.input} placeholder="Min 12 characters" required minLength={12} maxLength={128} />
                 </div>
                 <div style={styles.inputGroup}>
                   <label style={styles.label}>Confirm Password</label>
@@ -432,11 +433,12 @@ export default function HomePage() {
                   value={registerData.ownerPassword}
                   onChange={(e) => setRegisterData({ ...registerData, ownerPassword: e.target.value })}
                   style={{...styles.input, paddingRight: '2.5rem'}}
-                  placeholder="Create a password (min 6 chars)"
+                  placeholder="Create a password (min 12 chars)"
                   required
-                  minLength={6}
+                  minLength={12}
+                  maxLength={128}
                 />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} style={styles.eyeButton}>
+                <button type="button" onClick={() => setShowPassword(!showPassword)} style={styles.eyeButton} aria-label={showPassword ? 'Hide password' : 'Show password'}>
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
@@ -521,7 +523,7 @@ const styles: Record<string, React.CSSProperties> = {
     margin: 0,
   },
   subtitle: {
-    color: '#64748b',
+    color: '#94a3b8',
     fontSize: '0.875rem',
     marginTop: '0.5rem',
   },
@@ -535,7 +537,7 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: '0.5rem',
   },
   sectionSubtitle: {
-    color: '#64748b',
+    color: '#94a3b8',
     fontSize: '0.8rem',
     marginBottom: '1.5rem',
   },
@@ -573,7 +575,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '0.5rem',
     background: 'none',
     border: 'none',
-    color: '#64748b',
+    color: '#94a3b8',
     cursor: 'pointer',
     fontSize: '0.875rem',
     marginBottom: '1rem',
@@ -611,7 +613,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: '#0f172a',
     border: '1px solid #334155',
     borderRadius: '0.5rem',
-    color: '#64748b',
+    color: '#94a3b8',
     cursor: 'pointer',
     fontSize: '0.9rem',
     fontWeight: '500',
@@ -664,13 +666,18 @@ const styles: Record<string, React.CSSProperties> = {
   },
   eyeButton: {
     position: 'absolute' as const,
-    right: '12px',
+    right: '4px',
     top: '50%',
     transform: 'translateY(-50%)',
     background: 'none',
     border: 'none',
-    color: '#64748b',
+    color: '#94a3b8',
     cursor: 'pointer',
+    width: '44px',
+    height: '44px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   select: {
     width: '100%',
@@ -697,7 +704,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   switchText: {
     textAlign: 'center' as const,
-    color: '#64748b',
+    color: '#94a3b8',
     fontSize: '0.85rem',
     marginTop: '0.5rem',
   },

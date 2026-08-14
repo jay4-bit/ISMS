@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'Unknown error';
     console.error('Get settings error:', msg);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 });
   }
 }
 
@@ -94,7 +94,6 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ settings: parsed });
   } catch (error) {
     console.error('Update settings error:', error);
-    const message = error instanceof Error ? error.message : 'Failed to update settings';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to update settings' }, { status: 500 });
   }
 }

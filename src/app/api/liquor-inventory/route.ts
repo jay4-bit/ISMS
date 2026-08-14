@@ -109,14 +109,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ product });
   } catch (error) {
     console.error('Create liquor product error:', error);
-    const errMsg = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ error: 'Failed to create product', details: errMsg }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
+    const shopId = request.headers.get('x-shop-id') || '';
     const { id, name, barcode, description, categoryId, supplierId,
       purchaseCost, sellingPrice, wholesalePrice, stockQuantity,
       lowStockThreshold, reorderPoint, hasExpiry, expiryDate,
@@ -125,7 +125,7 @@ export async function PUT(request: NextRequest) {
     // Resolve categoryName to categoryId if needed
     let resolvedCategoryId = categoryId;
     if ((!categoryId || categoryId === '') && categoryName) {
-      const product = await prisma.product.findUnique({ where: { id }, select: { shopId: true } });
+      const product = await prisma.product.findUnique({ where: { id, shopId }, select: { shopId: true } });
       if (product) {
         let cat = await prisma.category.findFirst({ where: { name: categoryName, shopId: product.shopId } });
         if (!cat) cat = await prisma.category.create({ data: { name: categoryName, shopId: product.shopId } });
@@ -155,7 +155,7 @@ export async function PUT(request: NextRequest) {
     if (notes !== undefined) liquorUpdateData.notes = notes;
 
     const existingProduct = await prisma.product.findUnique({
-      where: { id },
+      where: { id, shopId },
       include: { liquorFields: true },
     });
 
@@ -168,7 +168,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const product = await prisma.product.update({
-      where: { id },
+      where: { id, shopId },
       data: updateData,
       include: { category: true, liquorFields: true },
     });
@@ -184,9 +184,12 @@ export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const shopId = request.headers.get('x-shop-id') || '';
     if (!id) return NextResponse.json({ error: 'Product ID required' }, { status: 400 });
 
-    await prisma.product.delete({ where: { id } });
+    const product = await prisma.product.findUnique({ where: { id, shopId }, select: { id: true } });
+    if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    await prisma.product.delete({ where: { id, shopId } });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Delete liquor product error:', error);

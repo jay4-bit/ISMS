@@ -20,13 +20,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const shopId = request.headers.get('x-shop-id');
-    console.log('Creating category, shopId:', shopId);
     const body = await request.json();
     const { name, description } = body;
-    console.log('Category name:', name);
 
     if (!shopId) {
-      console.log('No shopId provided');
       return NextResponse.json({ error: 'Shop ID required' }, { status: 400 });
     }
 
@@ -37,12 +34,10 @@ export async function POST(request: NextRequest) {
     const existingCategory = await prisma.category.findFirst({
       where: { name, shopId }
     });
-    console.log('Existing category:', existingCategory);
     if (existingCategory) {
       return NextResponse.json({ error: 'Category already exists' }, { status: 400 });
     }
 
-    console.log('Creating category with data:', { name, shopId });
     const category = await prisma.category.create({
       data: { 
         name, 
@@ -50,14 +45,11 @@ export async function POST(request: NextRequest) {
         shopId 
       },
     });
-    console.log('Category created:', category);
 
     return NextResponse.json({ category });
   } catch (error) {
     console.error('Create category error:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.log('Error message:', errorMessage);
-    return NextResponse.json({ error: 'Failed: ' + errorMessage, details: errorMessage }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to create category' }, { status: 500 });
   }
 }
 

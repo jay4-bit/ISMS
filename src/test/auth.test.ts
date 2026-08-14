@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generateToken, verifyToken } from '@/lib/auth-server';
+import { createOneTimeCode, generateToken, verifyOneTimeCode, verifyToken } from '@/lib/auth-server';
 
 describe('authentication tokens', () => {
   it('round-trips the authenticated user, shop, and role claims', () => {
@@ -14,5 +14,14 @@ describe('authentication tokens', () => {
 
   it('rejects an invalid token', () => {
     expect(verifyToken('not-a-valid-token')).toBeNull();
+  });
+
+  it('stores one-time codes as a digest and compares them safely', () => {
+    const oneTimeCode = createOneTimeCode();
+
+    expect(oneTimeCode.code).toMatch(/^\d{6}$/);
+    expect(oneTimeCode.digest).not.toContain(oneTimeCode.code);
+    expect(verifyOneTimeCode(oneTimeCode.code, oneTimeCode.digest)).toBe(true);
+    expect(verifyOneTimeCode('000000', oneTimeCode.digest)).toBe(false);
   });
 });

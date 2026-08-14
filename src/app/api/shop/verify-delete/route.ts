@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { verifyOneTimeCode } from '@/lib/auth-server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,7 +25,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Shop not found' }, { status: 404 });
     }
 
-    if (shop.deletionCode !== code) {
+    if (!verifyOneTimeCode(code, shop.deletionCode)) {
       return NextResponse.json({ error: 'Invalid verification code' }, { status: 400 });
     }
 

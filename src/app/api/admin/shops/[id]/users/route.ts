@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import prisma from '@/lib/db';
-import { hashPassword } from '@/lib/auth-server';
+import { hashPassword, validateNewPassword } from '@/lib/auth-server';
 
 const JWT_SECRET = process.env.JWT_SECRET ?? '';
 
@@ -70,6 +70,8 @@ export async function POST(
     if (!name || !email || !password || !role) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+    const passwordError = validateNewPassword(password);
+    if (passwordError) return NextResponse.json({ error: passwordError }, { status: 400 });
 
     const shop = await prisma.shop.findUnique({ where: { id }, select: { id: true } });
     if (!shop) {
@@ -129,7 +131,11 @@ export async function PUT(
     if (name) updateData.name = name;
     if (role) updateData.role = role;
     if (isActive !== undefined) updateData.isActive = isActive;
-    if (newPassword) updateData.password = await hashPassword(newPassword);
+    if (newPassword) {
+      const passwordError = validateNewPassword(newPassword);
+      if (passwordError) return NextResponse.json({ error: passwordError }, { status: 400 });
+      updateData.password = await hashPassword(newPassword);
+    }
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json({ error: 'No updates provided' }, { status: 400 });

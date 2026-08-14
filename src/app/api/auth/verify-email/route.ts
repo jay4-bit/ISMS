@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { verifyOneTimeCode } from '@/lib/auth-server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,13 +17,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No unverified account found with this email' }, { status: 400 });
     }
 
-    if (user.emailVerificationCode !== code) {
+    if (!verifyOneTimeCode(code, user.emailVerificationCode)) {
       return NextResponse.json({ error: 'Invalid verification code' }, { status: 400 });
+    }
+
+    if (!user.emailVerificationCodeExpires || new Date() > user.emailVerificationCodeExpires) {
+      return NextResponse.json({ error: 'Verification code has expired' }, { status: 400 });
     }
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { emailVerified: true, emailVerificationCode: null },
+      data: { emailVerified: true, emailVerificationCode: null, emailVerificationCodeExpires: null },
     });
 
     return NextResponse.json({ success: true, message: 'Email verified successfully' });

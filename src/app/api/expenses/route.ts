@@ -79,13 +79,15 @@ export async function POST(request: Request) {
     });
 
     if (category === 'MAINTENANCE' && returnItemId) {
+      const existingReturnItem = await prisma.returnItem.findFirst({ where: { id: returnItemId, return: { shopId } } });
+      if (!existingReturnItem) return NextResponse.json({ error: 'Return item not found' }, { status: 404 });
       const retItem = await prisma.returnItem.update({
-        where: { id: returnItemId },
+        where: { id: existingReturnItem.id },
         data: { repairCost: parseFloat(amount) },
       });
       // Mark the product as fixed (no longer faulty) — stock was already restored on return
       await prisma.product.update({
-        where: { id: retItem.productId },
+        where: { id: retItem.productId, shopId },
         data: { isFaulty: false },
       });
     }
@@ -161,7 +163,7 @@ export async function DELETE(request: Request) {
       const remainingCount = await prisma.expense.count({
         where: { shopId, category: 'MAINTENANCE', reference: expense.reference },
       });
-      const retItem = await prisma.returnItem.findUnique({ where: { id: returnItemId }, select: { productId: true } });
+      const retItem = await prisma.returnItem.findFirst({ where: { id: returnItemId, return: { shopId } }, select: { productId: true } });
       if (retItem) {
         if (remainingCount > 0) {
           const sum = await prisma.expense.aggregate({
@@ -178,7 +180,7 @@ export async function DELETE(request: Request) {
             data: { repairCost: 0 },
           });
           await prisma.product.update({
-            where: { id: retItem.productId },
+            where: { id: retItem.productId, shopId },
             data: { isFaulty: true },
           });
         }

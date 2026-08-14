@@ -94,12 +94,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useEffect(() => {
     if (authLoading) return;
-    const token = localStorage.getItem('token');
-    if (!token) {
+    if (!user || !shop) {
       router.replace('/');
       return;
     }
-  }, [router, authLoading]);
+  }, [router, authLoading, user, shop]);
 
   const subscriptionLocked = useMemo(() => {
     if (!subscription) return false;

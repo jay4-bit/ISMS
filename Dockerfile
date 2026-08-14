@@ -1,25 +1,36 @@
 # syntax=docker/dockerfile:1
 
-FROM node:22-alpine AS base
+FROM node:22-bookworm-slim AS base
 WORKDIR /app
-RUN apk add --no-cache libc6-compat openssl
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates openssl \
+    && rm -rf /var/lib/apt/lists/*
 
 FROM base AS dependencies
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --ignore-scripts && npm cache clean --force
 
 FROM dependencies AS builder
+COPY prisma ./prisma
+RUN DATABASE_URL=postgresql://build:build@localhost:5432/build \
+    DIRECT_DATABASE_URL=postgresql://build:build@localhost:5432/build \
+    npx prisma generate
 COPY . .
-RUN npx prisma generate && npm run build
+RUN npm run build
 
-# Kept as a separate target so Compose can update the schema before the app starts.
-FROM builder AS migrate
-CMD ["npx", "prisma", "db", "push"]
+FROM dependencies AS migrate
+COPY prisma ./prisma
+RUN DATABASE_URL=postgresql://build:build@localhost:5432/build \
+    DIRECT_DATABASE_URL=postgresql://build:build@localhost:5432/build \
+    npx prisma generate
+COPY scripts/migrate-if-safe.mjs ./scripts/migrate-if-safe.mjs
+CMD ["node", "scripts/migrate-if-safe.mjs"]
 
 FROM base AS runner
-ENV NODE_ENV=production
-ENV PORT=3000
-ENV HOSTNAME=0.0.0.0
+ENV NODE_ENV=production \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0
 
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs

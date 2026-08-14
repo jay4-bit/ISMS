@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { sendVerificationCode } from '@/lib/email';
+import { createOneTimeCode } from '@/lib/auth-server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,15 +18,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No unverified account found with this email' }, { status: 400 });
     }
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const verification = createOneTimeCode();
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { emailVerificationCode: code },
+      data: { emailVerificationCode: verification.digest, emailVerificationCodeExpires: verification.expiresAt },
     });
 
     try {
-      await sendVerificationCode(user.email, code, user.name);
+      await sendVerificationCode(user.email, verification.code, user.name);
     } catch {
       return NextResponse.json({ error: 'Failed to send verification email. Check SMTP settings.' }, { status: 500 });
     }

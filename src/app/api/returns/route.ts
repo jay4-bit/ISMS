@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
       for (const item of items) {
         if (item.replacementProductId) {
           const repProduct = await prisma.product.findUnique({
-            where: { id: item.replacementProductId },
+            where: { id: item.replacementProductId, shopId },
             include: { electronicsFields: true },
           });
           item.replacementProduct = repProduct ? { electronicsFields: repProduct.electronicsFields } : null;
@@ -134,14 +134,16 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { items, reason, userId, userName } = body;
 
-    if (!items || items.length === 0) {
+    if (!Array.isArray(items) || items.length === 0 || items.length > 100) {
       return NextResponse.json({ error: 'No items to return' }, { status: 400 });
     }
 
     const returnItemsData = await Promise.all(items.map(async (item: any) => {
       const product = await prisma.product.findUnique({
-        where: { id: item.productId }
+        where: { id: item.productId, shopId }
       });
+      const quantity = Number(item.quantity);
+      if (!product || !Number.isSafeInteger(quantity) || quantity < 1) throw new Error('INVALID_RETURN_ITEM');
 
       let originalProductValue = item.originalProductValue || 0;
       let replacementProductPrice = item.replacementProductPrice || 0;
@@ -150,8 +152,9 @@ export async function POST(request: NextRequest) {
 
       if (item.awardedType === 'REPLACEMENT' && item.replacementProductId) {
         const replacementProduct = await prisma.product.findUnique({
-          where: { id: item.replacementProductId }
+          where: { id: item.replacementProductId, shopId }
         });
+        if (!replacementProduct) throw new Error('INVALID_REPLACEMENT_PRODUCT');
         
         if (replacementProduct) {
           replacementProductPrice = replacementProduct.sellingPrice;
@@ -173,7 +176,7 @@ export async function POST(request: NextRequest) {
 
       return {
         productId: item.productId,
-        quantity: item.quantity,
+        quantity,
         reason: item.reason || '',
         status: item.status,
         refundAmount: item.awardedType === 'REFUND' ? (item.refundAmount || 0) : 0,
@@ -216,7 +219,7 @@ export async function POST(request: NextRequest) {
     // Validate replacement product stock before processing
     for (const item of items) {
       if (item.awardedType === 'REPLACEMENT' && item.replacementProductId) {
-        const repProduct = await prisma.product.findUnique({ where: { id: item.replacementProductId } });
+        const repProduct = await prisma.product.findUnique({ where: { id: item.replacementProductId, shopId } });
         if (repProduct && repProduct.stockQuantity < (item.quantity || 1)) {
           return NextResponse.json({ error: `Insufficient stock for replacement product ${repProduct.name}. Available: ${repProduct.stockQuantity}, needed: ${item.quantity || 1}` }, { status: 400 });
         }
@@ -233,7 +236,7 @@ export async function POST(request: NextRequest) {
           data: {
             returnNumber,
             reason,
-            processedBy: 'demo-admin',
+            processedBy: request.headers.get('x-user-id') || 'system',
             totalRefund: totalRefund + totalPriceDiff,
             shopId,
             items: {
@@ -256,35 +259,35 @@ export async function POST(request: NextRequest) {
     for (const item of items) {
       if (item.awardedType === 'REPLACEMENT' && item.replacementProductId) {
         await prisma.product.update({
-          where: { id: item.productId },
+          where: { id: item.productId, shopId },
           data: { isFaulty: true, stockQuantity: { increment: item.quantity } },
         });
         await prisma.product.update({
-          where: { id: item.replacementProductId },
+          where: { id: item.replacementProductId, shopId },
           data: { stockQuantity: { decrement: item.quantity } },
         });
       } else if (item.awardedType === 'REFUND') {
         // Money back → product comes back to inventory as faulty
         await prisma.product.update({
-          where: { id: item.productId },
+          where: { id: item.productId, shopId },
           data: { isFaulty: true, stockQuantity: { increment: item.quantity } },
         });
       } else {
         if (item.status === 'FAULTY' || item.status === 'DISCARDED') {
           await prisma.product.update({
-            where: { id: item.productId },
+            where: { id: item.productId, shopId },
             data: { isFaulty: true, stockQuantity: { increment: item.quantity } },
           });
         } else if (item.status === 'RESELLABLE') {
           await prisma.product.update({
-            where: { id: item.productId },
+            where: { id: item.productId, shopId },
             data: { stockQuantity: { increment: item.quantity } },
           });
         }
 
         if (item.awardedType === 'REPLACEMENT' && item.replacementProductId) {
           await prisma.product.update({
-            where: { id: item.replacementProductId },
+            where: { id: item.replacementProductId, shopId },
             data: { stockQuantity: { decrement: item.quantity } },
           });
         }
@@ -300,8 +303,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ return: returnRecord });
   } catch (error) {
     console.error('Create return error:', error);
-    const msg = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ error: msg }, { status: 500 });
+    if (error instanceof Error && ['INVALID_RETURN_ITEM', 'INVALID_REPLACEMENT_PRODUCT'].includes(error.message)) {
+      return NextResponse.json({ error: 'Invalid return product' }, { status: 400 });
+    }
+    return NextResponse.json({ error: 'Failed to create return' }, { status: 500 });
   }
 }
 
@@ -379,11 +384,11 @@ export async function DELETE(request: NextRequest) {
 
     for (const item of returnItems) {
       const prod = await prisma.product.findUnique({
-        where: { id: item.productId },
+        where: { id: item.productId, shopId },
         select: { stockQuantity: true },
       });
       await prisma.product.update({
-        where: { id: item.productId },
+        where: { id: item.productId, shopId },
         data: {
           stockQuantity: Math.max(0, (prod?.stockQuantity || 0) - item.quantity),
           isFaulty: false,
@@ -391,7 +396,7 @@ export async function DELETE(request: NextRequest) {
       });
       if (item.replacementProductId) {
         await prisma.product.update({
-          where: { id: item.replacementProductId },
+          where: { id: item.replacementProductId, shopId },
           data: { stockQuantity: { increment: item.quantity } },
         });
       }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { hashPassword } from '@/lib/auth-server';
+import { createOneTimeCode, hashPassword, validateNewPassword } from '@/lib/auth-server';
 import { ShopType } from '@prisma/client';
 import { sendVerificationCode } from '@/lib/email';
 
@@ -15,6 +15,8 @@ export async function POST(request: NextRequest) {
       if (!name || !shopType || !ownerName || !ownerEmail || !ownerPassword) {
         return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
       }
+      const passwordError = validateNewPassword(ownerPassword);
+      if (passwordError) return NextResponse.json({ error: passwordError }, { status: 400 });
 
       const validShopTypes = ['PHARMACY', 'GENERAL', 'LIQUOR', 'ELECTRONICS', 'CLOTHING'];
       if (!validShopTypes.includes(shopType)) {
@@ -38,7 +40,7 @@ export async function POST(request: NextRequest) {
       }
 
       const hashedPassword = await hashPassword(ownerPassword);
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const verification = createOneTimeCode();
 
       const TRIAL_DAYS = parseInt(process.env.TRIAL_DAYS || '3');
 
@@ -57,7 +59,8 @@ export async function POST(request: NextRequest) {
               name: ownerName,
               role: 'OWNER',
               emailVerified: false,
-              emailVerificationCode: verificationCode,
+              emailVerificationCode: verification.digest,
+              emailVerificationCodeExpires: verification.expiresAt,
             }
           },
           settings: {
@@ -77,54 +80,9 @@ export async function POST(request: NextRequest) {
       });
 
       try {
-        await sendVerificationCode(ownerEmail, verificationCode, ownerName);
+        await sendVerificationCode(ownerEmail, verification.code, ownerName);
       } catch {
         // Email sending failed, but account was created - still notify user
-      }
-
-      return NextResponse.json({
-        success: true,
-        emailVerified: false,
-        message: 'Account created! Please check your email for the verification code.',
-        ownerEmail: ownerEmail.toLowerCase(),
-      });
-    }
-
-    if (action === 'register') {
-      const { shopId, ownerName, ownerEmail, ownerPassword } = body;
-
-      const shop = await prisma.shop.findUnique({ where: { id: shopId } });
-      if (!shop) {
-        return NextResponse.json({ error: 'Shop not found' }, { status: 404 });
-      }
-
-      const existingUser = await prisma.user.findFirst({
-        where: { email: ownerEmail.toLowerCase(), shopId }
-      });
-
-      if (existingUser) {
-        return NextResponse.json({ error: 'Email already registered in this shop' }, { status: 400 });
-      }
-
-      const hashedPassword = await hashPassword(ownerPassword);
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-      await prisma.user.create({
-        data: {
-          email: ownerEmail.toLowerCase(),
-          password: hashedPassword,
-          name: ownerName,
-          role: 'OWNER',
-          shopId,
-          emailVerified: false,
-          emailVerificationCode: verificationCode,
-        }
-      });
-
-      try {
-        await sendVerificationCode(ownerEmail, verificationCode, ownerName);
-      } catch {
-        // Email sending is optional for this flow
       }
 
       return NextResponse.json({
@@ -144,24 +102,10 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const shopType = searchParams.get('type');
-
-    if (shopType) {
-      const shops = await prisma.shop.findMany({
-        where: { shopType: shopType as ShopType, isActive: true },
-        include: {
-          _count: {
-            select: { users: true, products: true }
-          }
-        }
-      });
-      return NextResponse.json({ shops });
-    }
-
+    const shopId = request.headers.get('x-shop-id');
+    if (!shopId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const shops = await prisma.shop.findMany({
-      where: { isActive: true },
-      orderBy: { createdAt: 'desc' },
+      where: { id: shopId, isActive: true },
       include: {
         _count: {
           select: { users: true, products: true }

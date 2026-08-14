@@ -7,7 +7,11 @@ export async function POST(request: NextRequest) {
     if (!shopId) return NextResponse.json({ error: 'Shop ID required' }, { status: 400 });
 
     const { image } = await request.json();
-    if (!image) return NextResponse.json({ error: 'Image data required' }, { status: 400 });
+    if (typeof image !== 'string') return NextResponse.json({ error: 'Image data required' }, { status: 400 });
+    const match = image.match(/^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/=]+)$/);
+    if (!match) return NextResponse.json({ error: 'Only PNG, JPEG, and WebP images are supported' }, { status: 400 });
+    const estimatedBytes = Math.floor(match[2].length * 0.75);
+    if (estimatedBytes > 1024 * 1024) return NextResponse.json({ error: 'Logo must be smaller than 1 MB' }, { status: 413 });
 
     await prisma.shop.update({
       where: { id: shopId },

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-
-const JWT_SECRET = process.env.JWT_SECRET;
+import { ADMIN_COOKIE_MAX_AGE, ADMIN_COOKIE_NAME, generateAdminToken } from '@/lib/auth-server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,11 +9,11 @@ export async function POST(request: NextRequest) {
     const adminEmail = process.env.ADMIN_EMAIL;
     const adminPasswordHashB64 = process.env.ADMIN_PASSWORD_HASH_B64;
 
-    if (!JWT_SECRET || !adminEmail || !adminPasswordHashB64) {
+    if (!adminEmail || !adminPasswordHashB64) {
       return NextResponse.json({ error: 'Admin not configured' }, { status: 500 });
     }
 
-    if (email !== adminEmail) {
+    if (typeof email !== 'string' || typeof password !== 'string' || email.toLowerCase() !== adminEmail.toLowerCase()) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
@@ -25,13 +23,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const token = jwt.sign(
-      { isAdmin: true, email: adminEmail },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    const token = generateAdminToken(adminEmail);
 
-    return NextResponse.json({ success: true, token });
+    const response = NextResponse.json({ success: true });
+    response.cookies.set(ADMIN_COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: ADMIN_COOKIE_MAX_AGE,
+    });
+    return response;
   } catch (error) {
     console.error('Admin login error:', error);
     return NextResponse.json({ error: 'Login failed' }, { status: 500 });

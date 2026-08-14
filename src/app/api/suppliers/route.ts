@@ -19,10 +19,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const shopId = request.headers.get('x-shop-id') || undefined;
-    console.log('Creating supplier, shopId:', shopId);
     if (!shopId) { return NextResponse.json({ error: 'Shop ID required' }, { status: 400 }); }
     const body = await request.json();
-    console.log('Supplier data:', body);
     const { name, email, phone, address, contactPerson, notes } = body;
 
     if (!name) {
@@ -32,13 +30,11 @@ export async function POST(request: NextRequest) {
     const supplier = await prisma.supplier.create({
       data: { name, email, phone, address, contactPerson, notes, shopId },
     });
-    console.log('Supplier created:', supplier);
 
     return NextResponse.json({ supplier });
   } catch (error) {
     console.error('Create supplier error:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ error: 'Failed to create supplier', details: errorMessage }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to create supplier' }, { status: 500 });
   }
 }
 

@@ -5,7 +5,7 @@ generator client {
 datasource db {
   provider = "postgres"
   url      = env("DATABASE_URL")
-  
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 enum ShopType {
@@ -137,6 +137,7 @@ model User {
   isActive     Boolean  @default(true)
   emailVerified Boolean @default(false)
   emailVerificationCode String?
+  emailVerificationCodeExpires DateTime?
   resetPasswordCode String?
   resetPasswordCodeExpires DateTime?
   shopId       String
@@ -147,6 +148,7 @@ model User {
   sales        Sale[]
 
   @@unique([email, shopId])
+  @@index([shopId, isActive])
 }
 
 model Category {
@@ -241,6 +243,11 @@ model Product {
   clothingFields  ClothingProduct?
   
   @@unique([sku, shopId])
+  @@index([shopId, updatedAt])
+  @@index([shopId, barcode])
+  @@index([shopId, stockQuantity])
+  @@index([categoryId])
+  @@index([supplierId])
 }
 
 model PharmacyProduct {
@@ -348,6 +355,8 @@ model StockMovement {
   reason     String?
   createdAt  DateTime @default(now())
   createdBy  String?
+
+  @@index([productId, createdAt])
 }
 
 enum StockMovementType {
@@ -396,6 +405,12 @@ model Sale {
   installmentPayments InstallmentPayment[]
 
   items         SaleItem[]
+
+  @@index([shopId, createdAt])
+  @@index([shopId, saleStatus])
+  @@index([cashierId])
+  @@index([customerId])
+  @@index([installmentCustomerId])
 }
 
 enum PaymentMethod {
@@ -427,6 +442,8 @@ model InstallmentPayment {
   paidAt        DateTime?
   notes         String?
   createdAt     DateTime @default(now())
+
+  @@index([saleId, createdAt])
 }
 
 model SaleItem {
@@ -440,6 +457,9 @@ model SaleItem {
   taxAmount   Float   @default(0)
   discount    Float   @default(0)
   total       Float
+
+  @@index([saleId])
+  @@index([productId])
 }
 
 model Customer {
@@ -476,6 +496,8 @@ model Return {
   shopId        String
   shop          Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   items         ReturnItem[]
+
+  @@index([shopId, createdAt])
 }
 
 model ReturnItem {
@@ -513,6 +535,9 @@ model ReturnItem {
   createdAt       DateTime         @default(now())
 
   returnInstallmentPayments ReturnInstallmentPayment[]
+
+  @@index([returnId])
+  @@index([productId])
 }
 
 model ReturnInstallmentPayment {
@@ -525,6 +550,8 @@ model ReturnInstallmentPayment {
   paidAt        DateTime?
   notes         String?
   createdAt     DateTime @default(now())
+
+  @@index([returnItemId, createdAt])
 }
 
 enum AwardedType {
@@ -558,6 +585,10 @@ model PurchaseOrder {
   shopId          String
   shop            Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   items           PurchaseOrderItem[]
+
+  @@index([shopId, createdAt])
+  @@index([shopId, status])
+  @@index([supplierId])
 }
 
 enum PurchaseOrderStatus {
@@ -601,6 +632,9 @@ model PurchaseOrderItem {
   liquorSize              Float?
   liquorCategoryName      String?
   liquorExpiryDate        DateTime?
+
+  @@index([purchaseOrderId])
+  @@index([productId])
 }
 
 model PriceTag {
@@ -623,6 +657,8 @@ model StockCount {
   shopId      String
   shop        Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   items       StockCountItem[]
+
+  @@index([shopId, startedAt])
 }
 
 enum StockCountStatus {
@@ -641,6 +677,9 @@ model StockCountItem {
   countedQty  Int?
   variance    Int?
   notes       String?
+
+  @@index([stockCountId])
+  @@index([productId])
 }
 
 model Expense {
@@ -653,6 +692,8 @@ model Expense {
   createdBy   String
   shopId      String
   shop        Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId, date])
 }
 
 enum ExpenseCategory {
@@ -721,6 +762,8 @@ model Reminder {
   createdBy   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([shopId, isActive, dueDate])
 }
 
 model Activity {
@@ -732,6 +775,9 @@ model Activity {
   action    String
   details   String?
   createdAt DateTime @default(now())
+
+  @@index([shopId, createdAt])
+  @@index([shopId, action, createdAt])
 }
 
 enum DebtType {

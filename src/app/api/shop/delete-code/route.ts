@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { sendDeletionCode } from '@/lib/email';
+import { createOneTimeCode } from '@/lib/auth-server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,15 +27,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Shop not found' }, { status: 404 });
     }
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    const deletion = createOneTimeCode();
 
     await prisma.shop.update({
       where: { id: shopId },
-      data: { deletionCode: code, deletionCodeExpires: expiresAt },
+      data: { deletionCode: deletion.digest, deletionCodeExpires: deletion.expiresAt },
     });
 
-    await sendDeletionCode(businessEmail, code, shop.name);
+    await sendDeletionCode(businessEmail, deletion.code, shop.name);
 
     return NextResponse.json({ success: true, message: 'Verification code sent to business email' });
   } catch (error) {

@@ -51,6 +51,13 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  text-rendering: optimizeLegibility;
+}
+
+:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
 }
 
 .btn {
@@ -144,7 +151,7 @@ body {
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--foreground);
-  margin-bottom:rem;
+  margin-bottom: 0.5rem;
 }
 
 .table {

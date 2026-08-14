@@ -1,29 +1,14 @@
 services:
-  db:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-isms}
-      POSTGRES_USER: ${POSTGRES_USER:-isms}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
-      interval: 5s
-      timeout: 5s
-      retries: 12
-
   migrate:
     build:
       context: .
       target: migrate
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-isms}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-isms}?schema=public
-    depends_on:
-      db:
-        condition: service_healthy
+      DATABASE_URL: ${DATABASE_URL:?Set the Neon pooled DATABASE_URL in .env}
+      DIRECT_DATABASE_URL: ${DIRECT_DATABASE_URL:?Set the Neon direct DIRECT_DATABASE_URL in .env}
     restart: "no"
+    security_opt:
+      - no-new-privileges:true
 
   app:
     build:
@@ -33,8 +18,10 @@ services:
     ports:
       - "${APP_PORT:-3000}:3000"
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-isms}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-isms}?schema=public
+      DATABASE_URL: ${DATABASE_URL:?Set the Neon pooled DATABASE_URL in .env}
+      DIRECT_DATABASE_URL: ${DIRECT_DATABASE_URL:?Set the Neon direct DIRECT_DATABASE_URL in .env}
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      APP_ORIGIN: ${APP_ORIGIN:?Set the public HTTPS origin in .env}
       TRIAL_DAYS: ${TRIAL_DAYS:-3}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PASSWORD_HASH_B64: ${ADMIN_PASSWORD_HASH_B64:-}
@@ -48,6 +35,22 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
-
-volumes:
-  postgres_data:
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+      - /app/.next/cache:size=128m,uid=1001,gid=1001
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    mem_limit: 1g
+    cpus: 1.5
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 30s

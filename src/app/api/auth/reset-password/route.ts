@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { hashPassword } from '@/lib/auth-server';
+import { hashPassword, validateNewPassword, verifyOneTimeCode } from '@/lib/auth-server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,9 +9,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email, code, and new password are required' }, { status: 400 });
     }
 
-    if (newPassword.length < 6) {
-      return NextResponse.json({ error: 'Password must be at least 6 characters' }, { status: 400 });
-    }
+    const passwordError = validateNewPassword(newPassword);
+    if (passwordError) return NextResponse.json({ error: passwordError }, { status: 400 });
 
     const user = await prisma.user.findFirst({
       where: { email: email.toLowerCase(), isActive: true },
@@ -25,7 +24,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No reset code requested. Please request a new one.' }, { status: 400 });
     }
 
-    if (user.resetPasswordCode !== code) {
+    if (!verifyOneTimeCode(code, user.resetPasswordCode)) {
       return NextResponse.json({ error: 'Invalid reset code' }, { status: 400 });
     }
 

@@ -122,14 +122,6 @@ export async function GET(request: NextRequest) {
       orderBy: { updatedAt: 'desc' },
     });
 
-    console.log('=== GET PRODUCTS ===');
-    console.log('Shop ID:', shopId);
-    console.log('Total products:', products.length);
-    if (products.length > 0) {
-      const ef = (products[0] as any).electronicsFields;
-      console.log('First product has electronicsFields:', ef ? JSON.stringify(ef) : 'NO');
-    }
-
     return NextResponse.json({ products });
   } catch (error) {
     console.error('Get products error:', error);
@@ -178,17 +170,10 @@ export async function POST(request: NextRequest) {
         existingCat = await prisma.category.create({
           data: { name: targetCategoryName, shopId }
         });
-        console.log('Created category:', targetCategoryName);
-      } else {
-        console.log('Found existing category:', targetCategoryName);
       }
       
       productCategoryId = existingCat.id;
     }
-
-    console.log('=== POST INVENTORY ===');
-    console.log('Shop type:', shop.shopType);
-    console.log('Body received:', JSON.stringify(body));
 
     // Build product data - simple version without shop-specific fields first
     const productData: any = {
@@ -246,14 +231,11 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: `IMEI ${electronicsData.imei} is already in use by another product` }, { status: 400 });
         }
       }
-      console.log('Creating electronics fields:', electronicsData);
       productData.electronicsFields = { create: electronicsData };
       // IMEI-tracked phone: each unique IMEI = one physical unit
       if (electronicsData.imei) {
         productData.stockQuantity = 1;
       }
-    } else {
-      console.log('No electronics fields found in body');
     }
 
     // Ensure LIQUOR shops always have a category
@@ -299,8 +281,6 @@ export async function POST(request: NextRequest) {
         productData.liquorFields = { create: liquorData };
       }
     }
-
-    console.log('Creating product with data keys:', Object.keys(productData));
 
     const product = await prisma.product.create({
       data: productData,
@@ -360,13 +340,14 @@ export async function POST(request: NextRequest) {
       console.error('Prisma error code:', (error as any).code);
       console.error('Prisma error meta:', (error as any).meta);
     }
-    return NextResponse.json({ error: 'Failed to create product', details: errMsg }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
+    const shopId = request.headers.get('x-shop-id') || '';
     const {
       id, name, sku, barcode, description, categoryId, supplierId,
       purchaseCost, sellingPrice, wholesalePrice, stockQuantity,
@@ -421,7 +402,7 @@ export async function PUT(request: NextRequest) {
 
     // Check if product has electronicsFields
     const existingProduct = await prisma.product.findUnique({ 
-      where: { id },
+      where: { id, shopId },
       include: { electronicsFields: true, liquorFields: true, clothingFields: true, pharmacyFields: true, variants: true }
     });
 
@@ -544,7 +525,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const product = await prisma.product.update({
-      where: { id },
+      where: { id, shopId },
       data: updateData,
       include: { category: true, electronicsFields: true, liquorFields: true, clothingFields: true, pharmacyFields: true, variants: true },
     });
@@ -574,10 +555,11 @@ export async function DELETE(request: NextRequest) {
     }
 
     const shopId = request.headers.get('x-shop-id') || '';
-    const product = await prisma.product.findUnique({ where: { id } });
+    const product = await prisma.product.findUnique({ where: { id, shopId } });
+    if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     const productName = product?.name || id;
 
-    await prisma.product.delete({ where: { id } });
+    await prisma.product.delete({ where: { id, shopId } });
 
     logActivity({
       shopId,
@@ -600,8 +582,9 @@ export async function PATCH(request: NextRequest) {
     const action = searchParams.get('action');
 
     if (action === 'generateBarcodes') {
+      const shopId = request.headers.get('x-shop-id') || '';
       const productsWithoutBarcode = await prisma.product.findMany({
-        where: { barcode: null }
+        where: { barcode: null, shopId }
       });
 
       let updated = 0;

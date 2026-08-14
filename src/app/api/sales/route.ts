@@ -1,60 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import bcrypt from 'bcryptjs';
 import { logActivity } from '@/lib/activity-log';
+import { randomUUID } from 'node:crypto';
 
-async function generateReceiptNumber(shopId: string): Promise<string> {
-  for (let i = 0; i < 10; i++) {
-    const lastSale = await prisma.sale.findFirst({
-      where: { shopId },
-      orderBy: { receiptNumber: 'desc' },
-      select: { receiptNumber: true },
-    });
-    let nextNum = 1;
-    if (lastSale?.receiptNumber) {
-      const match = lastSale.receiptNumber.match(/RCP(\d{5})$/);
-      if (match) nextNum = parseInt(match[1], 10) + 1;
-    }
-    const candidate = 'RCP' + String(nextNum).padStart(5, '0');
-    const existing = await prisma.sale.findUnique({
-      where: { receiptNumber: candidate },
-      select: { id: true },
-    });
-    if (!existing) return candidate;
-  }
-  return 'RCP' + Date.now();
-}
-
-async function getCashierId(shopId: string) {
-  let cashier = await prisma.user.findFirst({
-    where: { role: 'OWNER', shopId }
-  });
-  
-  if (!cashier) {
-    cashier = await prisma.user.findFirst({
-      where: { role: 'CASHIER', shopId }
-    });
-  }
-  
-  if (!cashier) {
-    const hashedPassword = await bcrypt.hash('demo123', 10);
-    const uniqueSuffix = Date.now().toString(36);
-    cashier = await prisma.user.create({
-      data: {
-        email: `cashier-${uniqueSuffix}@local`,
-        password: hashedPassword,
-        name: 'Cashier',
-        role: 'CASHIER',
-        shopId,
-      }
-    });
-  }
-  
-  if (!cashier?.id) {
-    throw new Error('No cashier found for shop');
-  }
-  
-  return cashier.id;
+function generateReceiptNumber(shopId: string): string {
+  return `RCP-${shopId.slice(-6).toUpperCase()}-${Date.now().toString(36).toUpperCase()}-${randomUUID().slice(0, 6).toUpperCase()}`;
 }
 
 export async function POST(request: NextRequest) {
@@ -64,8 +14,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Shop ID required' }, { status: 400 }); 
     }
     
-    const cashierId = await getCashierId(shopId);
-    if (!cashierId) {
+    const cashierId = request.headers.get('x-user-id');
+    const cashier = cashierId ? await prisma.user.findFirst({ where: { id: cashierId, shopId, isActive: true } }) : null;
+    if (!cashier) {
       return NextResponse.json({ error: 'Cashier not found' }, { status: 400 });
     }
     
@@ -73,8 +24,11 @@ export async function POST(request: NextRequest) {
     
     const { items, discount = 0, paymentMethod, saleType = 'RETAIL', customerName, customerPhone, customerAddress, amountPaid = 0, customerId, saveCustomer = false } = body;
 
-    if (!items || items.length === 0) {
+    if (!Array.isArray(items) || items.length === 0 || items.length > 100) {
       return NextResponse.json({ error: 'No items in cart' }, { status: 400 });
+    }
+    if (!['CASH', 'CARD', 'MOBILE', 'CREDIT'].includes(paymentMethod) || !['RETAIL', 'WHOLESALE'].includes(saleType)) {
+      return NextResponse.json({ error: 'Invalid payment method or sale type' }, { status: 400 });
     }
 
     const isCredit = paymentMethod === 'CREDIT';
@@ -101,33 +55,48 @@ export async function POST(request: NextRequest) {
       finalCustomerId = customer.id;
     }
     
-    let subtotal = 0;
-    const saleItemsData = [];
-    
-    for (const item of items) {
-      const price = useWholesale && item.product.wholesalePrice ? item.product.wholesalePrice : item.product.sellingPrice;
-      const qty = item.quantity || 1;
-      const lineTotal = price * qty;
-      subtotal += lineTotal;
-      
-      saleItemsData.push({
-        productId: item.product.id,
-        quantity: qty,
-        unitPrice: price,
-        discount: item.discount || 0,
-        total: lineTotal - (item.discount || 0),
-      });
-    }
-    
-    const total = subtotal - (discount || 0);
-    const paid = isCredit ? amountPaid : total;
-    const change = paymentMethod === 'CASH' ? Math.max(0, amountPaid - total) : 0;
+    const productIds = [...new Set(items.map((item: any) => item?.product?.id).filter(Boolean))] as string[];
+    const products = await prisma.product.findMany({
+      where: { id: { in: productIds }, shopId },
+      select: { id: true, name: true, sellingPrice: true, wholesalePrice: true, stockQuantity: true },
+    });
+    if (products.length !== productIds.length) return NextResponse.json({ error: 'One or more products are invalid' }, { status: 400 });
+    const productsById = new Map(products.map(product => [product.id, product]));
 
-const saleData: any = {
-      receiptNumber: '',
+    let subtotal = 0;
+    const saleItemsData: Array<{ productId: string; quantity: number; unitPrice: number; discount: number; total: number }> = [];
+    for (const item of items) {
+      const product = productsById.get(item?.product?.id);
+      const qty = Number(item.quantity);
+      if (!product || !Number.isSafeInteger(qty) || qty < 1 || qty > 100_000) {
+        return NextResponse.json({ error: 'Invalid sale quantity' }, { status: 400 });
+      }
+      const itemDiscount = Number(item.discount || 0);
+      const price = useWholesale && product.wholesalePrice != null ? product.wholesalePrice : product.sellingPrice;
+      const lineTotal = price * qty;
+      if (!Number.isFinite(itemDiscount) || itemDiscount < 0 || itemDiscount > lineTotal) {
+        return NextResponse.json({ error: 'Invalid item discount' }, { status: 400 });
+      }
+      subtotal += lineTotal;
+      saleItemsData.push({ productId: product.id, quantity: qty, unitPrice: price, discount: itemDiscount, total: lineTotal - itemDiscount });
+    }
+
+    const orderDiscount = Number(discount || 0);
+    if (!Number.isFinite(orderDiscount) || orderDiscount < 0 || orderDiscount > subtotal) {
+      return NextResponse.json({ error: 'Invalid sale discount' }, { status: 400 });
+    }
+    const total = subtotal - orderDiscount;
+    const numericAmountPaid = Number(amountPaid);
+    if (!Number.isFinite(numericAmountPaid) || numericAmountPaid < 0) return NextResponse.json({ error: 'Invalid amount paid' }, { status: 400 });
+    const paid = isCredit ? numericAmountPaid : total;
+    const change = paymentMethod === 'CASH' ? Math.max(0, numericAmountPaid - total) : 0;
+
+    const receiptNumber = generateReceiptNumber(shopId);
+    const saleData: any = {
+      receiptNumber,
       shopId,
       subtotal,
-      discount: discount || 0,
+      discount: orderDiscount,
       total,
       paymentMethod,
       saleType,
@@ -139,7 +108,7 @@ const saleData: any = {
       isInstallment: isCredit,
       saleStatus: isCredit ? 'INSTALLMENT' : 'COMPLETE',
       isPaid: !isCredit,
-      cashierId,
+      cashierId: cashier.id,
       items: {
         create: saleItemsData,
       },
@@ -151,72 +120,38 @@ const saleData: any = {
 
     if (isCredit) {
       saleData.installmentTotal = total;
-      saleData.installmentPaid = amountPaid;
-      saleData.installmentDue = Math.max(0, total - amountPaid);
+      saleData.installmentPaid = numericAmountPaid;
+      saleData.installmentDue = Math.max(0, total - numericAmountPaid);
       saleData.nextPaymentDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     }
 
-    // Validate all product IDs exist and have sufficient stock
-    for (const item of items) {
-      const productExists = await prisma.product.findUnique({ where: { id: item.product.id } });
-      if (!productExists) {
-        console.error('Product not found:', item.product.id);
-        return NextResponse.json({ error: `Product not found: ${item.product.id}` }, { status: 400 });
+    const sale = await prisma.$transaction(async tx => {
+      for (const item of saleItemsData) {
+        const updated = await tx.product.updateMany({
+          where: { id: item.productId, shopId, stockQuantity: { gte: item.quantity } },
+          data: { stockQuantity: { decrement: item.quantity } },
+        });
+        if (updated.count !== 1) throw new Error('INSUFFICIENT_STOCK');
       }
-      const qty = item.quantity || 1;
-      if (productExists.stockQuantity < qty) {
-        return NextResponse.json({ error: `Insufficient stock for ${productExists.name}. Available: ${productExists.stockQuantity}, requested: ${qty}` }, { status: 400 });
-      }
-    }
-
-    // Validate cashier exists
-    const cashierExists = await prisma.user.findUnique({ where: { id: cashierId } });
-    if (!cashierExists) {
-      console.error('Cashier not found:', cashierId);
-      return NextResponse.json({ error: 'Cashier not found' }, { status: 400 });
-    }
-
-    console.log('All validations passed, creating sale with data:', JSON.stringify(saleData, null, 2));
-
-    let sale;
-    let receiptNumber;
-    const maxRetries = 5;
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-      receiptNumber = await generateReceiptNumber(shopId);
-      saleData.receiptNumber = receiptNumber;
-      try {
-        sale = await prisma.sale.create({
+      const createdSale = await tx.sale.create({
           data: saleData,
           include: {
             items: { include: { product: { include: { electronicsFields: true } } } },
             cashier: { select: { name: true, email: true } },
           },
+      });
+      if (finalCustomerId) {
+        const updatedCustomer = await tx.customer.updateMany({
+          where: { id: finalCustomerId, shopId },
+          data: { totalPurchases: { increment: total } },
         });
-        break;
-      } catch (err: any) {
-        if (err?.code === 'P2002' && attempt < maxRetries - 1) continue;
-        throw err;
+        if (updatedCustomer.count !== 1) throw new Error('INVALID_CUSTOMER');
       }
-    }
-    if (!sale) throw new Error('Failed to create sale after retries');
-    console.log('Sale created successfully:', sale.id);
-
-    for (const item of items) {
-      await prisma.product.update({
-        where: { id: item.product.id },
-        data: { stockQuantity: { decrement: item.quantity || 1 } },
-      });
-    }
-
-    if (finalCustomerId) {
-      await prisma.customer.update({
-        where: { id: finalCustomerId },
-        data: { totalPurchases: { increment: total } },
-      });
-    }
+      return createdSale;
+    });
 
     logActivity({
-      shopId, userId: cashierId, userName: cashierExists.name,
+      shopId, userId: cashier.id, userName: cashier.name,
       action: 'SALE_CREATED',
       details: `Sale ${receiptNumber} — ${total.toLocaleString()} (${items.length} items)`,
     });
@@ -224,7 +159,10 @@ const saleData: any = {
     return NextResponse.json({ sale });
   } catch (error) {
     console.error('Sale error:', error);
-    return NextResponse.json({ error: 'Sale failed: ' + (error instanceof Error ? error.message : 'Unknown error') }, { status: 500 });
+    if (error instanceof Error && error.message === 'INSUFFICIENT_STOCK') {
+      return NextResponse.json({ error: 'Insufficient stock; inventory changed while processing the sale' }, { status: 409 });
+    }
+    return NextResponse.json({ error: 'Sale failed' }, { status: 500 });
   }
 }
 

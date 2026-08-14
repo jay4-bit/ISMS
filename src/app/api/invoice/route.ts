@@ -5,13 +5,14 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const shopId = request.headers.get('x-shop-id');
 
-    if (!id) {
+    if (!id || !shopId) {
       return NextResponse.json({ error: 'Sale ID required' }, { status: 400 });
     }
 
     const sale = await prisma.sale.findUnique({
-      where: { id },
+      where: { id, shopId },
       include: {
         items: { include: { product: true } },
         cashier: { select: { name: true } },

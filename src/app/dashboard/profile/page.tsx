@@ -54,15 +54,15 @@ export default function ProfilePage() {
       showNotification('Passwords do not match', 'error');
       return;
     }
-    if (passwordForm.newPassword.length < 6) {
-      showNotification('Password must be at least 6 characters', 'error');
+    if (passwordForm.newPassword.length < 12) {
+      showNotification('Password must be at least 12 characters', 'error');
       return;
     }
     try {
       const res = await fetch('/api/users', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'x-shop-id': shop?.id || '' },
-        body: JSON.stringify({ newPassword: passwordForm.newPassword, id: authUser?.id }),
+        body: JSON.stringify({ newPassword: passwordForm.newPassword, currentPassword: passwordForm.currentPassword, id: authUser?.id }),
       });
       if (res.ok) {
         showNotification('Password changed successfully!', 'success');
@@ -145,6 +145,8 @@ export default function ProfilePage() {
                   onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
                   style={styles.input}
                   placeholder="Enter current password"
+                  required
+                  autoComplete="current-password"
                 />
                 <button type="button" onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })} style={styles.eyeBtn}>
                   {showPasswords.current ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -160,6 +162,10 @@ export default function ProfilePage() {
                   onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                   style={styles.input}
                   placeholder="Enter new password"
+                  required
+                  minLength={12}
+                  maxLength={128}
+                  autoComplete="new-password"
                 />
                 <button type="button" onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })} style={styles.eyeBtn}>
                   {showPasswords.new ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -175,6 +181,10 @@ export default function ProfilePage() {
                   onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
                   style={styles.input}
                   placeholder="Confirm new password"
+                  required
+                  minLength={12}
+                  maxLength={128}
+                  autoComplete="new-password"
                 />
                 <button type="button" onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })} style={styles.eyeBtn}>
                   {showPasswords.confirm ? <EyeOff size={18} /> : <Eye size={18} />}

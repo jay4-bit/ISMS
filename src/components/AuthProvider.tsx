@@ -80,17 +80,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-
-    fetch('/api/auth/session', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .catch(() => {})
+    fetch('/api/auth/session', { cache: 'no-store' })
+      .then(async res => {
+        if (!res.ok) throw new Error('No active session');
+        const data = await res.json();
+        if (!data.authenticated) throw new Error('No active session');
+        setUser(data.user);
+        setShop(data.shop);
+        setSubscription(data.subscription);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('shop', JSON.stringify(data.shop));
+        localStorage.setItem('subscription', JSON.stringify(data.subscription));
+      })
+      .catch(() => {
+        setUser(null);
+        setShop(null);
+        setSubscription(null);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -173,7 +179,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data.user && data.shop) {
         localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem('shop', JSON.stringify(data.shop));
-        localStorage.setItem('token', data.token);
         localStorage.setItem('loginTime', String(Date.now()));
         localStorage.removeItem('permissions');
         localStorage.removeItem('inshop_logo');
@@ -213,7 +218,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data.success && data.user && data.shop) {
         localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem('shop', JSON.stringify(data.shop));
-        localStorage.setItem('token', data.token);
         localStorage.setItem('loginTime', String(Date.now()));
         localStorage.removeItem('permissions');
         setUser(data.user);
@@ -238,7 +242,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void fetch('/api/auth/session', { method: 'DELETE' });
     localStorage.removeItem('user');
     localStorage.removeItem('shop');
-    localStorage.removeItem('token');
     localStorage.removeItem('permissions');
     localStorage.removeItem('subscription');
     localStorage.removeItem('loginTime');
