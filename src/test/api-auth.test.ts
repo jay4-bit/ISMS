@@ -47,4 +47,22 @@ describe('Admin Authentication & Session', () => {
     const response = await adminSessionGET(request);
     expect(response.status).toBe(401);
   });
+
+  it('rejects unauthenticated requests to admin payments endpoint', async () => {
+    const { GET: adminPaymentsGET } = await import('@/app/api/admin/payments/route');
+    const request = new NextRequest('http://localhost/api/admin/payments');
+    const response = await adminPaymentsGET(request);
+    expect(response.status).toBe(401);
+  });
+
+  it('rejects unauthenticated requests to admin payments confirm endpoint', async () => {
+    const { POST: adminPaymentsConfirmPOST } = await import('@/app/api/admin/payments/confirm/route');
+    const request = new NextRequest('http://localhost/api/admin/payments/confirm', {
+      method: 'POST',
+      body: JSON.stringify({ paymentId: 'test-id', action: 'CONFIRMED' }),
+      headers: { 'content-type': 'application/json' },
+    });
+    const response = await adminPaymentsConfirmPOST(request);
+    expect(response.status).toBe(401);
+  });
 });

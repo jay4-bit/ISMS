@@ -17,7 +17,7 @@ export default function AdminPaymentsPage() {
     if (!token) { router.replace('/admin/login'); return; }
 
     try {
-      const res = await fetch('/api/subscription/payments', {
+      const res = await fetch('/api/admin/payments', {
         headers: { 'authorization': `Bearer ${token}` },
       });
       if (res.status === 401) { localStorage.removeItem('admin_token'); router.replace('/admin/login'); return; }
@@ -35,7 +35,7 @@ export default function AdminPaymentsPage() {
     if (!token) return;
     setProcessing(paymentId);
     try {
-      const res = await fetch('/api/subscription/payments/confirm', {
+      const res = await fetch('/api/admin/payments/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'authorization': `Bearer ${token}` },
         body: JSON.stringify({ paymentId, action }),

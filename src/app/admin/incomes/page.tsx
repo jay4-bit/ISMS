@@ -19,7 +19,7 @@ export default function AdminIncomesPage() {
     const token = localStorage.getItem('admin_token');
     if (!token) { router.replace('/admin/login'); return; }
     try {
-      const res = await fetch('/api/subscription/payments', {
+      const res = await fetch('/api/admin/payments', {
         headers: { 'authorization': `Bearer ${token}` },
       });
       if (res.status === 401) { localStorage.removeItem('admin_token'); router.replace('/admin/login'); return; }

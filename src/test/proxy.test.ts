@@ -72,5 +72,10 @@ describe('API proxy', () => {
       headers: { cookie: `${ADMIN_COOKIE_NAME}=${adminToken}` },
     }));
     expect(allowed.status).toBe(200);
+
+    const allowedPayments = proxy(new NextRequest('http://localhost/api/admin/payments', {
+      headers: { cookie: `${ADMIN_COOKIE_NAME}=${adminToken}` },
+    }));
+    expect(allowedPayments.status).toBe(200);
   });
 });
