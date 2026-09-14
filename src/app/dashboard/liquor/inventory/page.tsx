@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { formatCurrency } from '@/lib/utils';
+import { exportJsonToExcel } from '@/lib/excel';
 import { Plus, Search, Eye, Edit, Trash2, Upload, X } from 'lucide-react';
 
 interface Product {
@@ -648,17 +649,19 @@ export default function LiquorInventoryPage() {
               <button
                 onClick={async () => {
                   try {
-                    const ExcelJS = await import('exceljs');
                     const sampleData = [
                       { 'Product Name': 'Johnnie Walker Red', 'Category': 'Whiskey', 'Size (ml)': 750, 'Supplier': 'Distributor A', 'Barcode': '', 'Cost Price': 15000, 'Selling Price': 35000, 'Wholesale Price': 30000, 'Stock Quantity': 20, 'Min Stock Level': 10, 'Reorder Point': 15, 'Expiry Date': '' },
                       { 'Product Name': 'Heineken Lager', 'Category': 'Beer', 'Size (ml)': 330, 'Supplier': 'Distributor B', 'Barcode': '8712000012344', 'Cost Price': 3500, 'Selling Price': 5000, 'Wholesale Price': 4000, 'Stock Quantity': 120, 'Min Stock Level': 20, 'Reorder Point': 40, 'Expiry Date': '2026-12-31' },
                     ];
-                    const workbook = new ExcelJS.Workbook();
-                    const worksheet = workbook.addWorksheet('Products');
-                    worksheet.columns = Object.keys(sampleData[0]).map(key => ({ header: key, key }));
-                    worksheet.addRows(sampleData);
-                    await workbook.xlsx.writeFile('sample-liquor-import.xlsx');
-                  } catch (err) { console.error('Download error:', err); }
+                    await exportJsonToExcel({
+                      filename: 'sample-liquor-import.xlsx',
+                      sheetName: 'Liquor Products',
+                      data: sampleData,
+                    });
+                  } catch (err) {
+                    console.error('Download error:', err);
+                    alert('Failed to download sample. Please try again.');
+                  }
                 }}
                 style={{
                   color: '#3b82f6', fontSize: '0.8rem', textDecoration: 'underline',

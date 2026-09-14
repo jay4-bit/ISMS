@@ -10,6 +10,7 @@ import {
   Smartphone, Headphones, Wrench
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { exportJsonToExcel } from '@/lib/excel';
 import { useAuth } from '@/components/AuthProvider';
 import { ElectronicsPhoneForm, ElectronicsAccessoryForm } from '@/components/ElectronicsForms';
 
@@ -877,7 +878,10 @@ export default function InventoryPage() {
               <button 
                 onClick={async () => {
                   try {
-                    const ExcelJS = await import('exceljs');
+                    if (products.length === 0) {
+                      alert('No products to export.');
+                      return;
+                    }
                     const exportData = products.map(p => ({
                       name: p.name,
                       sku: p.sku,
@@ -890,10 +894,50 @@ export default function InventoryPage() {
                         buyingPrice: p.purchaseCost,
                         sellingPrice: p.sellingPrice,
                         quantity: p.stockQuantity
+                      } : isLiquor ? {
+                        barcode: p.barcode || '',
+                        category: p.category?.name || '',
+                        size: (p as any).liquorFields?.size || '',
+                        supplier: p.supplier?.name || '',
+                        purchaseCost: p.purchaseCost,
+                        sellingPrice: p.sellingPrice,
+                        wholesalePrice: p.wholesalePrice || '',
+                        stockQuantity: p.stockQuantity,
+                        lowStockThreshold: p.lowStockThreshold,
+                        reorderPoint: p.reorderPoint,
+                        expiryDate: p.expiryDate || ''
+                      } : isElectronics ? {
+                        brand: (p as any).electronicsFields?.brand || '',
+                        model: (p as any).electronicsFields?.model || '',
+                        imei: (p as any).electronicsFields?.imei || '',
+                        condition: (p as any).electronicsFields?.condition || '',
+                        storage: (p as any).electronicsFields?.storage || '',
+                        color: (p as any).electronicsFields?.color || '',
+                        supplier: p.supplier?.name || '',
+                        purchaseCost: p.purchaseCost,
+                        sellingPrice: p.sellingPrice,
+                        wholesalePrice: p.wholesalePrice || '',
+                        stockQuantity: p.stockQuantity
+                      } : isClothing ? {
+                        brand: (p as any).clothingFields?.brand || '',
+                        category: p.category?.name || '',
+                        barcode: p.barcode || '',
+                        size: (p as any).clothingFields?.size || '',
+                        color: (p as any).clothingFields?.color || '',
+                        variants: p.variants?.map(v => `${v.variantValue}: ${v.stockQuantity}`).join(', ') || '',
+                        supplier: p.supplier?.name || '',
+                        purchaseCost: p.purchaseCost,
+                        sellingPrice: p.sellingPrice,
+                        wholesalePrice: p.wholesalePrice || '',
+                        stockQuantity: p.stockQuantity,
+                        lowStockThreshold: p.lowStockThreshold,
+                        reorderPoint: p.reorderPoint,
+                        description: p.description || ''
                       } : {
                         barcode: p.barcode || '',
                         description: p.description || '',
                         category: p.category?.name || '',
+                        supplier: p.supplier?.name || '',
                         purchaseCost: p.purchaseCost,
                         sellingPrice: p.sellingPrice,
                         wholesalePrice: p.wholesalePrice || '',
@@ -907,13 +951,12 @@ export default function InventoryPage() {
                       })
                     }));
                     
-                    const workbook = new ExcelJS.Workbook();
-                    const worksheet = workbook.addWorksheet('Products');
-                    worksheet.columns = Object.keys(exportData[0]).map(key => ({ header: key, key }));
-                    worksheet.addRows(exportData);
-                    
                     const date = new Date().toISOString().split('T')[0];
-                    await workbook.xlsx.writeFile(`inventory-export-${date}.xlsx`);
+                    await exportJsonToExcel({
+                      filename: `inventory-export-${date}.xlsx`,
+                      sheetName: 'Products',
+                      data: exportData
+                    });
                   } catch (err) {
                     console.error('Export error:', err);
                     alert('Failed to export. Please try again.');
@@ -2565,14 +2608,14 @@ export default function InventoryPage() {
                           }
                         ];
                         
-                        const workbook = new ExcelJS.Workbook();
-                        const worksheet = workbook.addWorksheet('Products');
-                        worksheet.columns = Object.keys(sampleData[0]).map(key => ({ header: key, key }));
-                        worksheet.addRows(sampleData);
-                        
-                        await workbook.xlsx.writeFile('sample-import.xlsx');
+                        await exportJsonToExcel({
+                          filename: 'sample-inventory-template.xlsx',
+                          sheetName: 'Sample Products',
+                          data: sampleData
+                        });
                       } catch (err) {
                         console.error('Download error:', err);
+                        alert('Failed to download sample template. Please try again.');
                       }
                     }}
                     style={{ 
