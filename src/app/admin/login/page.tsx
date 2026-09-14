@@ -24,9 +24,8 @@ export default function AdminLoginPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        // This is only a UI hint. The credential is held in an HttpOnly cookie.
         localStorage.setItem('admin_token', 'authenticated');
-        router.push('/admin');
+        router.replace('/admin');
       } else {
         setError(data.error || 'Login failed');
       }

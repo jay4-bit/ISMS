@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { createHmac, randomInt, timingSafeEqual } from 'node:crypto';
+import type { NextRequest } from 'next/server';
 
 function requiredEnvironmentVariable(name: string): string {
   const value = process.env[name];
@@ -101,6 +102,22 @@ export function verifyAdminToken(token: string): { email: string; isAdmin: true 
   } catch {
     return null;
   }
+}
+
+export function verifyAdminRequest(request: NextRequest): { email: string; isAdmin: true } | null {
+  const cookieToken = request.cookies.get(ADMIN_COOKIE_NAME)?.value;
+  if (cookieToken) {
+    const verified = verifyAdminToken(cookieToken);
+    if (verified) return verified;
+  }
+  const auth = request.headers.get('authorization');
+  if (auth?.startsWith('Bearer ')) {
+    const token = auth.slice(7);
+    if (token && token !== 'authenticated') {
+      return verifyAdminToken(token);
+    }
+  }
+  return null;
 }
 
 function digestOneTimeCode(code: string): Buffer {

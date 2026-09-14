@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ADMIN_COOKIE_NAME, verifyAdminToken } from '@/lib/auth-server';
+import { ADMIN_COOKIE_NAME, verifyAdminRequest } from '@/lib/auth-server';
 
 export async function GET(request: NextRequest) {
-  const token = request.cookies.get(ADMIN_COOKIE_NAME)?.value;
-  return token && verifyAdminToken(token)
-    ? NextResponse.json({ authenticated: true }, { headers: { 'Cache-Control': 'no-store' } })
+  const admin = verifyAdminRequest(request);
+  return admin
+    ? NextResponse.json({ authenticated: true, email: admin.email }, { headers: { 'Cache-Control': 'no-store' } })
     : NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 }
 

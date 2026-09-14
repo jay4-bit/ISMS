@@ -1,22 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
 import prisma from '@/lib/db';
-
-const JWT_SECRET = process.env.JWT_SECRET ?? '';
-
-function verifyAdmin(request: NextRequest) {
-  try {
-    const auth = request.headers.get('authorization') || '';
-    const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
-    const decoded: any = jwt.verify(token, JWT_SECRET);
-    return decoded.isAdmin ? decoded : null;
-  } catch {
-    return null;
-  }
-}
+import { verifyAdminRequest } from '@/lib/auth-server';
 
 export async function GET(request: NextRequest) {
-  const admin = verifyAdmin(request);
+  const admin = verifyAdminRequest(request);
   if (!admin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -52,7 +39,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const admin = verifyAdmin(request);
+  const admin = verifyAdminRequest(request);
   if (!admin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -82,7 +69,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  const admin = verifyAdmin(request);
+  const admin = verifyAdminRequest(request);
   if (!admin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -113,7 +100,7 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const admin = verifyAdmin(request);
+  const admin = verifyAdminRequest(request);
   if (!admin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

@@ -19,24 +19,53 @@ const ADMIN_PATHS = [
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [token, setToken] = useState<string | null>(null);
+  const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [collapsed, setCollapsed] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    setToken(localStorage.getItem('admin_token'));
-  }, []);
+    let active = true;
+    const checkAuth = async () => {
+      try {
+        const res = await fetch('/api/admin/session', { cache: 'no-store' });
+        if (!active) return;
+        if (res.ok) {
+          setAuthenticated(true);
+          localStorage.setItem('admin_token', 'authenticated');
+          if (pathname === '/admin/login') {
+            router.replace('/admin');
+          }
+        } else {
+          setAuthenticated(false);
+          localStorage.removeItem('admin_token');
+          if (pathname !== '/admin/login') {
+            router.replace('/admin/login');
+          }
+        }
+      } catch {
+        if (!active) return;
+        setAuthenticated(false);
+        localStorage.removeItem('admin_token');
+        if (pathname !== '/admin/login') {
+          router.replace('/admin/login');
+        }
+      }
+    };
 
-  useEffect(() => {
-    if (mounted && !token && pathname !== '/admin/login') {
-      router.replace('/admin/login');
-    }
-  }, [mounted, token, pathname, router]);
+    checkAuth();
+    return () => { active = false; };
+  }, [pathname, router]);
 
   if (pathname === '/admin/login') return <>{children}</>;
 
-  if (!token) return null;
+  if (authenticated === null) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f172a', color: '#64748b' }}>
+        Loading Admin Panel...
+      </div>
+    );
+  }
+
+  if (!authenticated) return null;
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#0f172a' }}>
@@ -81,10 +110,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
           </button>
           <button
-            onClick={() => {
-              void fetch('/api/admin/session', { method: 'DELETE' });
+            onClick={async () => {
+              try {
+                await fetch('/api/admin/session', { method: 'DELETE' });
+              } catch {}
+              setAuthenticated(false);
               localStorage.removeItem('admin_token');
-              router.push('/admin/login');
+              router.replace('/admin/login');
             }}
             style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '0.25rem' }}
           >
