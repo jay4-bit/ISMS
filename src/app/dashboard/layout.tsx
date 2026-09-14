@@ -224,11 +224,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       <div className="dash-main" style={{...styles.main, marginLeft: collapsed ? '80px' : '260px'}}>
-        <header style={styles.header}>
-          <button className="dash-menu-btn" onClick={() => setMobileOpen(!mobileOpen)} style={styles.menuBtn}>
-            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+        <header className="dash-header" style={styles.header}>
+          <button className="dash-menu-btn" onClick={() => setMobileOpen(!mobileOpen)} style={styles.menuBtn} aria-label="Toggle navigation menu">
+            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
-          <div style={styles.headerTitle}>
+          <div className="dash-header-title" style={styles.headerTitle}>
             {(() => {
               if (!subscription) return <h1 style={styles.pageTitle}>Dashboard</h1>;
               const subsEnd = subscription.subscriptionEndsAt ? new Date(subscription.subscriptionEndsAt).getTime() : 0;
@@ -243,26 +243,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               const _isExpired = subscription.status === 'EXPIRED' || subscription.status === 'CANCELLED';
               const color = isActive ? '#22c55e' : isTrial ? '#3b82f6' : '#ef4444';
               return (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <span style={{
+                <div className="dash-sub-info" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap', minWidth: 0 }}>
+                  <span className="dash-sub-badge" style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
                     padding: '0.2rem 0.6rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600,
-                    background: `${color}15`, color, border: `1px solid ${color}30`,
+                    background: `${color}15`, color, border: `1px solid ${color}30`, flexShrink: 0,
                   }}>
                     <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, display: 'inline-block' }} />
                     {isActive ? 'Active' : isTrial ? 'Trial' : 'Expired'}
                   </span>
                   {diff > 0 ? (
-                    <span style={{ color: 'var(--foreground)', fontSize: '0.9rem', fontWeight: 600, fontFamily: 'monospace' }}>
+                    <span className="dash-sub-countdown" style={{ color: 'var(--foreground)', fontSize: '0.85rem', fontWeight: 600, fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
                       {days}d {String(hours).padStart(2, '0')}h {String(minutes).padStart(2, '0')}m
                     </span>
                   ) : (
-                    <span style={{ color: '#ef4444', fontSize: '0.9rem', fontWeight: 600 }}>
+                    <span className="dash-sub-countdown" style={{ color: '#ef4444', fontSize: '0.85rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
                       {isActive ? 'Expired' : 'Ended'}
                     </span>
                   )}
                   {endTime > 0 && (
-                    <span style={{ color: 'var(--muted-foreground)', fontSize: '0.8rem' }}>
+                    <span className="dash-sub-date" style={{ color: 'var(--muted-foreground)', fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
                       until {new Date(endTime).toLocaleDateString('en-TZ', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </span>
                   )}
@@ -270,11 +270,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               );
             })()}
           </div>
-          <div style={styles.headerRight}>
-            <div style={styles.uptime} title="Session duration">
+          <div className="dash-header-right" style={styles.headerRight}>
+            <div className="dash-uptime" style={styles.uptime} title="Session duration">
               <span>{uptime}</span>
             </div>
-            <button onClick={toggleTheme} style={styles.themeBtn} title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
+            <button onClick={toggleTheme} className="dash-theme-btn" style={styles.themeBtn} title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`} aria-label="Toggle theme">
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </button>
           </div>

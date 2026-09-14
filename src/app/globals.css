@@ -847,6 +847,97 @@ body {
   border-radius: 4px;
 }
 
+/* Top Bar / Header Styles */
+.dash-header {
+  height: 60px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 0 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.dash-header-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.dash-sub-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.dash-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.dash-theme-btn {
+  width: 36px;
+  height: 36px;
+  min-height: 36px !important;
+  max-height: 36px !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  background: var(--background);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.dash-theme-btn:hover {
+  background: var(--accent);
+  border-color: var(--ring);
+}
+
+.dash-menu-btn {
+  width: 38px;
+  height: 38px;
+  min-height: 38px !important;
+  max-height: 38px !important;
+  padding: 0 !important;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.dash-uptime {
+  display: flex;
+  align-items: center;
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: monospace;
+  letter-spacing: 0.05em;
+  background: color-mix(in srgb, var(--secondary) 50%, transparent);
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border);
+}
+
 @media (max-width: 768px) {
   .dash-backdrop {
     display: block;
@@ -860,6 +951,12 @@ body {
   .dash-main {
     margin-left: 0 !important;
     width: 100% !important;
+  }
+
+  .dash-header {
+    height: 56px !important;
+    padding: 0 0.75rem !important;
+    gap: 0.5rem !important;
   }
 
   .dash-sidebar {
@@ -886,9 +983,6 @@ body {
     color: #3b82f6 !important;
     background: rgba(59, 130, 246, 0.15) !important;
   }
-  .dash-sidebar.open {
-    transform: translateX(0);
-  }
 
   .dash-menu-btn {
     display: flex !important;
@@ -905,6 +999,13 @@ body {
     display: inline !important;
   }
 
+  .dash-sub-date {
+    display: none !important; /* Hide "until DD MMM YYYY" on tablet/mobile to prevent overflow */
+  }
+
+  .dash-sub-countdown {
+    font-size: 0.8rem !important;
+  }
 
   .pos-split {
     display: flex !important;
@@ -935,20 +1036,39 @@ body {
   }
 }
 
+@media (max-width: 640px) {
+  .dash-uptime {
+    display: none !important; /* Hide session duration on mobile to ensure clean fit */
+  }
+}
+
 @media (max-width: 480px) {
   .dash-sidebar {
     width: 100% !important;
     max-width: 300px !important;
   }
+
+  .dash-header {
+    padding: 0 0.5rem !important;
+  }
+
+  .dash-sub-info {
+    gap: 0.35rem !important;
+  }
+
+  .dash-sub-badge {
+    padding: 0.15rem 0.45rem !important;
+    font-size: 0.7rem !important;
+  }
 }
 
-/* Better touch targets on mobile */
+/* Touch targets on mobile without distorting small icon buttons */
 @media (max-width: 768px) {
-  button:not(.btn), .btn, a, select, input, textarea {
-    min-height: 44px;
+  .btn, .input, .select, select, textarea {
+    min-height: 40px;
   }
-  input, select, textarea {
-    font-size: 16px !important;
+  input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+    font-size: 15px !important;
   }
 }
 
