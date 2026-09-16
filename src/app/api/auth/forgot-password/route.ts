@@ -27,7 +27,8 @@ export async function POST(request: NextRequest) {
 
     try {
       await sendPasswordResetCode(user.email, reset.code, user.name);
-    } catch {
+    } catch (emailError) {
+      console.error('EmailJS reset email error:', emailError);
       return NextResponse.json({ error: 'Failed to send reset email. Please contact support.' }, { status: 500 });
     }
 
